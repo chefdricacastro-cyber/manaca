@@ -1,0 +1,2484 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buffet Manacá — Sistema de Orçamentos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --verde:#2F5233;--verde-m:#4A7C59;--verde-claro:#E8F2EB;
+  --creme:#FAF7F2;--creme2:#F0EBE2;--borda:#D5CEC4;
+  --texto:#1C1C1A;--leve:#6B6560;--radius:6px;
+  --amarelo:#FFF8E1;--amarelo-t:#7D5800;
+  --azul:#E3F2FD;--azul-t:#1565C0;
+  --roxo:#F3E5F5;--roxo-t:#6A1B9A;
+  --vermelho:#FFEBEE;--vermelho-t:#C62828;
+  --laranja:#FFF3E0;--laranja-t:#E65100;
+}
+body{font-family:'Inter',sans-serif;background:#f0ede8;color:var(--texto);min-height:100vh}
+
+/* TOPBAR */
+.topbar{background:var(--verde);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100;gap:12px}
+.topbar-brand{font-family:'Cormorant Garamond',serif;font-size:20px;color:#FAF7F2;cursor:pointer;white-space:nowrap}
+.topbar-brand span{font-size:10px;font-family:'Inter',sans-serif;color:#A8C4AD;letter-spacing:1px;margin-left:8px}
+.topbar-nav{display:flex;gap:6px}
+.nav-btn{background:transparent;color:#A8C4AD;border:1px solid #4A7C59;padding:7px 14px;border-radius:4px;font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap}
+.nav-btn:hover,.nav-btn.ativa{background:#fff;color:var(--verde);border-color:#fff}
+.btn-novo{background:#FAF7F2;color:var(--verde);border:none;padding:7px 16px;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap}
+.btn-novo:hover{background:var(--verde-claro)}
+
+/* TELAS */
+.tela{display:none}.tela.ativa{display:block}
+
+/* ===== LISTA ===== */
+.pg-wrap{max-width:940px;margin:0 auto;padding:24px 18px 60px}
+.pg-title{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--verde)}
+.pg-sub{font-size:11px;color:var(--leve);margin-top:2px;margin-bottom:18px}
+.resumo-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
+.resumo-card{background:#fff;border:1px solid var(--borda);border-radius:4px;padding:12px;text-align:center}
+.resumo-card .rn{font-size:22px;font-weight:700;color:var(--verde)}
+.resumo-card .rl{font-size:9px;color:var(--leve);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.busca{width:100%;padding:9px 13px;border:1px solid var(--borda);border-radius:4px;font-family:'Inter',sans-serif;font-size:13px;outline:none;margin-bottom:12px;background:#fff}
+.busca:focus{border-color:var(--verde-m)}
+.filtros{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.fb{padding:5px 13px;border:1px solid var(--borda);border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;background:#fff;color:var(--leve);font-family:'Inter',sans-serif;transition:all .15s}
+.fb.active{background:var(--verde);border-color:var(--verde);color:#fff}
+.empty{text-align:center;padding:50px 20px;color:var(--leve)}
+.empty .ei{font-size:42px;margin-bottom:12px}
+.empty h3{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--verde);margin-bottom:6px}
+.orc-card{background:#fff;border:1px solid var(--borda);border-radius:var(--radius);padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s}
+.orc-card:hover{border-color:var(--verde-m);box-shadow:0 2px 6px #0001}
+.orc-num{font-size:10px;font-weight:700;color:var(--leve);min-width:46px}
+.orc-info{flex:1;min-width:0}
+.orc-nome{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.orc-det{font-size:11px;color:var(--leve);margin-top:2px}
+.orc-valor{font-size:14px;font-weight:700;color:var(--verde);min-width:90px;text-align:right}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.b-rascunho{background:var(--verde-claro);color:var(--verde)}
+.b-chef{background:var(--amarelo);color:var(--amarelo-t)}
+.b-aprovado{background:var(--azul);color:var(--azul-t)}
+.b-enviado{background:var(--roxo);color:var(--roxo-t)}
+.b-cancelado{background:var(--vermelho);color:var(--vermelho-t)}
+.orc-acoes{display:flex;gap:5px}
+.btn-sm{padding:4px 9px;border:1px solid var(--borda);border-radius:3px;font-size:10px;cursor:pointer;background:#fff;color:var(--leve);font-family:'Inter',sans-serif;transition:all .15s}
+.btn-sm:hover{border-color:var(--verde-m);color:var(--verde)}
+.btn-sm.del:hover{border-color:#C62828;color:#C62828}
+
+/* ===== FORMULÁRIO ===== */
+.form-wrap{display:grid;grid-template-columns:1fr 340px;min-height:calc(100vh - 52px)}
+@media(max-width:820px){.form-wrap{grid-template-columns:1fr}}
+.form-left{padding:20px 20px 60px;overflow-y:auto;max-height:calc(100vh - 52px)}
+.form-right{background:#fff;border-left:1px solid var(--borda);padding:18px;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;display:flex;flex-direction:column}
+.section{background:#fff;border:1px solid var(--borda);border-radius:var(--radius);margin-bottom:12px;overflow:hidden}
+.sh{background:var(--verde);padding:10px 15px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.sh h3{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#fff}
+.sh .arr{color:#A8C4AD;font-size:12px;transition:transform .2s}
+.sh.open .arr{transform:rotate(180deg)}
+.sb{padding:14px;display:none}.sb.open{display:block}
+.field{margin-bottom:10px}
+label.fl{display:block;font-size:10px;font-weight:500;color:var(--leve);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px}
+input[type=text],input[type=date],input[type=number],input[type=tel],textarea,select{width:100%;padding:7px 10px;border:1px solid var(--borda);border-radius:4px;font-family:'Inter',sans-serif;font-size:13px;color:var(--texto);outline:none;transition:border-color .15s;background:#fff}
+input:focus,textarea:focus,select:focus{border-color:var(--verde-m);box-shadow:0 0 0 2px #4A7C5918}
+textarea{resize:vertical;min-height:60px}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%234A7C59' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+
+/* TIPO EVENTO */
+.tipo-grid{display:flex;flex-wrap:wrap;gap:5px}
+.tc input{display:none}
+.tc label{display:block;padding:5px 11px;border:1px solid var(--borda);border-radius:20px;font-size:11px;color:var(--leve);cursor:pointer;transition:all .15s}
+.tc input:checked+label{background:var(--verde);border-color:var(--verde);color:#fff}
+.tc label:hover{border-color:var(--verde-m);color:var(--verde)}
+
+/* PREÇO SUGERIDO */
+.preco-sugerido{background:var(--verde-claro);border:1px solid #C5DABC;border-radius:4px;padding:10px 12px;margin-top:8px;font-size:12px;color:var(--verde)}
+.preco-sugerido strong{font-size:14px}
+
+/* CONVIDADOS */
+.conv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.conv-item{background:var(--creme);border:1px solid var(--borda);border-radius:4px;padding:8px;text-align:center}
+.conv-label{font-size:9px;color:var(--leve);font-weight:500;text-transform:uppercase;margin-bottom:3px;line-height:1.3}
+.conv-item input{text-align:center;font-size:16px;font-weight:700;border:none;background:transparent;color:var(--verde);padding:0;width:100%;outline:none}
+.conv-sub{font-size:8px;color:var(--leve);margin-top:2px}
+
+/* ADICIONAIS */
+.adicional-item{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border:1px solid var(--borda);border-radius:4px;margin-bottom:6px;background:#fff;cursor:pointer;transition:all .15s;user-select:none}
+.adicional-item:hover{border-color:var(--verde-m)}
+.adicional-item.ativo{border-color:var(--verde);background:var(--verde-claro)}
+.adicional-item input[type=checkbox]{accent-color:var(--verde);width:15px;height:15px;flex-shrink:0;cursor:pointer}
+.adicional-esq{display:flex;align-items:center;gap:8px;flex:1}
+.adicional-nome{font-size:12px;font-weight:500}
+.adicional-desc{font-size:10px;color:var(--leve);margin-top:1px}
+.adicional-val{font-size:12px;font-weight:700;color:var(--verde);white-space:nowrap;margin-left:8px}
+.adicional-val.negativo{color:#C62828}
+.adicional-custom{display:none;margin-top:6px;padding:8px;background:var(--creme);border-radius:4px}
+.adicional-custom.vis{display:block}
+
+/* MÃO DE OBRA */
+.mdo-box{background:#1a1a18;border-radius:4px;padding:12px 14px;margin-bottom:12px}
+.mdo-titulo{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#A8C4AD;margin-bottom:10px}
+.mdo-linha{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px}
+.mdo-linha span:first-child{color:#A8C4AD}
+.mdo-linha span:last-child{color:#fff;font-weight:600}
+.mdo-total{border-top:1px solid #333;padding-top:8px;margin-top:6px;display:flex;justify-content:space-between}
+.mdo-total span:first-child{color:#A8C4AD;font-size:12px}
+.mdo-total span:last-child{color:#4ADE80;font-size:16px;font-weight:700}
+.mdo-aviso{font-size:9px;color:#666;margin-top:6px;font-style:italic}
+
+/* CARDÁPIO */
+.cat-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--verde);margin:12px 0 5px;padding-bottom:4px;border-bottom:1px solid var(--verde-claro)}
+.cat-title:first-child{margin-top:0}
+.item-row{display:flex;align-items:center;margin-bottom:1px;border-radius:4px;transition:background .1s}
+.item-row:hover{background:var(--creme)}
+.item-check{display:flex;align-items:center;gap:7px;flex:1;padding:5px 5px 5px 7px;cursor:pointer}
+.item-check input[type=checkbox]{accent-color:var(--verde);width:13px;height:13px;flex-shrink:0}
+.item-check span{font-size:11.5px;line-height:1.3}
+.preco-iw{display:flex;align-items:center;gap:3px;padding-right:7px;flex-shrink:0}
+.preco-iw em{font-size:9px;color:var(--leve);font-style:normal}
+.preco-item{width:62px;padding:3px 4px;font-size:11px;font-weight:600;color:var(--verde);border:1px solid var(--borda);border-radius:3px;text-align:right;background:#fff;font-family:'Inter',sans-serif}
+.preco-item:focus{border-color:var(--verde-m);outline:none}
+.sel-all{font-size:9px;color:var(--verde-m);cursor:pointer;text-decoration:underline;margin-right:6px}
+.custo-box{background:#1a1a18;border-radius:4px;padding:10px 12px;margin-bottom:12px}
+.custo-linha{display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px}
+.custo-linha span:first-child{color:#A8C4AD}
+.custo-linha span:last-child{color:#fff;font-weight:600}
+.custo-tot{border-top:1px solid #333;padding-top:7px;margin-top:4px;display:flex;justify-content:space-between}
+.custo-tot span:first-child{color:#A8C4AD;font-size:11px}
+.custo-tot span:last-child{color:#4ADE80;font-size:15px;font-weight:700}
+
+/* SERVIÇOS */
+.sv-item{display:flex;align-items:flex-start;gap:7px;padding:5px 7px;border-radius:4px;cursor:pointer;margin-bottom:1px}
+.sv-item:hover{background:var(--creme)}
+.sv-item input{accent-color:var(--verde);width:13px;height:13px;margin-top:1px;flex-shrink:0}
+.sv-item span{font-size:11.5px;line-height:1.3}
+
+/* STATUS */
+.status-opts{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.so input{display:none}
+.so label{display:block;padding:4px 11px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;border:2px solid transparent;transition:all .15s}
+.so input:checked+label{border-color:currentColor}
+.so-r label{color:var(--verde);background:var(--verde-claro)}
+.so-c label{color:var(--amarelo-t);background:var(--amarelo)}
+.so-a label{color:var(--azul-t);background:var(--azul)}
+.so-e label{color:var(--roxo-t);background:var(--roxo)}
+.so-x label{color:var(--vermelho-t);background:var(--vermelho)}
+
+/* TOTAIS */
+.totais-bloco{background:var(--creme);border:1px solid var(--borda);border-radius:4px;padding:10px 12px;margin-top:8px}
+.tot-linha{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--borda)}
+.tot-linha:last-child{border-bottom:none;font-size:14px;font-weight:700;color:var(--verde);padding-top:8px}
+
+/* PREVIEW */
+.preview-title{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--verde);margin-bottom:2px}
+.preview-sub{font-size:10px;color:var(--leve);margin-bottom:12px}
+.preview-box{flex:1;background:var(--creme);border:1px solid var(--borda);border-radius:4px;padding:12px;overflow-y:auto;font-size:10.5px;line-height:1.65;min-height:140px}
+.pv-logo{font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--verde);font-weight:600;text-align:center}
+.pv-sub{text-align:center;font-size:8.5px;color:var(--leve);margin-bottom:8px;padding-bottom:7px;border-bottom:2px solid var(--verde)}
+.pv-sec{font-weight:700;text-transform:uppercase;font-size:8.5px;letter-spacing:1.5px;color:var(--verde);margin:9px 0 3px}
+.pv-it{padding-left:7px;font-size:10px;line-height:1.5}
+.pv-tot{background:var(--verde);color:#fff;padding:6px 9px;border-radius:3px;margin-top:9px;display:flex;justify-content:space-between;font-weight:700;font-size:11px}
+
+.btn-salvar{width:100%;padding:11px;background:var(--verde);color:#fff;border:none;border-radius:4px;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;cursor:pointer;margin-top:10px;transition:background .15s}
+.btn-salvar:hover{background:var(--verde-m)}
+.btn-pdf{width:100%;padding:8px;background:#fff;color:var(--verde);border:1.5px solid var(--verde);border-radius:4px;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;cursor:pointer;margin-top:5px;transition:all .15s}
+.btn-pdf:hover{background:var(--verde-claro)}
+.btn-voltar{background:none;border:none;color:var(--leve);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;padding:0;margin-bottom:10px;display:flex;align-items:center;gap:3px}
+.btn-voltar:hover{color:var(--verde)}
+
+/* AGENDA */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-nav h2{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--verde);text-transform:capitalize}
+.cal-nb{background:#fff;border:1px solid var(--borda);border-radius:4px;width:32px;height:32px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--leve)}
+.cal-nb:hover{border-color:var(--verde-m);color:var(--verde)}
+.cal-grid{background:#fff;border:1px solid var(--borda);border-radius:var(--radius);overflow:hidden}
+.cal-wd{display:grid;grid-template-columns:repeat(7,1fr);background:var(--verde)}
+.cal-wd div{text-align:center;padding:7px 3px;font-size:9px;font-weight:600;letter-spacing:1px;color:#A8C4AD;text-transform:uppercase}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr)}
+.cal-day{min-height:68px;border-right:1px solid var(--borda);border-bottom:1px solid var(--borda);padding:5px;transition:background .1s}
+.cal-day:nth-child(7n){border-right:none}
+.cal-day.om{background:#f9f9f7}
+.cal-day.hj{background:var(--verde-claro)}
+.cal-day.te{cursor:pointer}.cal-day.te:hover{background:var(--creme2)}
+.cal-dn{font-size:11px;font-weight:600;color:var(--leve);margin-bottom:3px}
+.cal-day.hj .cal-dn{background:var(--verde);color:#fff;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px}
+.cal-day.om .cal-dn{color:#ccc}
+.pill{font-size:8.5px;font-weight:600;padding:1px 4px;border-radius:2px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+.pl-r{background:var(--verde-claro);color:var(--verde)}
+.pl-c{background:var(--amarelo);color:var(--amarelo-t)}
+.pl-a{background:var(--azul);color:var(--azul-t)}
+.pl-e{background:var(--roxo);color:var(--roxo-t)}
+.pl-x{background:var(--vermelho);color:var(--vermelho-t)}
+.ag-layout{display:grid;grid-template-columns:1fr 290px;gap:18px;margin-top:18px}
+@media(max-width:760px){.ag-layout{grid-template-columns:1fr}}
+.ag-side{display:flex;flex-direction:column;gap:10px}
+.ag-card{background:#fff;border:1px solid var(--borda);border-radius:var(--radius);padding:14px}
+.ag-card h3{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--verde);margin-bottom:10px}
+.rs-linha{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--borda);font-size:11px}
+.rs-linha:last-child{border-bottom:none}
+.prox-item{padding:9px;border-radius:4px;margin-bottom:7px;cursor:pointer;border:1px solid var(--borda);transition:all .15s}
+.prox-item:hover{border-color:var(--verde-m);box-shadow:0 1px 4px #0001}
+.prox-data{font-size:9px;font-weight:700;color:var(--leve);text-transform:uppercase;margin-bottom:2px}
+.prox-nome{font-size:12px;font-weight:600}
+.prox-det{font-size:10px;color:var(--leve);margin-top:1px}
+.leg{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.leg-i{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--leve)}
+.leg-d{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+
+@media(max-width:500px){.resumo-cards{grid-template-columns:1fr 1fr 1fr}}
+.gcal-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:#fff;border:1px solid var(--borda);border-radius:4px;font-size:11px;font-weight:500;cursor:pointer;font-family:"Inter",sans-serif;color:var(--texto);transition:all .15s;margin-top:6px}
+.gcal-btn:hover{border-color:var(--verde-m);color:var(--verde)}
+.gcal-btn.conectado{background:var(--verde-claro);border-color:var(--verde);color:var(--verde)}
+.gcal-status{font-size:10px;color:var(--leve);margin-top:4px}
+.gcal-bar{background:#fff;border-bottom:1px solid var(--borda);padding:8px 20px;display:flex;align-items:center;gap:12px;font-size:11px}
+.gcal-bar-info{color:var(--leve)}
+.gcal-bar-info strong{color:var(--verde)}
+
+
+/* ===== CONTRATOS ===== */
+.contr-layout{display:grid;grid-template-columns:1fr 380px;gap:18px;margin-top:18px}
+@media(max-width:860px){.contr-layout{grid-template-columns:1fr}}
+.contr-form{display:flex;flex-direction:column;gap:12px}
+.contr-preview-wrap{position:sticky;top:52px;height:calc(100vh - 80px);display:flex;flex-direction:column;gap:10px}
+.contr-preview-box{flex:1;background:#fff;border:1px solid var(--borda);border-radius:var(--radius);padding:16px;overflow-y:auto;font-size:11px;line-height:1.75;color:var(--texto)}
+.contr-preview-box h1{font-size:14px;font-weight:700;text-align:center;margin-bottom:4px;color:var(--verde)}
+.contr-preview-box .sub-header{text-align:center;font-size:10px;color:var(--leve);margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--verde)}
+.contr-preview-box .cl-sec{font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--verde);margin:12px 0 4px}
+.contr-preview-box .cl-body{font-size:10.5px;line-height:1.7;text-align:justify}
+.contr-preview-box .cl-assin{margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:20px;text-align:center;font-size:10px}
+.contr-preview-box .assin-linha{border-top:1px solid var(--texto);padding-top:6px;margin-top:24px}
+.contr-preview-box table{width:100%;border-collapse:collapse;margin:8px 0;font-size:10px}
+.contr-preview-box th{background:var(--verde);color:#fff;padding:4px 8px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.5px}
+.contr-preview-box td{padding:4px 8px;border-bottom:1px solid var(--borda)}
+.contr-preview-box .total-row td{font-weight:700;color:var(--verde);border-top:2px solid var(--verde)}
+.contr-card{background:#fff;border:1px solid var(--borda);border-radius:var(--radius);padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s}
+.contr-card:hover{border-color:var(--verde-m);box-shadow:0 2px 6px #0001}
+.bc-aguardando{background:#FFF3E0;color:#E65100}
+.bc-assinado{background:var(--azul);color:var(--azul-t)}
+.bc-encerrado{background:var(--verde-claro);color:var(--verde)}
+.bc-cancelado{background:var(--vermelho);color:var(--vermelho-t)}
+.crianca-row{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:6px;align-items:center}
+.crianca-row input{font-size:12px;padding:6px 10px}
+.btn-add-crianca{background:var(--verde-claro);color:var(--verde);border:1px solid var(--verde-m);border-radius:4px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;width:100%;margin-top:4px}
+.btn-add-crianca:hover{background:var(--verde);color:#fff}
+.btn-rem-crianca{background:none;border:none;color:var(--leve);cursor:pointer;font-size:16px;padding:0 4px}
+.btn-rem-crianca:hover{color:#C62828}
+.pix-opts{display:flex;gap:8px;margin-top:6px}
+.pix-opt input{display:none}
+.pix-opt label{display:block;padding:7px 14px;border:1px solid var(--borda);border-radius:4px;font-size:12px;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;color:var(--leve)}
+.pix-opt input:checked+label{background:var(--verde);border-color:var(--verde);color:#fff}
+.pix-opt label:hover{border-color:var(--verde-m);color:var(--verde)}
+.btn-gerar-contr{width:100%;padding:11px;background:var(--verde);color:#fff;border:none;border-radius:4px;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:background .15s}
+.btn-gerar-contr:hover{background:var(--verde-m)}
+.btn-pdf-contr{width:100%;padding:8px;background:#fff;color:var(--verde);border:1.5px solid var(--verde);border-radius:4px;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;cursor:pointer;margin-top:5px;transition:all .15s}
+.btn-pdf-contr:hover{background:var(--verde-claro)}
+.orc-link-badge{display:inline-block;background:var(--amarelo);color:var(--amarelo-t);font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;margin-left:6px}
+
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand" onclick="irLista()">Buffet Manacá <span>ORÇAMENTOS</span></div>
+  <div class="topbar-nav">
+    <button class="nav-btn ativa" id="nav-lista" onclick="irLista()">📋 Orçamentos</button>
+    <button class="nav-btn" id="nav-contratos" onclick="irContratos()">📄 Contratos</button>
+    <button class="nav-btn" id="nav-agenda" onclick="irAgenda()">📅 Agenda</button>
+  </div>
+  <button class="btn-novo" onclick="novoOrc()">+ Novo</button>
+</div>
+<div class="gcal-bar" id="gcal-bar">
+  <span id="gcal-bar-status" class="gcal-bar-info">📅 Google Agenda: <strong>Não conectado</strong></span>
+  <button class="gcal-btn" id="gcal-btn-conectar" onclick="conectarGoogle()">🔗 Conectar Google Agenda</button>
+  <button class="gcal-btn conectado" id="gcal-btn-desconectar" onclick="desconectarGoogle()" style="display:none">✓ Conectado · Desconectar</button>
+</div>
+
+<!-- ===== LISTA ===== -->
+<div class="tela ativa" id="tela-lista">
+  <div class="pg-wrap">
+    <div class="pg-title">Orçamentos</div>
+    <div class="pg-sub">Chef Drica Castro · @dricacastro.chef · Londrina–PR</div>
+    <div class="resumo-cards">
+      <div class="resumo-card"><div class="rn" id="r-tot">0</div><div class="rl">Total</div></div>
+      <div class="resumo-card"><div class="rn" id="r-chef">0</div><div class="rl">Ag. Chef</div></div>
+      <div class="resumo-card"><div class="rn" id="r-aprov">0</div><div class="rl">Aprovados</div></div>
+      <div class="resumo-card"><div class="rn" id="r-env">0</div><div class="rl">Enviados</div></div>
+      <div class="resumo-card"><div class="rn" id="r-val">0</div><div class="rl">Em aberto R$</div></div>
+    </div>
+    <input class="busca" placeholder="Buscar cliente, evento, local..." oninput="renderLista(this.value)">
+    <div class="filtros">
+      <button class="fb active" onclick="setFiltro('todos',this)">Todos</button>
+      <button class="fb" onclick="setFiltro('Rascunho',this)">Rascunho</button>
+      <button class="fb" onclick="setFiltro('Ag. Chef',this)">Ag. Chef</button>
+      <button class="fb" onclick="setFiltro('Aprovado',this)">Aprovado</button>
+      <button class="fb" onclick="setFiltro('Enviado ao Cliente',this)">Enviado</button>
+      <button class="fb" onclick="setFiltro('Cancelado',this)">Cancelado</button>
+    </div>
+    <div id="lista-orcs"></div>
+  </div>
+</div>
+
+<!-- ===== FORMULÁRIO ===== -->
+<div class="tela" id="tela-form">
+  <div class="form-wrap">
+    <div class="form-left">
+      <button class="btn-voltar" onclick="irLista()">← Voltar</button>
+
+      <!-- STATUS -->
+      <div class="section">
+        <div class="sh open" onclick="tog(this)"><h3>Status</h3><span class="arr">▼</span></div>
+        <div class="sb open">
+          <div class="status-opts">
+            <div class="so so-r"><input type="radio" name="status" id="st1" value="Rascunho" checked><label for="st1">Rascunho</label></div>
+            <div class="so so-c"><input type="radio" name="status" id="st2" value="Ag. Chef"><label for="st2">Ag. Chef</label></div>
+            <div class="so so-a"><input type="radio" name="status" id="st3" value="Aprovado"><label for="st3">Aprovado</label></div>
+            <div class="so so-e"><input type="radio" name="status" id="st4" value="Enviado ao Cliente"><label for="st4">Enviado ao Cliente</label></div>
+            <div class="so so-x"><input type="radio" name="status" id="st5" value="Cancelado"><label for="st5">Cancelado</label></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label class="fl">Nº do orçamento</label><input type="text" id="num_orc" placeholder="ex: 001/2026" oninput="atualizar()"></div>
+            <div class="field"><label class="fl">Validade</label><input type="date" id="validade" oninput="atualizar()"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLIENTE -->
+      <div class="section">
+        <div class="sh open" onclick="tog(this)"><h3>① Cliente</h3><span class="arr">▼</span></div>
+        <div class="sb open">
+          <div class="row2">
+            <div class="field"><label class="fl">Nome</label><input type="text" id="cli_nome" placeholder="Nome completo" oninput="atualizar()"></div>
+            <div class="field"><label class="fl">WhatsApp</label><input type="tel" id="cli_fone" placeholder="(43) 99999-0000" oninput="atualizar()"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label class="fl">E-mail</label><input type="text" id="cli_email" placeholder="opcional" oninput="atualizar()"></div>
+            <div class="field">
+              <label class="fl">Tipo de cliente</label>
+              <select id="cli_tipo" onchange="calcTotal()">
+                <option value="PF">Pessoa Física (PF)</option>
+                <option value="PJ">Pessoa Jurídica — PJ (+10%)</option>
+              </select>
+            </div>
+          </div>
+          <div id="pj-aviso" style="display:none;background:var(--amarelo);border-radius:4px;padding:7px 10px;font-size:11px;color:var(--amarelo-t);margin-top:4px">⚠️ Cliente PJ: acréscimo de 10% sobre o total (nota fiscal)</div>
+        </div>
+      </div>
+
+      <!-- EVENTO -->
+      <div class="section">
+        <div class="sh open" onclick="tog(this)"><h3>② Evento</h3><span class="arr">▼</span></div>
+        <div class="sb open">
+          <div class="field">
+            <label class="fl">Tipo de evento</label>
+            <div class="tipo-grid">
+              <div class="tc"><input type="radio" name="tipo" id="tp1" value="Casamento" onchange="onTipoChange()"><label for="tp1">Casamento</label></div>
+              <div class="tc"><input type="radio" name="tipo" id="tp2" value="Jantar" onchange="onTipoChange()"><label for="tp2">Jantar</label></div>
+              <div class="tc"><input type="radio" name="tipo" id="tp3" value="Festa Infantil" onchange="onTipoChange()"><label for="tp3">Festa Infantil</label></div>
+              <div class="tc"><input type="radio" name="tipo" id="tp4" value="Coquetel" onchange="onTipoChange()"><label for="tp4">Coquetel</label></div>
+              <div class="tc"><input type="radio" name="tipo" id="tp5" value="Coffee Break" onchange="onTipoChange()"><label for="tp5">Coffee Break</label></div>
+              <div class="tc"><input type="radio" name="tipo" id="tp6" value="Feijoada" onchange="onTipoChange()"><label for="tp6">Feijoada</label></div>
+              <div class="tc"><input type="radio" name="tipo" id="tp7" value="Churrasco" onchange="onTipoChange()"><label for="tp7">Churrasco</label></div>
+              <div class="tc"><input type="radio" name="tipo" id="tp8" value="Treinamento Corporativo" onchange="onTipoChange()"><label for="tp8">Treinamento</label></div>
+              <div class="tc"><input type="radio" name="tipo" id="tp9" value="Aniversário" onchange="onTipoChange()"><label for="tp9">Aniversário</label></div>
+            </div>
+            <div id="preco-sugerido" class="preco-sugerido" style="display:none"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label class="fl">Data</label><input type="date" id="ev_data" oninput="atualizar()"></div>
+            <div class="field">
+              <label class="fl">Início</label>
+              <input type="time" id="ev_hora_inicio" oninput="calcDuracao();atualizar()">
+            </div>
+            <div class="field">
+              <label class="fl">Fim</label>
+              <input type="time" id="ev_hora_fim" oninput="calcDuracao();atualizar()">
+            </div>
+          </div>
+          <div class="row2">
+            <div class="field"><label class="fl">Local</label><input type="text" id="ev_local" placeholder="Salão, residência..." oninput="atualizar()"></div>
+            <div class="field">
+              <label class="fl">Duração</label>
+              <input type="text" id="ev_duracao" placeholder="calculada automaticamente" readonly style="background:var(--verde-claro);color:var(--verde);font-weight:600;cursor:default">
+            </div>
+          </div>
+          <div class="field"><label class="fl">Observações</label><textarea id="ev_obs" rows="2" placeholder="Tema, pedidos, restrições alimentares..." oninput="atualizar()"></textarea></div>
+        </div>
+      </div>
+
+      <!-- CONVIDADOS -->
+      <div class="section">
+        <div class="sh open" onclick="tog(this)"><h3>③ Convidados e Valor Base</h3><span class="arr">▼</span></div>
+        <div class="sb open">
+          <div class="conv-grid">
+            <div class="conv-item"><div class="conv-label">Adultos</div><input type="number" id="n_adultos" value="0" min="0" oninput="onConvChange()"><div class="conv-sub">acima de 9 anos</div></div>
+            <div class="conv-item"><div class="conv-label">Crianças 5–9</div><input type="number" id="n_c59" value="0" min="0" oninput="calcTotal()"><div class="conv-sub">50%</div></div>
+            <div class="conv-item"><div class="conv-label">Crianças 0–4</div><input type="number" id="n_c04" value="0" min="0" oninput="calcTotal()"><div class="conv-sub">grátis</div></div>
+            <div class="conv-item"><div class="conv-label">Staff</div><input type="number" id="n_staff" value="0" min="0" oninput="calcTotal()"><div class="conv-sub">50%</div></div>
+          </div>
+          <div id="min-aviso" style="display:none;background:var(--vermelho);border-radius:4px;padding:6px 10px;font-size:11px;color:var(--vermelho-t);margin-bottom:8px">⚠️ Mínimo de 35 pessoas para este evento.</div>
+          <div class="field">
+            <label class="fl">Valor por pessoa (R$) <span style="font-weight:300;text-transform:none;font-size:9px">— ajuste se necessário</span></label>
+            <input type="text" id="preco_pp" placeholder="ex: 165,00" oninput="calcTotal()" style="font-size:15px;font-weight:700;color:var(--verde)">
+          </div>
+          <div id="totais-det" style="font-size:10px;color:var(--leve);margin-top:4px"></div>
+        </div>
+      </div>
+
+      <!-- ADICIONAIS -->
+      <div class="section">
+        <div class="sh open" onclick="tog(this)"><h3>④ Adicionais</h3><span class="arr">▼</span></div>
+        <div class="sb open" id="adicionais-body">
+          <!-- gerado por JS -->
+        </div>
+      </div>
+
+      <!-- MÃO DE OBRA (interno) -->
+      <div class="section">
+        <div class="sh open" onclick="tog(this)"><h3>⑤ Mão de Obra — Uso Interno</h3><span class="arr">▼</span></div>
+        <div class="sb open">
+          <div class="mdo-box">
+            <div class="mdo-titulo">🔒 Não aparece no PDF — referência de custo interno</div>
+            <div class="mdo-linha"><span>Produção na cozinha</span><span id="mdo-producao">—</span></div>
+            <div class="mdo-linha"><span>Garçons necessários</span><span id="mdo-garcoes">—</span></div>
+            <div class="mdo-linha"><span>Custo garçons</span><span id="mdo-custo-g">—</span></div>
+            <div class="mdo-linha"><span>Auxiliar de cozinha</span><span id="mdo-aux">—</span></div>
+            <div class="mdo-total"><span>Custo total mão de obra</span><span id="mdo-total">R$ 0,00</span></div>
+            <div class="mdo-aviso">Regra: a cada 35 pessoas → 2 garçons (R$250 cada) + 1 auxiliar (R$500) + produção R$220/dia</div>
+          </div>
+          <div class="field"><label class="fl">Observações de equipe</label><textarea id="mdo_obs" rows="2" placeholder="ex: Tita trabalha na produção, 2 meninas no evento..." oninput="atualizar()"></textarea></div>
+        </div>
+      </div>
+
+      <!-- CARDÁPIO -->
+      <div class="section">
+        <div class="sh open" onclick="tog(this)"><h3>⑥ Cardápio do Evento</h3><span class="arr">▼</span></div>
+        <div class="sb open">
+          <div class="custo-box">
+            <div class="mdo-titulo">🔒 Custo interno dos itens — não aparece no PDF</div>
+            <div class="custo-linha"><span>Itens selecionados</span><span id="ci-itens">—</span></div>
+            <div class="custo-linha"><span>Custo por pessoa</span><span id="ci-pp">R$ 0,00</span></div>
+            <div class="custo-tot"><span>Custo total (× adultos)</span><span id="ci-total">R$ 0,00</span></div>
+          </div>
+          <div id="sugestao-menu-wrap" style="display:none;margin-bottom:12px">
+        <div style="font-size:10px;font-weight:600;color:var(--verde);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">💡 Sugestão de cardápio para <span id="sugestao-tipo-label">este evento</span></div>
+        <div style="display:flex;gap:8px">
+          <button id="btn-sugestao-padrao" onclick="aplicarSugestaoMenu('padrao')" style="flex:1;padding:9px;background:var(--verde-claro);color:var(--verde);border:1.5px solid var(--verde-m);border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s">
+            ⭐ Opção Padrão
+          </button>
+          <button id="btn-sugestao-premium" onclick="aplicarSugestaoMenu('premium')" style="flex:1;padding:9px;background:var(--verde);color:#fff;border:1.5px solid var(--verde);border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s">
+            ✨ Opção Premium
+          </button>
+        </div>
+        <div style="font-size:9px;color:var(--leve);margin-top:5px">Baseado nos eventos reais do Buffet Manacá · Você pode ajustar manualmente depois</div>
+      </div>
+      <div id="cardapio-body"></div>
+        </div>
+      </div>
+
+      <!-- SERVIÇOS -->
+      <div class="section">
+        <div class="sh open" onclick="tog(this)"><h3>⑦ Serviços Inclusos</h3><span class="arr">▼</span></div>
+        <div class="sb open" id="servicos-body"></div>
+      </div>
+
+      <!-- OBS -->
+      <div class="section">
+        <div class="sh open" onclick="tog(this)"><h3>⑧ Observações Finais</h3><span class="arr">▼</span></div>
+        <div class="sb open">
+          <div class="field"><label class="fl">Condições de pagamento</label><input type="text" id="cond_pgto" value="10% na assinatura do contrato + saldo até 2 dias antes do evento" oninput="atualizar()"></div>
+          <div class="field"><label class="fl">Observações finais</label><textarea id="obs_final" rows="3" oninput="atualizar()">Estamos abertos a sugestões e alterações. Desde já obrigada pelo contato!</textarea></div>
+        </div>
+      </div>
+    </div><!-- /form-left -->
+
+    <!-- PREVIEW -->
+    <div class="form-right">
+      <div class="preview-title">Prévia do orçamento</div>
+      <div class="preview-sub">Atualiza em tempo real</div>
+      <div class="preview-box" id="preview"></div>
+      <div class="totais-bloco" id="totais-bloco">
+        <div class="tot-linha"><span>Subtotal base</span><span id="tot-base">R$ 0,00</span></div>
+        <div class="tot-linha" id="tot-add-row" style="display:none"><span>Adicionais</span><span id="tot-add">R$ 0,00</span></div>
+        <div class="tot-linha" id="tot-desc-row" style="display:none"><span style="color:#2E7D32">Desconto (sem bebida)</span><span id="tot-desc" style="color:#2E7D32">-R$ 0,00</span></div>
+        <div class="tot-linha" id="tot-pj-row" style="display:none"><span>PJ +10% (nota fiscal)</span><span id="tot-pj">R$ 0,00</span></div>
+        <div class="tot-linha"><span>TOTAL GERAL</span><span id="total_geral">R$ 0,00</span></div>
+      </div>
+      <div style="font-size:10px;color:var(--leve);margin-top:4px" id="sinal-info"></div>
+      <button class="btn-salvar" onclick="salvarOrc()">💾 Salvar orçamento</button>
+      <button class="btn-pdf" onclick="gerarPDF()">⬇ Baixar PDF</button>
+      <button class="btn-pdf" onclick="imprimirPreview()" style="margin-top:4px;font-size:10px;padding:7px">🖨 Imprimir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== AGENDA ===== -->
+<div class="tela" id="tela-agenda">
+  <div class="pg-wrap">
+    <div class="pg-title">Agenda</div>
+    <div class="pg-sub">Baseada nos orçamentos salvos</div>
+    <div class="ag-layout">
+      <div>
+        <div class="cal-nav">
+          <button class="cal-nb" onclick="mudarMes(-1)">‹</button>
+          <h2 id="cal-titulo"></h2>
+          <button class="cal-nb" onclick="mudarMes(1)">›</button>
+        </div>
+        <div class="cal-grid">
+          <div class="cal-wd"><div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div></div>
+          <div class="cal-days" id="cal-days"></div>
+        </div>
+        <div class="leg">
+          <div class="leg-i"><div class="leg-d" style="background:var(--verde-claro);border:1px solid var(--verde)"></div>Rascunho</div>
+          <div class="leg-i"><div class="leg-d" style="background:var(--amarelo)"></div>Ag. Chef</div>
+          <div class="leg-i"><div class="leg-d" style="background:var(--azul)"></div>Aprovado</div>
+          <div class="leg-i"><div class="leg-d" style="background:var(--roxo)"></div>Enviado</div>
+          <div class="leg-i"><div class="leg-d" style="background:var(--vermelho)"></div>Cancelado</div>
+        </div>
+      </div>
+      <div class="ag-side">
+        <div class="ag-card"><h3 id="rs-titulo">Este mês</h3><div id="rs-conteudo"></div></div>
+        <div class="ag-card" style="flex:1"><h3>Próximos eventos</h3><div id="prox-lista"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TELA: CONTRATOS ===== -->
+<div class="tela" id="tela-contratos">
+  <div class="pg-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div>
+        <div class="pg-title">Contratos</div>
+        <div class="pg-sub">Histórico e geração de contratos · Buffet Manacá</div>
+      </div>
+      <button class="btn-novo" onclick="novoContrato()">+ Novo contrato</button>
+    </div>
+
+    <!-- RESUMO -->
+    <div class="resumo-cards" style="grid-template-columns:repeat(4,1fr);margin-top:16px">
+      <div class="resumo-card"><div class="rn" id="rc-tot">0</div><div class="rl">Total</div></div>
+      <div class="resumo-card"><div class="rn" id="rc-ag">0</div><div class="rl">Ag. Assinatura</div></div>
+      <div class="resumo-card"><div class="rn" id="rc-ass">0</div><div class="rl">Assinados</div></div>
+      <div class="resumo-card"><div class="rn" id="rc-enc">0</div><div class="rl">Encerrados</div></div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="filtros" style="margin-top:14px">
+      <button class="fb active" onclick="setFiltroContr('todos',this)">Todos</button>
+      <button class="fb" onclick="setFiltroContr('Ag. Assinatura',this)">Ag. Assinatura</button>
+      <button class="fb" onclick="setFiltroContr('Assinado',this)">Assinados</button>
+      <button class="fb" onclick="setFiltroContr('Encerrado',this)">Encerrados</button>
+      <button class="fb" onclick="setFiltroContr('Cancelado',this)">Cancelados</button>
+    </div>
+    <input class="busca" placeholder="Buscar contratante, evento..." oninput="renderContratos(this.value)" style="margin-top:10px">
+    <div id="lista-contratos"></div>
+  </div>
+</div>
+
+<!-- ===== TELA: FORMULÁRIO CONTRATO ===== -->
+<div class="tela" id="tela-contr-form">
+  <div class="pg-wrap" style="max-width:1100px">
+    <button class="btn-voltar" onclick="irContratos()" style="margin-bottom:12px">← Voltar para contratos</button>
+    <div class="contr-layout">
+
+      <!-- FORM ESQUERDA -->
+      <div class="contr-form">
+
+        <!-- STATUS CONTRATO -->
+        <div class="section">
+          <div class="sh open" onclick="tog(this)"><h3>Status do Contrato</h3><span class="arr">▼</span></div>
+          <div class="sb open">
+            <div class="status-opts">
+              <div class="so" style="--sc:#E65100;--sb:#FFF3E0"><input type="radio" name="cstatus" id="cs1" value="Ag. Assinatura" checked><label for="cs1" style="color:#E65100;background:#FFF3E0">Ag. Assinatura</label></div>
+              <div class="so so-a"><input type="radio" name="cstatus" id="cs2" value="Assinado"><label for="cs2">Assinado</label></div>
+              <div class="so so-r"><input type="radio" name="cstatus" id="cs3" value="Encerrado"><label for="cs3">Encerrado</label></div>
+              <div class="so so-x"><input type="radio" name="cstatus" id="cs4" value="Cancelado"><label for="cs4">Cancelado</label></div>
+            </div>
+            <div class="row2" style="margin-top:10px">
+              <div class="field"><label class="fl">Nº do contrato</label><input type="text" id="cnum" placeholder="ex: 001/2026" oninput="renderContrPreview()"></div>
+              <div class="field"><label class="fl">Data de assinatura</label><input type="date" id="cdata_ass" oninput="renderContrPreview()"></div>
+            </div>
+            <div class="field">
+              <label class="fl">Orçamento vinculado <span style="font-weight:300;text-transform:none">(opcional)</span></label>
+              <select id="corc_vinc" onchange="preencherDoOrc()">
+                <option value="">— Nenhum / preencher manualmente —</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTRATANTE -->
+        <div class="section">
+          <div class="sh open" onclick="tog(this)"><h3>① Contratante</h3><span class="arr">▼</span></div>
+          <div class="sb open">
+            <div class="row2">
+              <div class="field"><label class="fl">Nome / Razão Social</label><input type="text" id="ccli_nome" placeholder="Nome completo ou empresa" oninput="renderContrPreview()"></div>
+              <div class="field"><label class="fl">CPF / CNPJ</label><input type="text" id="ccli_doc" placeholder="000.000.000-00 ou 00.000.000/0001-00" oninput="renderContrPreview()"></div>
+            </div>
+            <div class="field"><label class="fl">Endereço</label><input type="text" id="ccli_end" placeholder="Rua, nº, bairro, CEP" oninput="renderContrPreview()"></div>
+          </div>
+        </div>
+
+        <!-- EVENTO -->
+        <div class="section">
+          <div class="sh open" onclick="tog(this)"><h3>② Dados do Evento</h3><span class="arr">▼</span></div>
+          <div class="sb open">
+            <div class="row2">
+              <div class="field"><label class="fl">Data do evento</label><input type="date" id="cev_data" oninput="renderContrPreview()"></div>
+              <div class="field"><label class="fl">Tipo de evento</label><input type="text" id="cev_tipo" placeholder="ex: Casamento, Coquetel..." oninput="renderContrPreview()"></div>
+            </div>
+            <div class="row2">
+              <div class="field"><label class="fl">Início</label><input type="time" id="cev_inicio" oninput="renderContrPreview()"></div>
+              <div class="field"><label class="fl">Término</label><input type="time" id="cev_fim" oninput="renderContrPreview()"></div>
+            </div>
+            <div class="row2">
+              <div class="field"><label class="fl">Local</label><input type="text" id="cev_local" placeholder="Nome do espaço ou endereço" oninput="renderContrPreview()"></div>
+              <div class="field"><label class="fl">Nº de convidados</label><input type="text" id="cev_conv" placeholder="ex: 80 adultos" oninput="renderContrPreview()"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MENU -->
+        <div class="section">
+          <div class="sh open" onclick="tog(this)"><h3>③ Menu Acordado</h3><span class="arr">▼</span></div>
+          <div class="sb open">
+            <div class="field">
+              <label class="fl">Itens do menu <span style="font-weight:300;text-transform:none">— um por linha</span></label>
+              <textarea id="cmenu" rows="10" placeholder="Ex:&#10;Quiche de brie e mel&#10;Mini hambúrguer artesanal&#10;Nhoque ao molho rústico&#10;..." oninput="renderContrPreview()" style="font-size:12px;line-height:1.6"></textarea>
+            </div>
+            <div class="field">
+              <label class="fl">Serviços inclusos <span style="font-weight:300;text-transform:none">— um por linha</span></label>
+              <textarea id="cservicos" rows="4" placeholder="Ex:&#10;Material para uso da cozinha e manuseio de alimentos&#10;Garçons conforme número de convidados&#10;..." oninput="renderContrPreview()" style="font-size:12px;line-height:1.6">Material para uso da cozinha e manuseio de alimentos
+Garçonetes e garçons, conforme o número de convidados, chef e Auxiliar de cozinha
+Chegamos com antecedência para montagem e preparação dos pratos</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- VALORES -->
+        <div class="section">
+          <div class="sh open" onclick="tog(this)"><h3>④ Valores e Pagamento</h3><span class="arr">▼</span></div>
+          <div class="sb open">
+            <div class="row2">
+              <div class="field"><label class="fl">Valor total (R$)</label><input type="text" id="cvalor_total" placeholder="ex: 5.140,00" oninput="renderContrPreview()"></div>
+              <div class="field"><label class="fl">Valor por extenso</label><input type="text" id="cvalor_ext" placeholder="ex: cinco mil e cento e quarenta reais" oninput="renderContrPreview()"></div>
+            </div>
+            <div class="field"><label class="fl">Forma de pagamento</label>
+              <input type="text" id="cforma_pgto" placeholder="ex: 10% na assinatura + saldo até 2 dias antes do evento" oninput="renderContrPreview()" value="10% no ato da assinatura do contrato e o restante até 2 dias antes do evento">
+            </div>
+            <div style="margin-top:10px">
+              <label class="fl">Tabela de pagantes</label>
+              <div class="row3" style="margin-top:6px">
+                <div class="field"><label class="fl" style="font-size:9px">Adultos (qtd)</label><input type="number" id="ct_adultos" min="0" value="0" oninput="renderContrPreview()"></div>
+                <div class="field"><label class="fl" style="font-size:9px">Valor/adulto (R$)</label><input type="text" id="ct_val_adulto" placeholder="0,00" oninput="renderContrPreview()"></div>
+                <div class="field"><label class="fl" style="font-size:9px">Total adultos</label><input type="text" id="ct_tot_adulto" readonly style="background:var(--verde-claro);color:var(--verde);font-weight:600"></div>
+              </div>
+              <div class="row3">
+                <div class="field"><label class="fl" style="font-size:9px">Crianças 5–9 (qtd)</label><input type="number" id="ct_c59" min="0" value="0" oninput="renderContrPreview()"></div>
+                <div class="field"><label class="fl" style="font-size:9px">Valor/criança (R$)</label><input type="text" id="ct_val_c59" placeholder="0,00" oninput="renderContrPreview()"></div>
+                <div class="field"><label class="fl" style="font-size:9px">Total crianças</label><input type="text" id="ct_tot_c59" readonly style="background:var(--verde-claro);color:var(--verde);font-weight:600"></div>
+              </div>
+              <div class="row3">
+                <div class="field"><label class="fl" style="font-size:9px">Staff (qtd)</label><input type="number" id="ct_staff" min="0" value="0" oninput="renderContrPreview()"></div>
+                <div class="field"><label class="fl" style="font-size:9px">Valor/staff (R$)</label><input type="text" id="ct_val_staff" placeholder="0,00" oninput="renderContrPreview()"></div>
+                <div class="field"><label class="fl" style="font-size:9px">Total staff</label><input type="text" id="ct_tot_staff" readonly style="background:var(--verde-claro);color:var(--verde);font-weight:600"></div>
+              </div>
+            </div>
+            <div class="field" style="margin-top:8px">
+              <label class="fl">Data limite pagamento final</label>
+              <input type="date" id="cdata_pgto" oninput="renderContrPreview()">
+            </div>
+          </div>
+        </div>
+
+        <!-- CRIANÇAS -->
+        <div class="section">
+          <div class="sh open" onclick="tog(this)"><h3>⑤ Lista de Crianças <span style="font-size:9px;font-weight:400;opacity:.7">(opcional)</span></h3><span class="arr">▼</span></div>
+          <div class="sb open">
+            <div style="font-size:11px;color:var(--leve);margin-bottom:10px">Liste nome e idade de cada criança presente no evento.</div>
+            <div id="criancas-lista"></div>
+            <button class="btn-add-crianca" onclick="addCrianca()">+ Adicionar criança</button>
+          </div>
+        </div>
+
+        <!-- PIX -->
+        <div class="section">
+          <div class="sh open" onclick="tog(this)"><h3>⑥ Dados para Pagamento</h3><span class="arr">▼</span></div>
+          <div class="sb open">
+            <label class="fl">Chave PIX</label>
+            <div class="pix-opts">
+              <div class="pix-opt"><input type="radio" name="cpix" id="pix1" value="cnpj" checked onchange="renderContrPreview()"><label for="pix1">PIX CNPJ<br><span style="font-size:9px">53.242.932/0001-07</span></label></div>
+              <div class="pix-opt"><input type="radio" name="cpix" id="pix2" value="celular" onchange="renderContrPreview()"><label for="pix2">PIX Celular<br><span style="font-size:9px">43996352053 — Leonardo</span></label></div>
+              <div class="pix-opt"><input type="radio" name="cpix" id="pix3" value="ambos" onchange="renderContrPreview()"><label for="pix3">Ambos</label></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- OBS -->
+        <div class="section">
+          <div class="sh open" onclick="tog(this)"><h3>⑦ Observações Adicionais</h3><span class="arr">▼</span></div>
+          <div class="sb open">
+            <div class="field"><textarea id="cobs" rows="3" placeholder="Informações extras para o contrato..." oninput="renderContrPreview()"></textarea></div>
+          </div>
+        </div>
+
+      </div><!-- /contr-form -->
+
+      <!-- PREVIEW DIREITA -->
+      <div class="contr-preview-wrap">
+        <div style="font-size:12px;font-weight:600;color:var(--verde)">Prévia do contrato</div>
+        <div style="font-size:10px;color:var(--leve);margin-bottom:4px">Atualiza em tempo real</div>
+        <div class="contr-preview-box" id="contr-preview"></div>
+        <button class="btn-gerar-contr" onclick="salvarContrato()">💾 Salvar contrato</button>
+        <button class="btn-pdf-contr" onclick="gerarPDFContrato()">⬇ Baixar PDF do contrato</button>
+        <button class="btn-pdf-contr" onclick="imprimirContrato()" style="font-size:10px;padding:7px">🖨 Imprimir</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="print_area" style="display:none"></div>
+<style>@media print{body>*:not(#print_area){display:none!important}#print_area{display:block!important}}</style>
+
+<script>
+// ===== CONFIGURAÇÃO DE EVENTOS =====
+const EVENTOS_CONFIG = {
+  'Casamento':      {precoBase:250, min:35, descricao:'R$ 250/pessoa · mín. 35 pessoas'},
+  'Jantar':         {precoBase:165, min:35, descricao:'R$ 165/pessoa · com mesa de frios: +R$35–50/pessoa'},
+  'Festa Infantil': {precoBase:125, min:35, descricao:'R$ 125/pessoa · mín. 35 pessoas'},
+  'Coquetel':       {precoBase:115, min:35, descricao:'R$ 98–115/pessoa · quanto mais pessoas, menor o valor · 3h'},
+  'Coffee Break':   {precoBase:59,  min:35, descricao:'R$ 59/pessoa · mín. 35 pessoas'},
+  'Feijoada':       {precoBase:115, min:35, descricao:'R$ 115/pessoa · sem bebida: -R$15/pessoa'},
+  'Churrasco':      {precoBase:155, min:35, descricao:'R$ 155 padrão · com picanha: R$ 180 · terceirizado'},
+  'Treinamento Corporativo': {precoBase:59, min:35, descricao:'Coffee: R$40 + Almoço: R$100 · desconto 25–30% com múltiplas refeições'},
+  'Aniversário':    {precoBase:125, min:35, descricao:'Valor varia conforme menu · não inclui bolo/doces'},
+};
+
+// ===== ADICIONAIS =====
+const ADICIONAIS = [
+  {id:'sobremesa', nome:'Sobremesa', desc:'Colher, brownie, sorvete...', tipo:'valor', min:15, max:25, default:15, sinal:1},
+  {id:'sem_bebida', nome:'Sem bebida (cliente providencia)', desc:'Desconto de R$15/pessoa', tipo:'desconto', valor:15, sinal:-1},
+  {id:'mesa_frios', nome:'Mesa de frios / antepastos', desc:'Avulsa: +R$35–50/pessoa', tipo:'valor', min:35, max:50, default:35, sinal:1},
+  {id:'alcoolica', nome:'Bebida alcoólica (terceirizado)', desc:'Valor à parte — orçamento separado', tipo:'info', sinal:0},
+  {id:'picanha', nome:'Upgrade picanha (Churrasco)', desc:'+R$25/pessoa sobre o padrão', tipo:'fixo', valor:25, sinal:1},
+];
+
+// ===== CARDÁPIO =====
+const CARDAPIO = {
+  "Coquetel Volante":["Quiche de brie e mel","Quiche de pupunha e bacon","Quiche de alho poró e cebola crispy","Mini hambúrguer artesanal (pão australiano, cheddar e cebola caramelizada)","Espetinho Caprese","Espetinho Caprese com molho pesto","Coxinha gourmet","Batata rústica","Steak tartare","Brusqueta de gorgonzola e pera","Snack de creme cheese, salmão e couve crispy","Barquinha de creme cheese e salmão com molho de ostra","Lichia com creme cheese e lâmina de amêndoas","Mini pizza de margherita","Quiche de camarão","Dadinho de tapioca com geleia","Barquete de salpicão"],
+  "Finger Food":["Nhoque ao molho rústico de tomates frescos","Nhoque de batata doce com rúcula ao molho Alfredo","Nhoque de batata doce — selado no azeite trufado, molho de tomates pelados e parmesão","Nhoque de mandioca com molho de limão siciliano","Panelinha com picadinho de mignon, arroz e farofa","Escondidinho de frango e requeijão","Escondidinho de filé","Risoto de grana padano e alho poró","Risoto ao caprese com medalhão de filé","Polenta cremosa com ragu de costela","Polenta com mix de cogumelos","Arroz caldoso de frango em cubos","Penne Alla Norma","Colher com brigadeiro de café","Panelinha de brownie com sorvete e calda de doce de leite e paçoca"],
+  "Almoço / Jantar":["Mix de folhas e frutas com molho de mostarda e mel","Salada grega com molho de iogurte","Frutas da estação","Caponata de berinjela","Abobrinha ao pesto","Arroz branco com amêndoas","Salpicão","Rigatoni ao molho branco e crispy de bacon","Conchiglione de queijo ao molho pomodoro e pesto","Risoto Caprese","Filé mignon ao molho roti","Filé de frango ao molho gorgonzola","Filé de frango à parmegiana","Maminha na mostarda","Cesta de torradas"],
+  "Mesa de Frios e Antepastos":["Tábua de frios (salame italiano, parma, queijo parmesão, gruyère, gorgonzola, brie, uvas e castanhas)","Focaccia de cebola roxa e azeitonas","Focaccia de calabresa","Pasta de catupiry com damasco, parma e fio de mel","Pasta de catupiry com alho frito","Geleia de damasco e frutas vermelhas","Geleia de abacaxi com pimenta","Ceviche de tilápia, cebola roxa e leite de tigre","Burratas com tomates confitados e crostatas","Max Brie folheado com caramelo e nuts","Carpaccio de abobrinha ao pesto","Caponata de berinjela","Flor de salame e lombo defumado","Tabule","Coalhada","Homus","Mini cuscuz paulista","Cesta de pães e crostatas","Baguete de frios","Gorgonzola com uvas"],
+  "Coffee Break / Brunch":["Sanduíche de frios (lombo, queijo e abobrinha ao pesto)","Mini sanduíche sírio de frango","Sanduíche natural de frango","Folhado de presunto e queijo","Croissant de presunto e queijo","Baguete de frios, alface e tomate","Esfirra de carne","Esfirra de queijo","Torta de palmito","Torta de frango","Terrine de queijo com damasco e fio de mel","Tomates confitados","Caponata de berinjela","Bolo de iogurte e canela","Bolo de chocolate","Bolo de limão e blueberry","Cup cake de cenoura","Cup cake de fubá e goiabada","Mini sonho","Brownie com castanhas","Brownie com amêndoas","Taça de frutas","Saladinha de frutas","Quiche de brie e mel","Dadinho de tapioca com geleia","Pão de queijo"],
+  "Feijoada":["Pastel de carne","Pastel de queijo","Bolinho de carne","Polenta frita","Feijoada completa (costelinha defumada, pernil, carne seca, linguiça toscana, paio, calabresa e bacon)","Pernil pururuca","Torresmo","Couve refogada","Farofa de cebola","Mandioca cozida","Vinagrete","Laranja","Arroz branco"],
+  "Churrasco":["Ancho","Panceta","Linguiça artesanal","Maminha","Frango temperado","Pão de alho","Picanha (+R$25/pessoa)"],
+  "Sobremesas":["Sorvete com mini churros e calda de doce de leite","Brownie com doce de leite","Petit fours","Cup cake de laranja","Bolo de limão e blueberry","Taça de saladinha de frutas com iogurte grego","Panelinha de brownie com sorvete e paçoca","Colher com brigadeiro de café"],
+  "Bebidas":["Água normal e com gás","Coca-Cola normal e zero","Suco de laranja natural","Suco de frutas vermelhas","Água com gás saborizada","Chá de hibisco com laranja e alecrim","Chá gelado com frutas","Café coado","Vinho (taças inclusas)","Espumante (taças inclusas)"],
+  "Mesa de Café":["Petit fours","Bolinho de laranja","Cup cake de laranja","Café","Brownie com castanhas","Bolo de limão e blueberry"]
+};
+
+const SERVICOS = ["Material para uso da cozinha e manuseio de alimentos","Material para execução do menu (taças, bowls, colheres e utensílios)","Toda a louça do coquetel","Térmica para bebidas e gelo","Garçons e auxiliares conforme número de convidados","Chegamos com antecedência para montagem e preparação","Decoração com plantas e flores na mesa do aparador","Organização e decoração do aparador inclusa","Estrutura de apoio para cozinha do buffet","Forno profissional"];
+
+// ===== ESTADO =====
+let orcAtualId = null;
+let filtroAtual = 'todos';
+let calAno = new Date().getFullYear();
+let calMes = new Date().getMonth();
+
+// ===== STORAGE =====
+function getOrcs(){try{return JSON.parse(localStorage.getItem('manaca_v2')||'[]')}catch{return[]}}
+function saveOrcs(l){localStorage.setItem('manaca_v2',JSON.stringify(l))}
+function getPrecos(){try{return JSON.parse(localStorage.getItem('manaca_precos')||'{}')}catch{return{}}}
+function savePrecos(p){localStorage.setItem('manaca_precos',JSON.stringify(p))}
+
+// ===== NAVEGAÇÃO =====
+function irLista(){
+  ['tela-lista','tela-form','tela-agenda','tela-contratos','tela-contr-form'].forEach(id=>{document.getElementById(id)?.classList.remove('ativa')});
+  document.getElementById('tela-lista').classList.add('ativa');
+  ['nav-lista','nav-contratos','nav-agenda'].forEach(id=>{document.getElementById(id)?.classList.remove('ativa')});
+  document.getElementById('nav-lista').classList.add('ativa');
+  renderLista();
+}
+function irAgenda(){
+  ['tela-lista','tela-form','tela-agenda','tela-contratos','tela-contr-form'].forEach(id=>{document.getElementById(id)?.classList.remove('ativa')});
+  document.getElementById('tela-agenda').classList.add('ativa');
+  ['nav-lista','nav-contratos','nav-agenda'].forEach(id=>{document.getElementById(id)?.classList.remove('ativa')});
+  document.getElementById('nav-agenda').classList.add('ativa');
+  renderAgenda();
+}
+function irForm(){
+  ['tela-lista','tela-form','tela-agenda'].forEach(id=>document.getElementById(id).classList.remove('ativa'));
+  document.getElementById('tela-form').classList.add('ativa');
+}
+
+// ===== LISTA =====
+function setFiltro(f,btn){
+  filtroAtual=f;
+  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderLista();
+}
+function bCls(st){return{'Rascunho':'b-rascunho','Ag. Chef':'b-chef','Aprovado':'b-aprovado','Enviado ao Cliente':'b-enviado','Cancelado':'b-cancelado'}[st]||'b-rascunho'}
+
+function renderLista(busca=''){
+  const orcs=getOrcs();
+  document.getElementById('r-tot').textContent=orcs.length;
+  document.getElementById('r-chef').textContent=orcs.filter(o=>o.status==='Ag. Chef').length;
+  document.getElementById('r-aprov').textContent=orcs.filter(o=>o.status==='Aprovado').length;
+  document.getElementById('r-env').textContent=orcs.filter(o=>o.status==='Enviado ao Cliente').length;
+  const emAberto=orcs.filter(o=>!['Cancelado','Enviado ao Cliente'].includes(o.status)).reduce((s,o)=>s+(o.total||0),0);
+  document.getElementById('r-val').textContent='R$'+fmtN(emAberto);
+
+  let lista=orcs.slice().reverse();
+  if(filtroAtual!=='todos') lista=lista.filter(o=>o.status===filtroAtual);
+  if(busca){const q=busca.toLowerCase();lista=lista.filter(o=>(o.nome||'').toLowerCase().includes(q)||(o.tipo||'').toLowerCase().includes(q)||(o.local||'').toLowerCase().includes(q));}
+
+  const c=document.getElementById('lista-orcs');
+  if(!lista.length){
+    c.innerHTML=`<div class="empty"><div class="ei">🌿</div><h3>${!orcs.length?'Nenhum orçamento ainda':'Nenhum resultado'}</h3><p>${!orcs.length?'Clique em "+ Novo" para começar.':'Tente outro filtro.'}</p></div>`;
+    return;
+  }
+  c.innerHTML=lista.map(o=>`
+    <div class="orc-card" onclick="abrirOrc('${o.id}')">
+      <div class="orc-num">#${o.num||o.id.slice(-4)}</div>
+      <div class="orc-info">
+        <div class="orc-nome">${o.nome||'Sem nome'}</div>
+        <div class="orc-det">${o.tipo||'—'} · ${o.data?fmtD(o.data):'Data a definir'} · ${o.local||'—'}</div>
+      </div>
+      <div class="orc-valor">${o.total?'R$ '+fmtN(o.total):'—'}</div>
+      <div><span class="badge ${bCls(o.status)}">${o.status||'Rascunho'}</span></div>
+      <div class="orc-acoes" onclick="event.stopPropagation()">
+        <button class="btn-sm" onclick="abrirOrc('${o.id}')">Editar</button>
+        <button class="btn-sm del" onclick="excluirOrc('${o.id}')">×</button>
+      </div>
+    </div>`).join('');
+}
+
+// ===== ABRIR/EXCLUIR =====
+function novoOrc(){orcAtualId=null;limparForm();renderCardapio();renderServicos();renderAdicionais();calcMDO();atualizar();irForm();}
+function abrirOrc(id){
+  const orc=getOrcs().find(o=>o.id===id);if(!orc)return;
+  orcAtualId=id;limparForm();renderCardapio();renderServicos();renderAdicionais();
+  preencherForm(orc);calcTotal();calcCusto();calcMDO();atualizar();irForm();
+}
+function excluirOrc(id){
+  if(!confirm('Excluir este orçamento?'))return;
+  saveOrcs(getOrcs().filter(o=>o.id!==id));renderLista();
+}
+
+// ===== FORM =====
+function tog(h){h.classList.toggle('open');h.nextElementSibling.classList.toggle('open');}
+function gv(id){return(document.getElementById(id)?.value||'').trim()}
+function sv(id,v){const el=document.getElementById(id);if(el&&v!==undefined)el.value=v}
+function getTipo(){return document.querySelector('input[name="tipo"]:checked')?.value||''}
+function getStatus(){return document.querySelector('input[name="status"]:checked')?.value||'Rascunho'}
+function fmtN(n){return(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtD(s){if(!s)return'—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`}
+function parseP(s){return parseFloat((s||'0').toString().replace(',','.'))||0}
+
+function limparForm(){
+  ['cli_nome','cli_fone','cli_email','ev_hora_inicio','ev_hora_fim','ev_local','ev_obs','num_orc','preco_pp','sinal-info','mdo_obs','obs_final'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  sv('ev_data','');sv('validade','');sv('cond_pgto','10% na assinatura do contrato + saldo até 2 dias antes do evento');
+  sv('obs_final','Estamos abertos a sugestões e alterações. Desde já obrigada pelo contato!');
+  sv('n_adultos',0);sv('n_c59',0);sv('n_c04',0);sv('n_staff',0);sv('cli_tipo','PF');
+  document.querySelector('input[name="status"][value="Rascunho"]').checked=true;
+  document.querySelectorAll('input[name="tipo"]').forEach(r=>r.checked=false);
+  document.getElementById('preco-sugerido').style.display='none';
+  document.getElementById('pj-aviso').style.display='none';
+  document.getElementById('min-aviso').style.display='none';
+}
+
+function preencherForm(o){
+  sv('cli_nome',o.nome);sv('cli_fone',o.fone);sv('cli_email',o.email);sv('cli_tipo',o.pj?'PJ':'PF');
+  sv('ev_data',o.data);sv('ev_hora_inicio',o.hora_inicio);sv('ev_hora_fim',o.hora_fim);sv('ev_local',o.local);sv('ev_obs',o.obs_evento);calcDuracao();
+  sv('num_orc',o.num);sv('validade',o.validade);sv('cond_pgto',o.cond);sv('obs_final',o.obs_final);sv('mdo_obs',o.mdo_obs);
+  sv('n_adultos',o.adultos||0);sv('n_c59',o.c59||0);sv('n_c04',o.c04||0);sv('n_staff',o.staff||0);sv('preco_pp',o.preco);
+  if(o.status){const el=document.querySelector(`input[name="status"][value="${o.status}"]`);if(el)el.checked=true;}
+  if(o.tipo){const el=document.querySelector(`input[name="tipo"][value="${o.tipo}"]`);if(el){el.checked=true;onTipoChange(false);}}
+  if(o.cardapio)o.cardapio.forEach(item=>{const cb=document.querySelector(`#cardapio-body input[data-item="${CSS.escape(item)}"]`);if(cb)cb.checked=true;});
+  if(o.servicos)o.servicos.forEach((s,i)=>{const cb=document.getElementById(`sv_${SERVICOS.indexOf(s)}`);if(cb)cb.checked=true;});
+  if(o.add_extra){const el=document.getElementById('sv_extra');if(el)el.value=o.add_extra;}
+  if(o.adicionais)o.adicionais.forEach(aid=>{
+    const cb=document.getElementById(`add_${aid}`);if(cb)cb.checked=true;
+    const valEl=document.getElementById(`add_val_${aid}`);if(valEl&&o[`add_val_${aid}`])valEl.value=o[`add_val_${aid}`];
+    atualizarAdicional(aid);
+  });
+}
+
+// ===== TIPO DE EVENTO =====
+function onTipoChange(resetPreco=true){
+  const tipo=getTipo();
+  const cfg=EVENTOS_CONFIG[tipo];
+  const ps=document.getElementById('preco-sugerido');
+  if(cfg){
+    ps.style.display='block';
+    ps.innerHTML=`<strong>${cfg.descricao}</strong>`;
+    if(resetPreco) sv('preco_pp', cfg.precoBase.toString().replace('.',','));
+  } else {
+    ps.style.display='none';
+  }
+  // Mostrar/esconder sugestão de menu
+  const swrap = document.getElementById('sugestao-menu-wrap');
+  const slabel = document.getElementById('sugestao-tipo-label');
+  if(swrap){
+    const temSugestao = tipo && SUGESTOES_MENU[tipo];
+    swrap.style.display = temSugestao ? 'block' : 'none';
+    if(slabel && tipo) slabel.textContent = tipo;
+  }
+  onConvChange();
+  calcTotal();
+  atualizar();
+}
+
+function onConvChange(){
+  const adultos=parseInt(gv('n_adultos'))||0;
+  const tipo=getTipo();
+  const cfg=EVENTOS_CONFIG[tipo];
+  const aviso=document.getElementById('min-aviso');
+  if(cfg&&adultos>0&&adultos<35){aviso.style.display='block';}else{aviso.style.display='none';}
+  calcMDO();
+  calcTotal();
+  calcCusto();
+}
+
+// ===== MÃO DE OBRA =====
+function calcMDO(){
+  const adultos=parseInt(gv('n_adultos'))||0;
+  if(!adultos){
+    ['mdo-producao','mdo-garcoes','mdo-custo-g','mdo-aux','mdo-total'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='—';});
+    return;
+  }
+  const grupos=Math.ceil(adultos/35);
+  const garcoes=grupos*2;
+  const aux=grupos;
+  const custoGarcoes=garcoes*250;
+  const custoAux=aux*500;
+  const custoProducao=220;
+  const total=custoGarcoes+custoAux+custoProducao;
+  document.getElementById('mdo-producao').textContent='1 dia · R$ '+fmtN(custoProducao);
+  document.getElementById('mdo-garcoes').textContent=`${garcoes} garçon(ns) (${grupos}× 2)`;
+  document.getElementById('mdo-custo-g').textContent=`${garcoes} × R$250 = R$ ${fmtN(custoGarcoes)}`;
+  document.getElementById('mdo-aux').textContent=`${aux} auxiliar(es) · R$ ${fmtN(custoAux)}`;
+  document.getElementById('mdo-total').textContent='R$ '+fmtN(total);
+}
+
+// ===== ADICIONAIS =====
+function renderAdicionais(){
+  const body=document.getElementById('adicionais-body');
+  let html='';
+  ADICIONAIS.forEach(ad=>{
+    html+=`<div class="adicional-item" id="add-wrap-${ad.id}" onclick="toggleAdicional('${ad.id}')">`;
+    html+=`<div class="adicional-esq"><input type="checkbox" id="add_${ad.id}" onclick="event.stopPropagation();toggleAdicional('${ad.id}')"><div><div class="adicional-nome">${ad.nome}</div><div class="adicional-desc">${ad.desc}</div></div></div>`;
+    if(ad.tipo==='desconto') html+=`<div class="adicional-val negativo">-R$ ${ad.valor}/pessoa</div>`;
+    else if(ad.tipo==='fixo') html+=`<div class="adicional-val">+R$ ${ad.valor}/pessoa</div>`;
+    else if(ad.tipo==='info') html+=`<div class="adicional-val" style="color:var(--leve)">à parte</div>`;
+    else if(ad.tipo==='valor') html+=`<div class="adicional-val">+R$ ${ad.min}–${ad.max}/pessoa</div>`;
+    html+=`</div>`;
+    if(ad.tipo==='valor'){
+      html+=`<div class="adicional-custom" id="add-custom-${ad.id}">`;
+      html+=`<label class="fl">Valor exato por pessoa (R$)</label>`;
+      html+=`<input type="text" id="add_val_${ad.id}" value="${ad.default}" oninput="calcTotal()" style="width:120px">`;
+      html+=`</div>`;
+    }
+    if(ad.tipo==='info'){
+      html+=`<div class="adicional-custom" id="add-custom-${ad.id}">`;
+      html+=`<label class="fl">Valor a cobrar (referência interna)</label>`;
+      html+=`<input type="text" id="add_val_${ad.id}" placeholder="ex: R$ 300,00" oninput="atualizar()" style="width:160px">`;
+      html+=`</div>`;
+    }
+  });
+  body.innerHTML=html;
+}
+
+function toggleAdicional(aid){
+  const cb=document.getElementById(`add_${aid}`);if(!cb)return;
+  cb.checked=!cb.checked;
+  atualizarAdicional(aid);
+  calcTotal();
+}
+function atualizarAdicional(aid){
+  const cb=document.getElementById(`add_${aid}`);
+  const wrap=document.getElementById(`add-wrap-${aid}`);
+  const custom=document.getElementById(`add-custom-${aid}`);
+  if(!cb)return;
+  wrap?.classList.toggle('ativo',cb.checked);
+  if(custom) custom.classList.toggle('vis',cb.checked);
+}
+
+// ===== CÁLCULO TOTAL =====
+function calcTotal(){
+  const pp=parseP(gv('preco_pp'));
+  const a=parseInt(gv('n_adultos'))||0;
+  const c59=parseInt(gv('n_c59'))||0;
+  const staff=parseInt(gv('n_staff'))||0;
+  const isPJ=gv('cli_tipo')==='PJ';
+
+  document.getElementById('pj-aviso').style.display=isPJ?'block':'none';
+
+  const base=a*pp+c59*pp*0.5+staff*pp*0.5;
+  let adds=0, descs=0;
+  ADICIONAIS.forEach(ad=>{
+    const cb=document.getElementById(`add_${ad.id}`);
+    if(!cb?.checked)return;
+    if(ad.tipo==='valor'){const v=parseP(document.getElementById(`add_val_${ad.id}`)?.value);adds+=v*(a+c59+staff);}
+    else if(ad.tipo==='fixo'){adds+=ad.valor*(a+c59+staff);}
+    else if(ad.tipo==='desconto'){descs+=ad.valor*(a+c59+staff);}
+  });
+  const subtotal=base+adds-descs;
+  const pjExtra=isPJ?subtotal*0.1:0;
+  const total=subtotal+pjExtra;
+
+  // Detalhe
+  let det='';
+  if(pp>0){
+    det=`${a}×R$${fmtN(pp)}=R$${fmtN(a*pp)}`;
+    if(c59>0)det+=` · ${c59}×50%=R$${fmtN(c59*pp*0.5)}`;
+    if(staff>0)det+=` · ${staff} staff×50%=R$${fmtN(staff*pp*0.5)}`;
+  }
+  document.getElementById('totais-det').textContent=det;
+
+  // Bloco totais
+  document.getElementById('tot-base').textContent='R$ '+fmtN(base);
+  const addRow=document.getElementById('tot-add-row');
+  addRow.style.display=adds>0?'flex':'none';
+  document.getElementById('tot-add').textContent='+ R$ '+fmtN(adds);
+  const descRow=document.getElementById('tot-desc-row');
+  descRow.style.display=descs>0?'flex':'none';
+  document.getElementById('tot-desc').textContent='- R$ '+fmtN(descs);
+  const pjRow=document.getElementById('tot-pj-row');
+  pjRow.style.display=isPJ?'flex':'none';
+  document.getElementById('tot-pj').textContent='+ R$ '+fmtN(pjExtra);
+  document.getElementById('total_geral').textContent='R$ '+fmtN(total);
+  document.getElementById('sinal-info').textContent=total>0?`Sinal (10%): R$ ${fmtN(total*0.1)}`:'';
+
+  atualizar();
+}
+
+// ===== CUSTO INTERNO CARDÁPIO =====
+function calcCusto(){
+  let pp=0,n=0;
+  document.querySelectorAll('#cardapio-body input[type=checkbox]:checked').forEach(cb=>{
+    const pid=cb.dataset.pid;
+    pp+=parseP(document.getElementById(pid)?.value||'0');n++;
+  });
+  const adultos=parseInt(gv('n_adultos'))||0;
+  document.getElementById('ci-itens').textContent=n+' item(s)';
+  document.getElementById('ci-pp').textContent='R$ '+fmtN(pp);
+  document.getElementById('ci-total').textContent='R$ '+fmtN(pp*adultos);
+}
+
+function salvarPreco(pid){const p=getPrecos();p[pid]=document.getElementById(pid)?.value||'';savePrecos(p);}
+
+// ===== CARDÁPIO =====
+function renderCardapio(){
+  const body=document.getElementById('cardapio-body');
+  const precos=getPrecos();
+  let html='';
+  for(const[cat,items]of Object.entries(CARDAPIO)){
+    const cid=cat.replace(/\W/g,'_');
+    html+=`<div class="cat-title">${cat} <span class="sel-all" onclick="selTodos('${cid}',true)">marcar</span><span class="sel-all" onclick="selTodos('${cid}',false)">desmarcar</span></div>`;
+    items.forEach((item,i)=>{
+      const id=`ch_${cid}_${i}`,pid=`pr_${cid}_${i}`,saved=precos[pid]||'';
+      html+=`<div class="item-row"><label class="item-check"><input type="checkbox" id="${id}" data-item="${item}" data-pid="${pid}" onchange="calcCusto();atualizar()"><span>${item}</span></label><div class="preco-iw"><em>R$</em><input class="preco-item" type="text" id="${pid}" placeholder="0,00" value="${saved}" oninput="salvarPreco('${pid}');calcCusto()" title="Preço interno por pessoa"></div></div>`;
+    });
+  }
+  body.innerHTML=html;
+}
+function selTodos(cid,check){document.querySelectorAll(`[id^="ch_${cid}_"]`).forEach(cb=>cb.checked=check);calcCusto();atualizar();}
+
+// ===== SERVIÇOS =====
+function renderServicos(){
+  const body=document.getElementById('servicos-body');
+  let html=SERVICOS.map((s,i)=>`<label class="sv-item"><input type="checkbox" id="sv_${i}" onchange="atualizar()"><span>${s}</span></label>`).join('');
+  html+=`<div class="field" style="margin-top:8px"><label class="fl">Serviço adicional</label><textarea id="sv_extra" rows="2" placeholder="ex: 4 garçons + 2 auxiliares de cozinha" oninput="atualizar()"></textarea></div>`;
+  body.innerHTML=html;
+}
+
+function getCardapioSel(){
+  const r={};
+  document.querySelectorAll('#cardapio-body input[type=checkbox]:checked').forEach(cb=>{
+    const cat=Object.keys(CARDAPIO).find(c=>CARDAPIO[c].includes(cb.dataset.item))||'Outros';
+    if(!r[cat])r[cat]=[];r[cat].push(cb.dataset.item);
+  });
+  return r;
+}
+function getServSel(){
+  const r=[];
+  SERVICOS.forEach((s,i)=>{if(document.getElementById(`sv_${i}`)?.checked)r.push(s);});
+  const ex=(document.getElementById('sv_extra')?.value||'').trim();if(ex)r.push(ex);
+  return r;
+}
+function getAddsSel(){
+  return ADICIONAIS.filter(ad=>{const cb=document.getElementById(`add_${ad.id}`);return cb?.checked;});
+}
+
+// ===== PREVIEW =====
+function atualizar(){
+  const nome=gv('cli_nome')||'—',fone=gv('cli_fone')||'—',email=gv('cli_email');
+  const tipo=getTipo()||'—',data=fmtD(gv('ev_data')),local=gv('ev_local')||'—',dur=gv('ev_duracao'),obs=gv('ev_obs');const hIni=gv('ev_hora_inicio'),hFim=gv('ev_hora_fim');const hora=hIni?(hIni+(hFim?' às '+hFim:'')):'—';
+  const total=document.getElementById('total_geral').textContent;
+  const cond=gv('cond_pgto'),obsFinal=gv('obs_final'),numOrc=gv('num_orc'),val=fmtD(gv('validade'));
+  const card=getCardapioSel(),sv2=getServSel(),adds=getAddsSel();
+  const hoje=new Date().toLocaleDateString('pt-BR');
+  const isPJ=gv('cli_tipo')==='PJ';
+
+  let h=`<div class="pv-logo">BUFFET MANACÁ</div>`;
+  h+=`<div class="pv-sub">Chef Drica Castro · Por Adriana Castro<br>WhatsApp 43-99635-2053 · @dricacastro.chef</div>`;
+  if(numOrc)h+=`<div style="text-align:right;font-size:8.5px;color:var(--leve);margin-bottom:5px">Nº ${numOrc}</div>`;
+  h+=`<div class="pv-sec">Dados do Cliente</div>`;
+  h+=`<div class="pv-it">Cliente: <b>${nome}</b>${isPJ?' <span style="background:var(--amarelo);color:var(--amarelo-t);font-size:8px;padding:1px 5px;border-radius:3px;font-weight:700">PJ</span>':''}</div>`;
+  h+=`<div class="pv-it">Contato: ${fone}${email?' · '+email:''}</div>`;
+  h+=`<div class="pv-sec">Dados do Evento</div>`;
+  h+=`<div class="pv-it">Evento: <b>${tipo}</b></div>`;
+  h+=`<div class="pv-it">Data: ${data}${hora?' · '+hora:''}</div>`;
+  h+=`<div class="pv-it">Local: ${local}</div>`;
+  if(dur)h+=`<div class="pv-it">Duração: ${dur}</div>`;
+  if(obs)h+=`<div class="pv-it" style="color:var(--leve);font-style:italic">Obs: ${obs}</div>`;
+  if(Object.keys(card).length>0){
+    h+=`<div class="pv-sec">Menu do Evento</div>`;
+    for(const[cat,items]of Object.entries(card)){
+      h+=`<div style="font-size:8.5px;font-weight:700;color:var(--verde-m);margin:6px 0 2px;text-transform:uppercase">${cat}</div>`;
+      items.forEach(it=>{h+=`<div class="pv-it">· ${it}</div>`;});
+    }
+  }
+  if(adds.filter(a=>a.tipo!=='info').length>0){
+    h+=`<div class="pv-sec">Adicionais Inclusos</div>`;
+    adds.forEach(ad=>{if(ad.tipo!=='info')h+=`<div class="pv-it">· ${ad.nome}</div>`;});
+  }
+  if(sv2.length>0){
+    h+=`<div class="pv-sec">Serviços Inclusos</div>`;
+    sv2.forEach(s=>{h+=`<div class="pv-it">· ${s}</div>`;});
+  }
+  h+=`<div class="pv-sec">Valores</div>`;
+  const pp=parseP(gv('preco_pp')),a=parseInt(gv('n_adultos'))||0,c59=parseInt(gv('n_c59'))||0,c04=parseInt(gv('n_c04'))||0,stf=parseInt(gv('n_staff'))||0;
+  if(pp>0){
+    h+=`<div class="pv-it">R$ ${fmtN(pp)} por pessoa adulta (acima de 10 anos)</div>`;
+    if(c59>0)h+=`<div class="pv-it">Crianças 5–9 anos: 50% · ${c59} criança(s)</div>`;
+    if(c04>0)h+=`<div class="pv-it">Crianças 0–4 anos: não pagam · ${c04}</div>`;
+    if(stf>0)h+=`<div class="pv-it">Staff: 50% · ${stf} pessoa(s)</div>`;
+    if(isPJ)h+=`<div class="pv-it">Acréscimo PJ (nota fiscal): +10%</div>`;
+  }
+  h+=`<div class="pv-tot"><span>TOTAL GERAL</span><span>${total}</span></div>`;
+  h+=`<div class="pv-sec">Condições</div>`;
+  if(cond)h+=`<div class="pv-it">· ${cond}</div>`;
+  if(val!=='—')h+=`<div class="pv-it">· Validade: ${val}</div>`;
+  h+=`<div class="pv-it">· Reserva confirmada com sinal de 10% + assinatura do contrato</div>`;
+  if(obsFinal){h+=`<div class="pv-sec">Observações</div><div class="pv-it" style="font-style:italic">${obsFinal}</div>`;}
+  h+=`<div style="margin-top:10px;padding-top:7px;border-top:1px solid var(--borda);font-size:8.5px;color:var(--leve);text-align:center">Emitido em ${hoje} · CNPJ 53.242.932/0001-07</div>`;
+  document.getElementById('preview').innerHTML=h;
+}
+
+// ===== SALVAR =====
+function salvarOrc(){
+  const orcs=getOrcs();
+  const card=[];
+  document.querySelectorAll('#cardapio-body input[type=checkbox]:checked').forEach(cb=>card.push(cb.dataset.item));
+  const svs=getServSel();
+  const adds=ADICIONAIS.filter(ad=>document.getElementById(`add_${ad.id}`)?.checked).map(ad=>ad.id);
+  const tipo=getTipo(),status=getStatus();
+  const totalEl=document.getElementById('total_geral');
+  const total=parseP(totalEl.textContent.replace('R$','').trim());
+  const addVals={};
+  ADICIONAIS.forEach(ad=>{const el=document.getElementById(`add_val_${ad.id}`);if(el)addVals[`add_val_${ad.id}`]=el.value;});
+
+  const orc={
+    id:orcAtualId||Date.now().toString(),
+    criadoEm:orcAtualId?(getOrcs().find(o=>o.id===orcAtualId)?.criadoEm||new Date().toISOString()):new Date().toISOString(),
+    atualizadoEm:new Date().toISOString(),
+    status,num:gv('num_orc'),
+    nome:gv('cli_nome'),fone:gv('cli_fone'),email:gv('cli_email'),pj:gv('cli_tipo')==='PJ',
+    tipo,data:gv('ev_data'),hora_inicio:gv('ev_hora_inicio'),hora_fim:gv('ev_hora_fim'),duracao:gv('ev_duracao'),local:gv('ev_local'),obs_evento:gv('ev_obs'),
+    preco:gv('preco_pp'),adultos:parseInt(gv('n_adultos'))||0,c59:parseInt(gv('n_c59'))||0,
+    c04:parseInt(gv('n_c04'))||0,staff:parseInt(gv('n_staff'))||0,
+    total,validade:gv('validade'),cond:gv('cond_pgto'),
+    cardapio:card,servicos:svs,adicionais:adds,...addVals,
+    add_extra:gv('sv_extra'),mdo_obs:gv('mdo_obs'),obs_final:gv('obs_final')
+  };
+
+  if(orcAtualId){const idx=orcs.findIndex(o=>o.id===orcAtualId);if(idx>=0)orcs[idx]=orc;else orcs.push(orc);}
+  else{orcAtualId=orc.id;orcs.push(orc);}
+  saveOrcs(orcs);
+
+  const btn=document.querySelector('.btn-salvar');
+  btn.textContent='✓ Salvo!';btn.style.background='#4ADE80';btn.style.color='#1C1C1A';
+  setTimeout(()=>{btn.textContent='💾 Salvar orçamento';btn.style.background='';btn.style.color='';},1800);
+
+  // Sincronizar com Google Agenda
+  if(gcalToken && orc.data){
+    criarEventoGcal(orc).then(()=>{
+      if(gcalToken) {
+        const btn2=document.querySelector('.btn-salvar');
+        if(btn2) btn2.textContent='✓ Salvo + Agenda atualizada!';
+        setTimeout(()=>{if(btn2)btn2.textContent='💾 Salvar orçamento';},2500);
+      }
+    });
+  }
+}
+
+// ===== IMPRIMIR =====
+function imprimirPreview(){
+  const c=document.getElementById('preview').innerHTML;
+  document.getElementById('print_area').innerHTML=`<style>body{font-family:Inter,sans-serif;font-size:12px;padding:32px;max-width:680px;margin:auto}.pv-logo{font-family:'Cormorant Garamond',serif;font-size:26px;color:#2F5233;text-align:center;font-weight:600}.pv-sub{text-align:center;font-size:9px;color:#6B6560;border-bottom:2px solid #2F5233;padding-bottom:8px;margin-bottom:12px}.pv-sec{font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:#2F5233;margin:12px 0 4px;border-bottom:1px solid #E8F2EB;padding-bottom:2px}.pv-it{padding-left:8px;margin-bottom:2px;font-size:11px;line-height:1.5}.pv-tot{background:#2F5233;color:#fff;padding:8px 12px;border-radius:3px;margin-top:10px;display:flex;justify-content:space-between;font-weight:700;font-size:13px}</style>${c}`;
+  window.print();
+}
+
+// ===== PDF =====
+async function gerarPDF(){
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const V=[47,82,51],VC=[232,242,235],CZ=[107,101,96],PK=[28,28,26];
+  const W=210,M=18,CW=W-M*2;let y=20;
+  doc.setFillColor(...V);doc.rect(0,0,W,38,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(22);doc.setTextColor(250,247,242);
+  doc.text('BUFFET MANACÁ',W/2,14,{align:'center'});
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(168,196,173);
+  doc.text('Chef Drica Castro · Por Adriana Castro',W/2,21,{align:'center'});
+  doc.text('WhatsApp 43-99635-2053 · @dricacastro.chef · Borba Gato nº412 · Londrina–PR',W/2,26,{align:'center'});
+  doc.setDrawColor(168,196,173);doc.setLineWidth(0.3);doc.line(M,30,W-M,30);
+  doc.setTextColor(250,247,242);doc.setFont('helvetica','bold');doc.setFontSize(9);
+  doc.text('ORÇAMENTO PARA PRESTAÇÃO DE SERVIÇOS DE BUFFET',W/2,35,{align:'center'});
+  y=48;
+  const numOrc=gv('num_orc');
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...CZ);
+  doc.text(`Emitido em: ${new Date().toLocaleDateString('pt-BR')}`,M,y);
+  if(numOrc)doc.text(`Nº ${numOrc}`,W-M,y,{align:'right'});y+=8;
+
+  function sec(t){if(y>265){doc.addPage();y=20;}doc.setFillColor(...VC);doc.rect(M,y-4,CW,7,'F');doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(...V);doc.text(t.toUpperCase(),M+2,y+0.5);y+=8;}
+  function lin(label,val){
+    if(y>270){doc.addPage();y=20;}
+    doc.setFontSize(9);doc.setTextColor(...PK);
+    if(val!==undefined){doc.setFont('helvetica','bold');doc.setTextColor(...CZ);doc.text(label+':',M,y);doc.setFont('helvetica','normal');doc.setTextColor(...PK);const lw=doc.getTextWidth(label+': ')+2;const ls=doc.splitTextToSize(val,CW-lw);doc.text(ls,M+lw,y);y+=ls.length*5;}
+    else{doc.setFont('helvetica','normal');const ls=doc.splitTextToSize('· '+label,CW);doc.text(ls,M+3,y);y+=ls.length*4.8;}
+  }
+
+  const isPJ=gv('cli_tipo')==='PJ';
+  sec('Dados do Cliente');
+  lin('Cliente',gv('cli_nome')||'—');
+  lin('Contato',gv('cli_fone')+(gv('cli_email')?' · '+gv('cli_email'):'')+(isPJ?' (PJ — Nota Fiscal)':''));
+  y+=3;sec('Dados do Evento');
+  lin('Evento',getTipo());lin('Data',fmtD(gv('ev_data'))+(gv('ev_hora')?' · '+gv('ev_hora'):''));
+  lin('Local',gv('ev_local')||'—');if(gv('ev_duracao'))lin('Duração',gv('ev_duracao'));if(gv('ev_obs'))lin('Observação',gv('ev_obs'));
+
+  const card=getCardapioSel();
+  if(Object.keys(card).length>0){y+=3;sec('Menu do Evento');for(const[cat,items]of Object.entries(card)){if(y>265){doc.addPage();y=20;}doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(...V);doc.text(cat.toUpperCase(),M,y);y+=5;items.forEach(it=>{if(y>270){doc.addPage();y=20;}doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...PK);const ls=doc.splitTextToSize('· '+it,CW-4);doc.text(ls,M+3,y);y+=ls.length*4.5;});y+=2;}}
+
+  const adds=getAddsSel().filter(a=>a.tipo!=='info');
+  if(adds.length>0){y+=3;sec('Adicionais Inclusos');adds.forEach(ad=>lin(ad.nome));}
+
+  const svs=getServSel();
+  if(svs.length>0){y+=3;sec('Serviços Inclusos');svs.forEach(s=>{if(y>270){doc.addPage();y=20;}doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...PK);const ls=doc.splitTextToSize('· '+s,CW-3);doc.text(ls,M+3,y);y+=ls.length*4.5;});}
+
+  y+=3;sec('Valores');
+  const pp=parseP(gv('preco_pp')),a=parseInt(gv('n_adultos'))||0,c59=parseInt(gv('n_c59'))||0,c04=parseInt(gv('n_c04'))||0,stf=parseInt(gv('n_staff'))||0;
+  if(pp>0){
+    lin(`R$ ${fmtN(pp)} por pessoa adulta (acima de 10 anos)`);
+    if(a>0)lin(`${a} adulto(s) × R$ ${fmtN(pp)} = R$ ${fmtN(a*pp)}`);
+    if(c59>0)lin(`${c59} criança(s) 5–9 anos × R$ ${fmtN(pp*0.5)} (50%) = R$ ${fmtN(c59*pp*0.5)}`);
+    if(c04>0)lin(`${c04} criança(s) 0–4 anos — não pagam`);
+    if(stf>0)lin(`${stf} staff × R$ ${fmtN(pp*0.5)} (50%) = R$ ${fmtN(stf*pp*0.5)}`);
+    if(isPJ)lin('Acréscimo PJ (nota fiscal): +10%');
+  }
+  if(y>255){doc.addPage();y=20;}
+  y+=4;doc.setFillColor(...V);doc.rect(M,y,CW,10,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(250,247,242);
+  doc.text('TOTAL GERAL',M+4,y+7);
+  doc.text(document.getElementById('total_geral').textContent,W-M-4,y+7,{align:'right'});
+  y+=16;
+
+  sec('Condições de Pagamento');
+  const cond=gv('cond_pgto'),val=fmtD(gv('validade'));
+  if(cond)lin(cond);if(val!=='—')lin(`Validade da proposta: ${val}`);
+  lin('Reserva confirmada com sinal de 10% + assinatura do contrato');
+
+  const obs=gv('obs_final');
+  if(obs){y+=3;sec('Observações');const ls=doc.splitTextToSize(obs,CW);doc.setFont('helvetica','italic');doc.setFontSize(9);doc.setTextColor(...CZ);doc.text(ls,M,y);y+=ls.length*5;}
+
+  const np=doc.getNumberOfPages();
+  for(let i=1;i<=np;i++){doc.setPage(i);doc.setFillColor(...VC);doc.rect(0,285,W,12,'F');doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(...CZ);doc.text('Buffet Manacá Gastronomia e Eventos Ltda · CNPJ: 53.242.932/0001-07 · Borba Gato nº412, Centro, Londrina–PR',W/2,291,{align:'center'});doc.text(`Página ${i} de ${np}`,W-M,291,{align:'right'});}
+
+  const nome=(gv('cli_nome')||'cliente').replace(/\s+/g,'_');
+  doc.save(`Orcamento_Manaca_${nome}.pdf`);
+}
+
+// ===== AGENDA =====
+function pillCls(st){return{'Rascunho':'pl-r','Ag. Chef':'pl-c','Aprovado':'pl-a','Enviado ao Cliente':'pl-e','Cancelado':'pl-x'}[st]||'pl-r'}
+function badgeCls(st){return{'Rascunho':'b-rascunho','Ag. Chef':'b-chef','Aprovado':'b-aprovado','Enviado ao Cliente':'b-enviado','Cancelado':'b-cancelado'}[st]||'b-rascunho'}
+
+function mudarMes(d){calMes+=d;if(calMes>11){calMes=0;calAno++;}if(calMes<0){calMes=11;calAno--;}renderAgenda();}
+
+function renderAgenda(){
+  const orcs=getOrcs();
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  const nomeMes=new Date(calAno,calMes,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+  document.getElementById('cal-titulo').textContent=nomeMes;
+  document.getElementById('rs-titulo').textContent='Resumo — '+new Date(calAno,calMes,1).toLocaleDateString('pt-BR',{month:'long'});
+
+  const mapa={};
+  orcs.forEach(o=>{if(!o.data)return;if(!mapa[o.data])mapa[o.data]=[];mapa[o.data].push(o);});
+
+  const prim=new Date(calAno,calMes,1).getDay();
+  const ultDia=new Date(calAno,calMes+1,0).getDate();
+  const total=Math.ceil((prim+ultDia)/7)*7;
+  let html='';
+  for(let i=0;i<total;i++){
+    const off=i-prim+1;
+    const dt=new Date(calAno,calMes,off);dt.setHours(0,0,0,0);
+    const isOM=off<1||off>ultDia;
+    const isHj=dt.getTime()===hoje.getTime();
+    const ds=dt.toISOString().split('T')[0];
+    const evs=mapa[ds]||[];
+    let cls='cal-day';if(isOM)cls+=' om';if(isHj)cls+=' hj';if(evs.length)cls+=' te';
+    const oc=evs.length?`onclick="destDay('${ds}')"` :'';
+    html+=`<div class="${cls}" ${oc}>`;
+    if(isHj)html+=`<div class="cal-dn">${Math.abs(off)}</div>`;
+    else html+=`<div class="cal-dn">${isOM?'':off}</div>`;
+    if(!isOM){evs.slice(0,2).forEach(ev=>{html+=`<div class="pill ${pillCls(ev.status)}">${ev.nome||ev.tipo||'—'}</div>`;});if(evs.length>2)html+=`<div style="font-size:8px;color:var(--leve)">+${evs.length-2}</div>`;}
+    html+='</div>';
+  }
+  document.getElementById('cal-days').innerHTML=html;
+
+  // Resumo mês
+  const orcsMes=orcs.filter(o=>{if(!o.data)return false;const d=new Date(o.data+'T12:00:00');return d.getFullYear()===calAno&&d.getMonth()===calMes;});
+  const cont={};orcsMes.forEach(o=>{cont[o.status]=(cont[o.status]||0)+1;});
+  const totMes=orcsMes.reduce((s,o)=>s+(o.total||0),0);
+  let rsHtml='';
+  if(!orcsMes.length){rsHtml='<div style="font-size:11px;color:var(--leve);font-style:italic;text-align:center;padding:8px 0">Nenhum evento este mês</div>';}
+  else{Object.entries(cont).forEach(([st,n])=>{rsHtml+=`<div class="rs-linha"><span><span class="badge ${badgeCls(st)}">${st}</span></span><span style="font-weight:600">${n}</span></div>`;});rsHtml+=`<div class="rs-linha" style="margin-top:4px"><span style="font-weight:600;color:var(--verde)">Total em aberto</span><span style="font-weight:700;color:var(--verde)">R$ ${fmtN(totMes)}</span></div>`;}
+  document.getElementById('rs-conteudo').innerHTML=rsHtml;
+
+  // Próximos
+  const prox=orcs.filter(o=>o.data&&new Date(o.data+'T12:00:00')>=hoje&&o.status!=='Cancelado').sort((a,b)=>a.data.localeCompare(b.data)).slice(0,8);
+  let prHtml='';
+  if(!prox.length){prHtml='<div style="font-size:11px;color:var(--leve);font-style:italic;text-align:center;padding:16px 0">Nenhum evento futuro</div>';}
+  else{prox.forEach(o=>{const d=new Date(o.data+'T12:00:00');const df=Math.ceil((d-hoje)/86400000);const lbl=df===0?'Hoje':df===1?'Amanhã':`Em ${df} dias`;prHtml+=`<div class="prox-item" onclick="abrirOrc('${o.id}');irForm()"><div class="prox-data">${fmtD(o.data)} · <span style="color:var(--verde)">${lbl}</span></div><div class="prox-nome">${o.nome||'Sem nome'}</div><div class="prox-det">${o.tipo||'—'} · ${o.local||'—'}</div><div style="margin-top:3px"><span class="badge ${badgeCls(o.status)}">${o.status}</span>${o.total?` <span style="font-size:10px;font-weight:700;color:var(--verde);margin-left:5px">R$ ${fmtN(o.total)}</span>`:''}</div></div>`;});}
+  document.getElementById('prox-lista').innerHTML=prHtml;
+}
+
+function destDay(ds){
+  const items=document.querySelectorAll('.prox-item');
+  items.forEach(el=>{el.style.background=el.textContent.includes(fmtD(ds))?'var(--verde-claro)':'';});
+}
+
+// ===== DURAÇÃO AUTOMÁTICA =====
+function calcDuracao(){
+  const inicio = document.getElementById('ev_hora_inicio')?.value;
+  const fim = document.getElementById('ev_hora_fim')?.value;
+  const durEl = document.getElementById('ev_duracao');
+  if(!inicio || !fim || !durEl) return;
+  const [hi,mi] = inicio.split(':').map(Number);
+  const [hf,mf] = fim.split(':').map(Number);
+  let totalMin = (hf*60+mf) - (hi*60+mi);
+  if(totalMin < 0) totalMin += 24*60; // passou da meia-noite
+  if(totalMin <= 0){ durEl.value=''; return; }
+  const horas = Math.floor(totalMin/60);
+  const mins = totalMin%60;
+  if(mins===0) durEl.value = horas===1 ? '1 hora' : horas+' horas';
+  else durEl.value = `${horas}h${String(mins).padStart(2,'0')}min`;
+}
+
+// ===== CONTRATOS =====
+let contrAtualId = null;
+let filtroCont = 'todos';
+let criancasArr = [];
+
+function getContrs(){try{return JSON.parse(localStorage.getItem('manaca_contrs')||'[]')}catch{return[]}}
+function saveContrs(l){localStorage.setItem('manaca_contrs',JSON.stringify(l))}
+
+function irContratos(){
+  ['tela-lista','tela-form','tela-agenda','tela-contratos','tela-contr-form'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('ativa')});
+  document.getElementById('tela-contratos').classList.add('ativa');
+  ['nav-lista','nav-contratos','nav-agenda'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('ativa')});
+  document.getElementById('nav-contratos').classList.add('ativa');
+  renderContratos();
+}
+
+function irContForm(){
+  ['tela-lista','tela-form','tela-agenda','tela-contratos','tela-contr-form'].forEach(id=>{document.getElementById(id)?.classList.remove('ativa')});
+  document.getElementById('tela-contr-form').classList.add('ativa');
+}
+
+// nav-contratos gerenciado dentro de irLista e irAgenda diretamente
+
+function setFiltroContr(f,btn){
+  filtroCont=f;
+  document.querySelectorAll('#tela-contratos .fb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderContratos();
+}
+
+function bcContr(st){return{'Ag. Assinatura':'bc-aguardando','Assinado':'bc-assinado','Encerrado':'bc-encerrado','Cancelado':'bc-cancelado'}[st]||'bc-aguardando'}
+
+function renderContratos(busca=''){
+  const contrs=getContrs();
+  document.getElementById('rc-tot').textContent=contrs.length;
+  document.getElementById('rc-ag').textContent=contrs.filter(c=>c.status==='Ag. Assinatura').length;
+  document.getElementById('rc-ass').textContent=contrs.filter(c=>c.status==='Assinado').length;
+  document.getElementById('rc-enc').textContent=contrs.filter(c=>c.status==='Encerrado').length;
+
+  let lista=contrs.slice().reverse();
+  if(filtroCont!=='todos')lista=lista.filter(c=>c.status===filtroCont);
+  if(busca){const q=busca.toLowerCase();lista=lista.filter(c=>(c.nome||'').toLowerCase().includes(q)||(c.tipo||'').toLowerCase().includes(q));}
+
+  const el=document.getElementById('lista-contratos');
+  if(!lista.length){
+    el.innerHTML=`<div class="empty"><div class="ei">📄</div><h3>${!contrs.length?'Nenhum contrato ainda':'Nenhum resultado'}</h3><p>${!contrs.length?'Clique em "+ Novo contrato" ou gere a partir de um orçamento aprovado.':'Tente outro filtro.'}</p></div>`;
+    return;
+  }
+  el.innerHTML=lista.map(ct=>`
+    <div class="contr-card" onclick="abrirContrato('${ct.id}')">
+      <div class="orc-num">#${ct.num||ct.id.slice(-4)}</div>
+      <div class="orc-info">
+        <div class="orc-nome">${ct.nome||'Sem nome'}${ct.orc_id?`<span class="orc-link-badge">Orç. vinculado</span>`:''}</div>
+        <div class="orc-det">${ct.tipo||'—'} · ${ct.ev_data?fmtD(ct.ev_data):'—'} · ${ct.local||'—'}</div>
+      </div>
+      <div class="orc-valor">${ct.valor_total?'R$ '+ct.valor_total:'—'}</div>
+      <div><span class="badge ${bcContr(ct.status)}">${ct.status||'Ag. Assinatura'}</span></div>
+      <div class="orc-acoes" onclick="event.stopPropagation()">
+        <button class="btn-sm" onclick="abrirContrato('${ct.id}')">Editar</button>
+        <button class="btn-sm del" onclick="excluirContrato('${ct.id}')">×</button>
+      </div>
+    </div>`).join('');
+}
+
+function novoContrato(orcId){
+  contrAtualId=null;
+  limparContrato();
+  popularSelectOrcs();
+  criancasArr=[];
+  renderCriancas();
+  if(orcId){
+    document.getElementById('corc_vinc').value=orcId;
+    preencherDoOrc();
+  }
+  renderContrPreview();
+  irContForm();
+}
+
+function abrirContrato(id){
+  const ct=getContrs().find(c=>c.id===id);if(!ct)return;
+  contrAtualId=id;
+  limparContrato();
+  popularSelectOrcs();
+  preencherFormContrato(ct);
+  renderContrPreview();
+  irContForm();
+}
+
+function excluirContrato(id){
+  if(!confirm('Excluir este contrato?'))return;
+  saveContrs(getContrs().filter(c=>c.id!==id));
+  renderContratos();
+}
+
+function limparContrato(){
+  ['cnum','ccli_nome','ccli_doc','ccli_end','cev_tipo','cev_local','cev_conv','cvalor_total','cvalor_ext','cforma_pgto','cdata_pgto','cobs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  sv('cdata_ass','');sv('cev_data','');sv('cev_inicio','');sv('cev_fim','');
+  sv('ct_adultos',0);sv('ct_val_adulto','');sv('ct_tot_adulto','');
+  sv('ct_c59',0);sv('ct_val_c59','');sv('ct_tot_c59','');
+  sv('ct_staff',0);sv('ct_val_staff','');sv('ct_tot_staff','');
+  sv('cforma_pgto','10% no ato da assinatura do contrato e o restante até 2 dias antes do evento');
+  sv('cservicos','Material para uso da cozinha e manuseio de alimentos\nGarçonetes e garçons, conforme o número de convidados, chef e Auxiliar de cozinha\nChegamos com antecedência para montagem e preparação dos pratos');
+  document.querySelector('input[name="cstatus"][value="Ag. Assinatura"]').checked=true;
+  document.querySelector('input[name="cpix"][value="cnpj"]').checked=true;
+  sv('corc_vinc','');
+  criancasArr=[];renderCriancas();
+}
+
+function preencherFormContrato(ct){
+  sv('cnum',ct.num);sv('cdata_ass',ct.data_ass);sv('corc_vinc',ct.orc_id||'');
+  sv('ccli_nome',ct.nome);sv('ccli_doc',ct.doc);sv('ccli_end',ct.end);
+  sv('cev_data',ct.ev_data);sv('cev_tipo',ct.tipo);sv('cev_inicio',ct.inicio);sv('cev_fim',ct.fim);
+  sv('cev_local',ct.local);sv('cev_conv',ct.conv);
+  sv('cmenu',ct.menu);sv('cservicos',ct.servicos);
+  sv('cvalor_total',ct.valor_total);sv('cvalor_ext',ct.valor_ext);sv('cforma_pgto',ct.forma_pgto);
+  sv('ct_adultos',ct.t_adultos||0);sv('ct_val_adulto',ct.tv_adulto||'');
+  sv('ct_c59',ct.t_c59||0);sv('ct_val_c59',ct.tv_c59||'');
+  sv('ct_staff',ct.t_staff||0);sv('ct_val_staff',ct.tv_staff||'');
+  sv('cdata_pgto',ct.data_pgto);sv('cobs',ct.obs);
+  if(ct.status){const el=document.querySelector(`input[name="cstatus"][value="${ct.status}"]`);if(el)el.checked=true;}
+  if(ct.pix){const el=document.querySelector(`input[name="cpix"][value="${ct.pix}"]`);if(el)el.checked=true;}
+  criancasArr=ct.criancas||[];renderCriancas();
+  calcTabela();
+}
+
+function popularSelectOrcs(){
+  const sel=document.getElementById('corc_vinc');
+  const orcs=getOrcs().filter(o=>o.nome||o.tipo);
+  sel.innerHTML='<option value="">— Nenhum / preencher manualmente —</option>';
+  orcs.slice().reverse().forEach(o=>{
+    const opt=document.createElement('option');
+    opt.value=o.id;
+    opt.textContent=`${o.nome||'Sem nome'} · ${o.tipo||'—'} · ${o.data?fmtD(o.data):''}`;
+    sel.appendChild(opt);
+  });
+}
+
+function preencherDoOrc(){
+  const id=gv('corc_vinc');if(!id)return;
+  const orc=getOrcs().find(o=>o.id===id);if(!orc)return;
+  sv('ccli_nome',orc.nome||'');
+  sv('cev_data',orc.data||'');
+  sv('cev_tipo',orc.tipo||'');
+  sv('cev_inicio',orc.hora_inicio||'');
+  sv('cev_fim',orc.hora_fim||'');
+  sv('cev_local',orc.local||'');
+  const totConv=(parseInt(orc.adultos)||0)+(parseInt(orc.c59)||0)+(parseInt(orc.c04)||0);
+  sv('cev_conv',totConv ? totConv+' pessoas' : '');
+  // Menu do orçamento
+  if(orc.cardapio&&orc.cardapio.length>0) sv('cmenu',orc.cardapio.join('\\n'));
+  // Valor
+  if(orc.total){
+    sv('cvalor_total',fmtN(orc.total));
+    sv('ct_adultos',orc.adultos||0);
+    sv('ct_c59',orc.c59||0);
+    sv('ct_staff',orc.staff||0);
+    if(orc.preco){
+      sv('ct_val_adulto',orc.preco);
+      const pp=parseP(orc.preco);
+      if(pp>0){
+        sv('ct_val_c59',fmtN(pp*0.5).replace('.',','));
+        sv('ct_val_staff',fmtN(pp*0.5).replace('.',','));
+      }
+    }
+  }
+  calcTabela();
+  renderContrPreview();
+}
+
+// ===== CRIANÇAS =====
+function addCrianca(){
+  criancasArr.push({nome:'',idade:''});
+  renderCriancas();
+}
+function remCrianca(i){
+  criancasArr.splice(i,1);
+  renderCriancas();
+  renderContrPreview();
+}
+function renderCriancas(){
+  const el=document.getElementById('criancas-lista');
+  if(!el)return;
+  if(!criancasArr.length){el.innerHTML='<div style="font-size:11px;color:var(--leve);font-style:italic;margin-bottom:8px">Nenhuma criança adicionada.</div>';return;}
+  el.innerHTML=criancasArr.map((cr,i)=>`
+    <div class="crianca-row">
+      <input type="text" placeholder="Nome da criança" value="${cr.nome||''}" oninput="criancasArr[${i}].nome=this.value;renderContrPreview()" style="flex:1">
+      <input type="text" placeholder="Idade" value="${cr.idade||''}" oninput="criancasArr[${i}].idade=this.value;renderContrPreview()" style="width:70px">
+      <button class="btn-rem-crianca" onclick="remCrianca(${i})">×</button>
+    </div>`).join('');
+}
+
+// ===== TABELA DE VALORES =====
+function calcTabela(){
+  const a=parseInt(gv('ct_adultos'))||0;
+  const c59=parseInt(gv('ct_c59'))||0;
+  const staff=parseInt(gv('ct_staff'))||0;
+  const va=parseP(gv('ct_val_adulto'));
+  const vc=parseP(gv('ct_val_c59'));
+  const vs=parseP(gv('ct_val_staff'));
+  const ta=a*va, tc=c59*vc, ts=staff*vs;
+  if(va>0)sv('ct_tot_adulto','R$ '+fmtN(ta));else sv('ct_tot_adulto','');
+  if(vc>0&&c59>0)sv('ct_tot_c59','R$ '+fmtN(tc));else sv('ct_tot_c59','');
+  if(vs>0&&staff>0)sv('ct_tot_staff','R$ '+fmtN(ts));else sv('ct_tot_staff','');
+  const total=ta+tc+ts;
+  if(total>0&&!gv('cvalor_total'))sv('cvalor_total',fmtN(total));
+  renderContrPreview();
+}
+// Adicionar evento de input nos campos da tabela
+document.addEventListener('input',function(e){
+  if(['ct_adultos','ct_val_adulto','ct_c59','ct_val_c59','ct_staff','ct_val_staff'].includes(e.target.id)) calcTabela();
+});
+
+// ===== PREVIEW DO CONTRATO =====
+function getCStatusEl(){return document.querySelector('input[name="cstatus"]:checked')?.value||'Ag. Assinatura'}
+function getPix(){return document.querySelector('input[name="cpix"]:checked')?.value||'cnpj'}
+
+function renderContrPreview(){
+  const nome=gv('ccli_nome')||'[CONTRATANTE]';
+  const doc=gv('ccli_doc');
+  const end=gv('ccli_end');
+  const evData=gv('cev_data');
+  const tipo=gv('cev_tipo');
+  const inicio=gv('cev_inicio');
+  const fim=gv('cev_fim');
+  const local=gv('cev_local')||'[LOCAL]';
+  const conv=gv('cev_conv');
+  const menu=(gv('cmenu')||'').split('\\n').filter(l=>l.trim());
+  const servicos=(gv('cservicos')||'').split('\\n').filter(l=>l.trim());
+  const valorTotal=gv('cvalor_total')||'[VALOR]';
+  const valorExt=gv('cvalor_ext')||'[valor por extenso]';
+  const formaPgto=gv('cforma_pgto');
+  const dataPgto=gv('cdata_pgto');
+  const dataAss=gv('cdata_ass');
+  const cnum=gv('cnum');
+  const obs=gv('cobs');
+  const pix=getPix();
+
+  const a=parseInt(gv('ct_adultos'))||0;
+  const c59=parseInt(gv('ct_c59'))||0;
+  const staff=parseInt(gv('ct_staff'))||0;
+  const va=gv('ct_val_adulto');
+  const vc=gv('ct_val_c59');
+  const vs=gv('ct_val_staff');
+  const ta=gv('ct_tot_adulto');
+  const tc=gv('ct_tot_c59');
+  const ts=gv('ct_tot_staff');
+
+  const horario=inicio?(inicio+(fim?' às '+fim:'')):'';
+  const dataEvFmt=evData?fmtD(evData):'[DATA]';
+  const dataAssFmt=dataAss?new Date(dataAss+'T12:00:00').toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric'}):'_____ de ___________ de 2026';
+
+  let h='';
+  h+=`<h1>Contrato de Prestação de Serviços de Buffet</h1>`;
+  h+=`<div class="sub-header">Buffet Manacá Gastronomia e Eventos Ltda${cnum?' · Nº '+cnum:''}</div>`;
+
+  // Cabeçalho do evento
+  h+=`<div style="margin-bottom:12px;font-size:10.5px">`;
+  if(tipo)h+=`<div><b>Evento:</b> ${tipo}</div>`;
+  h+=`<div><b>Data:</b> ${dataEvFmt}${horario?' · '+horario:''}</div>`;
+  h+=`<div><b>Local:</b> ${local}</div>`;
+  if(conv)h+=`<div><b>Convidados:</b> ${conv}</div>`;
+  h+=`</div>`;
+
+  h+=`<div><b>CONTRATANTE:</b> ${nome}${doc?' · '+doc:''}${end?'<br><span style="padding-left:1em">'+end+'</span>':''}</div>`;
+  h+=`<br><div><b>CONTRATADA:</b> Razão Social: BUFFET MANACÁ GASTRONOMIA E EVENTOS LTDA, inscrita no CNPJ: 53.242.932/0001-07, com endereço comercial na Rua Borba Gato, nº 412 - Centro – Londrina - Paraná.</div>`;
+  h+=`<br><div class="cl-body">As partes acima identificadas têm, entre si, justo e acertado o presente Contrato de Prestação de Serviços de Buffet, que se regerá pelas cláusulas seguintes e pelas condições de preço, forma e termo de pagamento descritas no presente.</div>`;
+
+  h+=`<div class="cl-sec">Do Objeto do Contrato</div>`;
+  h+=`<div class="cl-body">Cláusula 1ª. É objeto do presente contrato a prestação pela CONTRATADA à CONTRATANTE dos serviços de Buffet no evento que se realizará no dia ${dataEvFmt}${horario?', das '+horario:''}${local?', no local: '+local:''}.</div>`;
+
+  if(menu.length>0){
+    h+=`<div class="cl-sec">Menu Acordado</div>`;
+    menu.forEach(item=>{h+=`<div style="padding-left:8px;font-size:10.5px">· ${item}</div>`;});
+  }
+
+  if(servicos.length>0){
+    h+=`<div class="cl-sec">Serviços Inclusos</div>`;
+    servicos.forEach(s=>{h+=`<div style="padding-left:8px;font-size:10.5px">· ${s}</div>`;});
+    h+=`<div class="cl-body" style="margin-top:6px;font-size:9.5px">Parágrafo único. O evento realizar-se-á no horário e local indicado no caput da cláusula 1ª, e a validade deste contrato será o mesmo dos serviços de buffet prestados até esta data.</div>`;
+  }
+
+  h+=`<div class="cl-sec">Das Obrigações</div>`;
+  h+=`<div class="cl-body" style="font-size:9.5px">Cláusula 2ª - A CONTRATANTE deverá fornecer à CONTRATADA todas as informações necessárias à realização adequada do serviço de buffet. Liberar o espaço onde o buffet irá trabalhar. Fornecer também, rodo, vassoura, pano de chão, saco de lixo, caso o espaço locado não forneça esses itens. Fica expressamente proibida a entrada de pessoas que não são do buffet na cozinha durante o evento.</div>`;
+
+  h+=`<div class="cl-sec">Do Preço e das Condições de Pagamento</div>`;
+  h+=`<div class="cl-body">Cláusula 3ª – O presente serviço será remunerado pela quantia <b>R$ ${valorTotal} (${valorExt})</b>, cujo o pagamento será realizado da seguinte maneira: ${formaPgto}${dataPgto?' até o dia '+fmtD(dataPgto):''}.</div>`;
+
+  // Tabela de pagantes
+  if(a>0||c59>0||staff>0){
+    h+=`<table style="margin-top:8px"><tr><th>Qtd</th><th>Pagantes</th><th>Valor</th><th>Total</th></tr>`;
+    if(a>0)h+=`<tr><td>${a}</td><td>Adultos (acima de 10 anos)</td><td>${va?'R$ '+va:'—'}</td><td>${ta||'—'}</td></tr>`;
+    if(c59>0)h+=`<tr><td>${c59}</td><td>Crianças de 5 a 9 anos (50%)</td><td>${vc?'R$ '+vc:'—'}</td><td>${tc||'—'}</td></tr>`;
+    if(staff>0)h+=`<tr><td>${staff}</td><td>Staff (fotógrafo, músico...)</td><td>${vs?'R$ '+vs:'—'}</td><td>${ts||'—'}</td></tr>`;
+    h+=`<tr class="total-row"><td colspan="3">TOTAL</td><td>R$ ${valorTotal}</td></tr></table>`;
+  }
+
+  h+=`<div style="font-size:9.5px;margin-top:6px"><b>Observações:</b> Crianças de 0 a 4 anos não pagam; Crianças de 5 a 9 anos pagam 50%; Crianças a partir de 10 anos pagam integralmente.</div>`;
+
+  // Lista de crianças
+  if(criancasArr.filter(c=>c.nome).length>0){
+    h+=`<div class="cl-sec">Lista de Crianças</div>`;
+    criancasArr.filter(c=>c.nome).forEach((cr,i)=>{h+=`<div style="font-size:10px;padding-left:8px">${i+1}) ${cr.nome}${cr.idade?' – '+cr.idade+' anos':''}</div>`;});
+  }
+
+  // PIX
+  h+=`<div class="cl-sec">Dados para Pagamento</div>`;
+  h+=`<div style="font-size:10px"><b>CAIXA ECONÔMICA FEDERAL</b></div>`;
+  if(pix==='cnpj'||pix==='ambos')h+=`<div style="font-size:10px">PIX CNPJ: 53.242.932/0001-07 · Drica Castro Gastronomia e Eventos</div>`;
+  if(pix==='celular'||pix==='ambos')h+=`<div style="font-size:10px">PIX Celular: 43996352053 · Leonardo Novi dos Santos</div>`;
+
+  // Cláusulas fixas condensadas
+  h+=`<div class="cl-sec">Do Distrato / Da Rescisão / Das Condições Gerais</div>`;
+  h+=`<div class="cl-body" style="font-size:9px">Cláusula 4ª. Em caso de destrato por parte do CONTRATANTE quanto ao pagamento do serviço prestado perderá o direito de devolução da quantia paga como forma de entrada ou reserva prévia da data do evento. · Cláusula 5ª. O presente contrato poderá ser rescindido unilateralmente por qualquer uma das partes, desde que haja comunicação formal por escrito justificando o motivo. O prazo para alteração deverá ser no máximo de 15 (quinze) dias que antecedem o evento. · Cláusula 6ª. O cardápio foi elaborado de acordo com o número de convidados determinado pela CONTRATANTE. A CONTRATADA não será responsabilizada se a insuficiência de comida e/ou bebida resultar da entrada de número maior de pessoas. · Cláusula 7ª. Qualquer alteração somente será reconhecida se incorporada ao presente contrato mediante Termo Aditivo, devidamente assinado pelas partes.</div>`;
+
+  if(obs)h+=`<div class="cl-sec">Observações</div><div class="cl-body" style="font-size:9.5px">${obs}</div>`;
+
+  h+=`<div style="margin-top:14px;font-size:10px;text-align:right">Londrina, ${dataAssFmt}</div>`;
+  h+=`<div class="cl-assin">
+    <div><div class="assin-linha">Adriana Castro<br><b>Contratada</b></div></div>
+    <div><div class="assin-linha">${nome}<br><b>Contratante</b></div></div>
+  </div>`;
+  h+=`<div style="margin-top:16px;padding-top:8px;border-top:1px solid var(--borda);font-size:8.5px;color:var(--leve);text-align:center">Endereço Borba Gato nº412 · Centro · Londrina–PR · WhatsApp 43-99635-2053 · chefdricacastro@gmail.com · @dricacastro.chef</div>`;
+
+  document.getElementById('contr-preview').innerHTML=h;
+}
+
+// ===== SALVAR CONTRATO =====
+function salvarContrato(){
+  const contrs=getContrs();
+  const ct={
+    id:contrAtualId||Date.now().toString(),
+    criadoEm:contrAtualId?(getContrs().find(c=>c.id===contrAtualId)?.criadoEm||new Date().toISOString()):new Date().toISOString(),
+    status:document.querySelector('input[name="cstatus"]:checked')?.value||'Ag. Assinatura',
+    num:gv('cnum'),data_ass:gv('cdata_ass'),orc_id:gv('corc_vinc'),
+    nome:gv('ccli_nome'),doc:gv('ccli_doc'),end:gv('ccli_end'),
+    ev_data:gv('cev_data'),tipo:gv('cev_tipo'),inicio:gv('cev_inicio'),fim:gv('cev_fim'),
+    local:gv('cev_local'),conv:gv('cev_conv'),
+    menu:gv('cmenu'),servicos:gv('cservicos'),
+    valor_total:gv('cvalor_total'),valor_ext:gv('cvalor_ext'),forma_pgto:gv('cforma_pgto'),
+    t_adultos:gv('ct_adultos'),tv_adulto:gv('ct_val_adulto'),
+    t_c59:gv('ct_c59'),tv_c59:gv('ct_val_c59'),
+    t_staff:gv('ct_staff'),tv_staff:gv('ct_val_staff'),
+    data_pgto:gv('cdata_pgto'),obs:gv('cobs'),
+    pix:getPix(),criancas:[...criancasArr]
+  };
+  if(contrAtualId){const idx=contrs.findIndex(c=>c.id===contrAtualId);if(idx>=0)contrs[idx]=ct;else contrs.push(ct);}
+  else{contrAtualId=ct.id;contrs.push(ct);}
+  saveContrs(contrs);
+  const btn=document.querySelector('.btn-gerar-contr');
+  btn.textContent='✓ Salvo!';btn.style.background='#4ADE80';btn.style.color='#1C1C1A';
+  setTimeout(()=>{btn.textContent='💾 Salvar contrato';btn.style.background='';btn.style.color='';},1800);
+}
+
+// ===== PDF CONTRATO =====
+async function gerarPDFContrato(){
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const V=[47,82,51],VC=[232,242,235],CZ=[107,101,96],PK=[28,28,26];
+  const W=210,M=18,CW=W-M*2;let y=22;
+
+  function addPg(){doc.addPage();y=20;}
+  function chk(h=8){if(y+h>275)addPg();}
+
+  function titulo(t){
+    chk(10);
+    doc.setFillColor(...VC);doc.rect(M,y-4,CW,8,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(...V);
+    doc.text(t.toUpperCase(),M+2,y+0.5);y+=9;
+  }
+  function corpo(t,size=9,italic=false){
+    const ls=doc.splitTextToSize(t,CW);
+    chk(ls.length*5);
+    doc.setFont('helvetica',italic?'italic':'normal');doc.setFontSize(size);doc.setTextColor(...PK);
+    doc.text(ls,M,y);y+=ls.length*5+1;
+  }
+  function item(t){
+    const ls=doc.splitTextToSize('· '+t,CW-4);
+    chk(ls.length*4.5);
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...PK);
+    doc.text(ls,M+3,y);y+=ls.length*4.5;
+  }
+
+  // CABEÇALHO
+  doc.setFillColor(...V);doc.rect(0,0,W,36,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(18);doc.setTextColor(250,247,242);
+  doc.text('BUFFET MANACÁ',W/2,12,{align:'center'});
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(168,196,173);
+  doc.text('Contrato de Prestação de Serviços de Buffet',W/2,19,{align:'center'});
+  doc.text('CNPJ: 53.242.932/0001-07 · Rua Borba Gato nº412, Centro, Londrina–PR',W/2,24,{align:'center'});
+  const cnum=gv('cnum');
+  if(cnum){doc.setTextColor(250,247,242);doc.setFont('helvetica','bold');doc.setFontSize(9);doc.text('Nº '+cnum,W-M,31,{align:'right'});}
+  y=46;
+
+  const nome=gv('ccli_nome')||'[CONTRATANTE]';
+  const docc=gv('ccli_doc');const end=gv('ccli_end');
+  const evData=gv('cev_data');const tipo=gv('cev_tipo');
+  const inicio=gv('cev_inicio');const fim=gv('cev_fim');
+  const local=gv('cev_local')||'[LOCAL]';const conv=gv('cev_conv');
+  const menu=(gv('cmenu')||'').split('\\n').filter(l=>l.trim());
+  const servicos=(gv('cservicos')||'').split('\\n').filter(l=>l.trim());
+  const valorTotal=gv('cvalor_total')||'[VALOR]';
+  const valorExt=gv('cvalor_ext')||'valor por extenso';
+  const formaPgto=gv('cforma_pgto');
+  const dataPgto=gv('cdata_pgto');
+  const dataAss=gv('cdata_ass');
+  const obs=gv('cobs');
+  const pix=getPix();
+  const horario=inicio?(inicio+(fim?' às '+fim:'')):'';
+  const dataEvFmt=evData?fmtD(evData):'[DATA]';
+  const dataAssFmt=dataAss?new Date(dataAss+'T12:00:00').toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric'}):'_____ de ___________ de 2026';
+
+  // Cabeçalho evento
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...PK);
+  if(tipo){doc.setFont('helvetica','bold');doc.text('Evento: ',M,y);doc.setFont('helvetica','normal');doc.text(tipo,M+doc.getTextWidth('Evento: '),y);y+=5;}
+  doc.setFont('helvetica','bold');doc.text('Data: ',M,y);doc.setFont('helvetica','normal');doc.text(dataEvFmt+(horario?' · '+horario:''),M+doc.getTextWidth('Data: '),y);y+=5;
+  doc.setFont('helvetica','bold');doc.text('Local: ',M,y);doc.setFont('helvetica','normal');doc.text(local,M+doc.getTextWidth('Local: '),y);y+=5;
+  if(conv){doc.setFont('helvetica','bold');doc.text('Convidados: ',M,y);doc.setFont('helvetica','normal');doc.text(conv,M+doc.getTextWidth('Convidados: '),y);y+=5;}
+  y+=4;
+  doc.setFont('helvetica','bold');doc.text('CONTRATANTE: ',M,y);doc.setFont('helvetica','normal');
+  const cliLine=nome+(docc?' · '+docc:'');
+  const cliLs=doc.splitTextToSize(cliLine,CW-doc.getTextWidth('CONTRATANTE: '));
+  doc.text(cliLs,M+doc.getTextWidth('CONTRATANTE: '),y);y+=cliLs.length*5;
+  if(end){const eLs=doc.splitTextToSize(end,CW-6);doc.text(eLs,M+6,y);y+=eLs.length*5;}
+  y+=3;
+  corpo('CONTRATADA: Razão Social: BUFFET MANACÁ GASTRONOMIA E EVENTOS LTDA, inscrita no CNPJ: 53.242.932/0001-07, com endereço comercial na Rua Borba Gato, nº 412 - Centro – Londrina - Paraná.',9);
+  y+=2;corpo('As partes acima identificadas têm, entre si, justo e acertado o presente Contrato de Prestação de Serviços de Buffet, que se regerá pelas cláusulas seguintes e pelas condições de preço, forma e termo de pagamento descritas no presente.',9);
+
+  titulo('Do Objeto do Contrato');
+  corpo(`Cláusula 1ª. É objeto do presente contrato a prestação pela CONTRATADA à CONTRATANTE dos serviços de Buffet no evento que se realizará no dia ${dataEvFmt}${horario?', das '+horario:''}${local?', no local: '+local:''}.`,9);
+
+  if(menu.length>0){titulo('Menu Acordado');menu.forEach(i2=>item(i2));}
+  if(servicos.length>0){titulo('Serviços Inclusos');servicos.forEach(s=>item(s));y+=2;corpo('Parágrafo único. O evento realizar-se-á no horário e local indicado no caput da cláusula 1ª, e a validade deste contrato será o mesmo dos serviços de buffet prestados até esta data.',8.5);}
+
+  titulo('Das Obrigações');
+  corpo('Cláusula 2ª - A CONTRATANTE deverá fornecer à CONTRATADA todas as informações necessárias. Liberar o espaço onde o buffet irá trabalhar. Fornecer também, rodo, vassoura, pano de chão, saco de lixo. Fica expressamente proibida a entrada de pessoas que não são do buffet na cozinha durante o evento. A CONTRATADA fornecerá garçons e auxiliar de cozinha inclusos no preço final.',9);
+
+  titulo('Do Preço e das Condições de Pagamento');
+  corpo(`Cláusula 3ª – O presente serviço será remunerado pela quantia R$ ${valorTotal} (${valorExt}), cujo o pagamento será realizado da seguinte maneira: ${formaPgto}${dataPgto?' até o dia '+fmtD(dataPgto):'.'}.`,9);
+
+  // Tabela
+  const a=parseInt(gv('ct_adultos'))||0,c59n=parseInt(gv('ct_c59'))||0,staff=parseInt(gv('ct_staff'))||0;
+  const va=gv('ct_val_adulto'),vc=gv('ct_val_c59'),vs=gv('ct_val_staff');
+  const ta=gv('ct_tot_adulto'),tc=gv('ct_tot_c59'),ts=gv('ct_tot_staff');
+  if(a>0||c59n>0||staff>0){
+    chk(30);y+=3;
+    const cols=[30,70,35,35];const startX=M;
+    doc.setFillColor(...V);doc.rect(startX,y-4,CW,7,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(250,247,242);
+    ['Qtd','Pagantes','Valor','Total'].forEach((h,i)=>{doc.text(h,startX+cols.slice(0,i).reduce((a,b)=>a+b,0)+2,y+0.5);});
+    y+=7;
+    const rows=[];
+    if(a>0)rows.push([String(a),'Adultos (acima de 10 anos)',va?'R$ '+va:'—',ta||'—']);
+    if(c59n>0)rows.push([String(c59n),'Crianças 5–9 anos (50%)',vc?'R$ '+vc:'—',tc||'—']);
+    if(staff>0)rows.push([String(staff),'Staff (fotógrafo, músico...)',vs?'R$ '+vs:'—',ts||'—']);
+    rows.push(['','','TOTAL','R$ '+valorTotal]);
+    rows.forEach((row,ri)=>{
+      chk(7);
+      doc.setFont('helvetica',ri===rows.length-1?'bold':'normal');
+      doc.setFontSize(8.5);doc.setTextColor(...(ri===rows.length-1?V:PK));
+      if(ri===rows.length-1){doc.setDrawColor(...V);doc.setLineWidth(0.5);doc.line(startX,y-3,startX+CW,y-3);}
+      row.forEach((cell,ci)=>{doc.text(String(cell),startX+cols.slice(0,ci).reduce((a,b)=>a+b,0)+2,y+0.5);});
+      y+=6;
+    });
+    y+=2;
+  }
+
+  corpo('Observações: Crianças de 0 a 4 anos não pagam; Crianças de 5 a 9 anos pagam 50%; Crianças a partir de 10 anos pagam integralmente.',8.5);
+
+  // Lista crianças
+  const crs=criancasArr.filter(c=>c.nome);
+  if(crs.length>0){titulo('Lista de Crianças');crs.forEach((cr,i)=>item(`${cr.nome}${cr.idade?' – '+cr.idade+' anos':''}`));}
+
+  // PIX
+  titulo('Dados para Pagamento');
+  corpo('CAIXA ECONÔMICA FEDERAL',9,false);
+  if(pix==='cnpj'||pix==='ambos')corpo('PIX CNPJ: 53.242.932/0001-07 · Drica Castro Gastronomia e Eventos',9);
+  if(pix==='celular'||pix==='ambos')corpo('PIX Celular: 43996352053 · Leonardo Novi dos Santos',9);
+
+  // Cláusulas fixas
+  titulo('Do Distrato');
+  corpo('Cláusula 4ª. Em caso de destrato por parte do CONTRATANTE quanto ao pagamento do serviço prestado perderá o direito de devolução da quantia paga como forma de entrada ou reserva prévia da data do evento.',9);
+  titulo('Da Rescisão');
+  corpo('Cláusula 5ª. O presente contrato poderá ser rescindido unilateralmente por qualquer uma das partes, desde que haja comunicação formal por escrito justificando o motivo. A data contratada pode ser alterada mediante acordo entre as partes, sem pagamento de multa, desde que não cause prejuízo a nenhuma parte. O prazo para alteração deverá ser no máximo de 15 (quinze) dias que antecedem o evento.',9);
+  titulo('Das Condições Gerais');
+  corpo('Cláusula 6ª. O cardápio foi elaborado de acordo com o número de convidados determinado pela CONTRATANTE. Portanto, a CONTRATADA não será responsabilizada se, atendidas as especificações contratadas, a insuficiência da comida e/ou da bebida resultar da entrada de número maior de pessoas no evento. Quando algum ingrediente do menu contratado não for encontrado, este poderá ser substituído por outro semelhante sem aviso prévio.',9);
+  titulo('Outros Fornecedores');
+  corpo('O Buffet não é responsável pelo serviço de organização, manuseio e alimentação de outros fornecedores no mesmo evento. Caso o CONTRATANTE queira adquirir refeição para outros fornecedores (STAFF DO EVENTO), o Buffet cobrará o valor de 50% do valor de Menu contratado por pessoa.',9);
+  titulo('Cláusula 7ª');
+  corpo('Qualquer alteração, modificação, complementação, ou ajuste, somente será reconhecido e produzirá efeitos legais, se incorporado ao presente contrato mediante Termo Aditivo, devidamente assinado pelas partes contratantes.',9);
+
+  if(obs){titulo('Observações Adicionais');corpo(obs,9);}
+
+  chk(30);y+=6;
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...PK);
+  doc.text(`Londrina, ${dataAssFmt}`,W-M,y,{align:'right'});y+=14;
+  doc.setLineWidth(0.3);doc.setDrawColor(...PK);
+  doc.line(M,y,M+75,y);doc.line(W-M-75,y,W-M,y);y+=5;
+  doc.setFont('helvetica','bold');doc.text('Adriana Castro',M+37,y,{align:'center'});
+  doc.text(nome.slice(0,30),W-M-37,y,{align:'center'});y+=4;
+  doc.setFont('helvetica','normal');doc.setFontSize(8);
+  doc.text('Contratada',M+37,y,{align:'center'});doc.text('Contratante',W-M-37,y,{align:'center'});
+
+  // Rodapé
+  const np=doc.getNumberOfPages();
+  for(let i=1;i<=np;i++){
+    doc.setPage(i);doc.setFillColor(...VC);doc.rect(0,285,W,12,'F');
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(...CZ);
+    doc.text('Buffet Manacá · CNPJ 53.242.932/0001-07 · Borba Gato nº412, Centro, Londrina–PR · chefdricacastro@gmail.com · @dricacastro.chef',W/2,291,{align:'center'});
+    if(np>1)doc.text(`Página ${i} de ${np}`,W-M,291,{align:'right'});
+  }
+
+  const nomeArq=(gv('ccli_nome')||'contrato').replace(/\s+/g,'_');
+  doc.save(`Contrato_Manaca_${nomeArq}.pdf`);
+}
+
+function imprimirContrato(){
+  const c=document.getElementById('contr-preview').innerHTML;
+  document.getElementById('print_area').innerHTML=`<style>body{font-family:Inter,sans-serif;font-size:11px;padding:28px;max-width:700px;margin:auto;line-height:1.7}h1{font-size:16px;text-align:center;color:#2F5233;margin-bottom:4px}.sub-header{text-align:center;font-size:10px;color:#6B6560;border-bottom:2px solid #2F5233;padding-bottom:8px;margin-bottom:14px}.cl-sec{font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#2F5233;margin:14px 0 4px;border-bottom:1px solid #E8F2EB;padding-bottom:2px}.cl-body{font-size:10px;line-height:1.7;text-align:justify}.cl-assin{margin-top:30px;display:grid;grid-template-columns:1fr 1fr;gap:20px;text-align:center;font-size:10px}.assin-linha{border-top:1px solid #1C1C1A;padding-top:6px;margin-top:28px}table{width:100%;border-collapse:collapse;margin:8px 0;font-size:10px}th{background:#2F5233;color:#fff;padding:4px 8px;font-size:9px}td{padding:4px 8px;border-bottom:1px solid #D5CEC4}.total-row td{font-weight:700;color:#2F5233;border-top:2px solid #2F5233}</style>${c}`;
+  window.print();
+}
+
+
+// ===== SUGESTÕES DE CARDÁPIO POR TIPO DE EVENTO =====
+// Baseado em OPÇÕES_MANACÁ_2026 + contratos reais 2026
+const SUGESTOES_MENU = {
+  'Coquetel': {
+    padrao: [
+      // Coquetel Volante
+      'Quiche de brie e mel',
+      'Coxinha gourmet',
+      'Mini hambúrguer artesanal (pão australiano, cheddar e cebola caramelizada)',
+      'Dadinho de tapioca com geleia',
+      'Espetinho Caprese',
+      // Finger Food
+      'Nhoque ao molho rústico de tomates frescos',
+      // Bebidas
+      'Água normal e com gás',
+      'Coca-Cola normal e zero',
+      'Suco de laranja natural',
+    ],
+    premium: [
+      // Coquetel Volante
+      'Snack de creme cheese, salmão e couve crispy',
+      'Brusqueta de gorgonzola e pera',
+      'Barquinha de creme cheese e salmão com molho de ostra',
+      'Quiche de camarão',
+      'Espetinho Caprese com molho pesto',
+      // Finger Food
+      'Risoto de grana padano e alho poró',
+      // Sobremesas
+      'Colher com brigadeiro de café',
+      // Bebidas
+      'Água normal e com gás',
+      'Coca-Cola normal e zero',
+      'Suco de laranja natural',
+    ]
+  },
+  'Coffee Break': {
+    padrao: [
+      // Coffee Break / Brunch
+      'Mini sanduíche sírio de frango',
+      'Esfirra de carne',
+      'Esfirra de queijo',
+      'Quiche de brie e mel',
+      'Cup cake de cenoura',
+      'Brownie com castanhas',
+      'Taça de frutas',
+      // Bebidas
+      'Água normal e com gás',
+      'Suco de laranja natural',
+      'Café coado',
+    ],
+    premium: [
+      // Coffee Break / Brunch
+      'Croissant de presunto e queijo',
+      'Baguete de frios, alface e tomate',
+      'Torta de palmito',
+      'Bolo de iogurte e canela',
+      'Bolo de limão e blueberry',
+      'Petit fours',
+      'Saladinha de frutas',
+      // Bebidas
+      'Água normal e com gás',
+      'Coca-Cola normal e zero',
+      'Suco de laranja natural',
+      'Café coado',
+    ]
+  },
+  'Casamento': {
+    padrao: [
+      // Mesa de Frios e Antepastos
+      'Tábua de frios (salame italiano, parma, queijo parmesão, gruyère, gorgonzola, brie, uvas e castanhas)',
+      'Geleia de abacaxi com pimenta',
+      'Geleia de damasco e frutas vermelhas',
+      'Cesta de pães e crostatas',
+      // Coquetel Volante
+      'Quiche de pupunha e bacon',
+      'Dadinho de tapioca com geleia',
+      // Finger Food
+      'Polenta cremosa com ragu de costela',
+      // Almoço / Jantar
+      'Risoto Caprese',
+      'Filé mignon ao molho roti',
+      'Filé de frango ao molho gorgonzola',
+      'Mix de folhas e frutas com molho de mostarda e mel',
+      // Mesa de Café
+      'Petit fours',
+      'Café',
+      // Bebidas
+      'Água normal e com gás',
+      'Coca-Cola normal e zero',
+      'Suco de laranja natural',
+    ],
+    premium: [
+      // Mesa de Frios e Antepastos
+      'Tábua de frios (salame italiano, parma, queijo parmesão, gruyère, gorgonzola, brie, uvas e castanhas)',
+      'Burratas com tomates confitados e crostatas',
+      'Max Brie folheado com caramelo e nuts',
+      'Pasta de catupiry com damasco, parma e fio de mel',
+      'Geleia de abacaxi com pimenta',
+      'Cesta de pães e crostatas',
+      // Coquetel Volante
+      'Quiche de camarão',
+      'Espetinho Caprese com molho pesto',
+      // Finger Food
+      'Nhoque de batata doce com rúcula ao molho Alfredo',
+      // Almoço / Jantar
+      'Risoto ao caprese com medalhão de filé',
+      'Filé mignon ao molho roti',
+      'Conchiglione de queijo ao molho pomodoro e pesto',
+      'Mix de folhas e frutas com molho de mostarda e mel',
+      'Salada grega com molho de iogurte',
+      // Sobremesas
+      'Brownie com doce de leite',
+      // Mesa de Café
+      'Petit fours',
+      'Bolinho de laranja',
+      'Café',
+      // Bebidas
+      'Água normal e com gás',
+      'Coca-Cola normal e zero',
+      'Suco de laranja natural',
+    ]
+  },
+  'Jantar': {
+    padrao: [
+      // Coquetel Volante
+      'Quiche de brie e mel',
+      'Espetinho Caprese',
+      // Mesa de Frios e Antepastos
+      'Tábua de frios (salame italiano, parma, queijo parmesão, gruyère, gorgonzola, brie, uvas e castanhas)',
+      'Geleia de abacaxi com pimenta',
+      'Cesta de pães e crostatas',
+      // Almoço / Jantar
+      'Mix de folhas e frutas com molho de mostarda e mel',
+      'Filé de frango ao molho gorgonzola',
+      'Risoto Caprese',
+      // Mesa de Café
+      'Petit fours',
+      'Café',
+      // Bebidas
+      'Água normal e com gás',
+      'Coca-Cola normal e zero',
+      'Suco de laranja natural',
+    ],
+    premium: [
+      // Coquetel Volante
+      'Quiche de pupunha e bacon',
+      'Dadinho de tapioca com geleia',
+      // Mesa de Frios e Antepastos
+      'Tábua de frios (salame italiano, parma, queijo parmesão, gruyère, gorgonzola, brie, uvas e castanhas)',
+      'Burratas com tomates confitados e crostatas',
+      'Max Brie folheado com caramelo e nuts',
+      'Pasta de catupiry com damasco, parma e fio de mel',
+      'Cesta de pães e crostatas',
+      // Finger Food
+      'Risoto ao caprese com medalhão de filé',
+      // Almoço / Jantar
+      'Mix de folhas e frutas com molho de mostarda e mel',
+      'Salada grega com molho de iogurte',
+      'Filé mignon ao molho roti',
+      'Filé de frango ao molho gorgonzola',
+      // Sobremesas
+      'Brownie com doce de leite',
+      // Mesa de Café
+      'Petit fours',
+      'Café',
+      // Bebidas
+      'Água normal e com gás',
+      'Coca-Cola normal e zero',
+      'Suco de laranja natural',
+    ]
+  },
+  'Festa Infantil': {
+    padrao: [
+      // Coquetel Volante
+      'Mini hambúrguer artesanal (pão australiano, cheddar e cebola caramelizada)',
+      'Batata rústica',
+      'Dadinho de tapioca com geleia',
+      'Coxinha gourmet',
+      // Finger Food
+      'Panelinha com picadinho de mignon, arroz e farofa',
+      // Bebidas
+      'Água normal e com gás',
+      'Coca-Cola normal e zero',
+      'Suco de laranja natural',
+    ],
+    premium: [
+      // Coquetel Volante
+      'Quiche de brie e mel',
+      'Coxinha gourmet',
+      'Mini hambúrguer artesanal (pão australiano, cheddar e cebola caramelizada)',
+      'Espetinho Caprese',
+      'Batata rústica',
+      // Finger Food
+      'Nhoque ao molho rústico de tomates frescos',
+      'Panelinha com picadinho de mignon, arroz e farofa',
+      // Bebidas
+      'Água normal e com gás',
+      'Coca-Cola normal e zero',
+      'Suco de laranja natural',
+    ]
+  },
+  'Aniversário': {
+    padrao: [
+      // Coquetel Volante
+      'Quiche de brie e mel',
+      'Mini hambúrguer artesanal (pão australiano, cheddar e cebola caramelizada)',
+      'Espetinho Caprese',
+      'Coxinha gourmet',
+      // Finger Food
+      'Nhoque ao molho rústico de tomates frescos',
+      'Escondidinho de frango e requeijão',
+      // Bebidas
+      'Água normal e com gás',
+      'Coca-Cola normal e zero',
+      'Suco de laranja natural',
+    ],
+    premium: [
+      // Mesa de Frios e Antepastos
+      'Tábua de frios (salame italiano, parma, queijo parmesão, gruyère, gorgonzola, brie, uvas e castanhas)',
+      'Pasta de catupiry com damasco, parma e fio de mel',
+      'Geleia de abacaxi com pimenta',
+      'Cesta de pães e crostatas',
+      // Coquetel Volante
+      'Quiche de brie e mel',
+      'Espetinho Caprese com molho pesto',
+      'Mini hambúrguer artesanal (pão australiano, cheddar e cebola caramelizada)',
+      // Finger Food
+      'Nhoque de batata doce com rúcula ao molho Alfredo',
+      'Risoto de grana padano e alho poró',
+      // Sobremesas
+      'Brownie com doce de leite',
+      // Mesa de Café
+      'Petit fours',
+      // Bebidas
+      'Água normal e com gás',
+      'Coca-Cola normal e zero',
+      'Suco de laranja natural',
+    ]
+  },
+  'Feijoada': {
+    padrao: [
+      // Feijoada
+      'Pastel de carne',
+      'Pastel de queijo',
+      'Bolinho de carne',
+      'Polenta frita',
+      'Feijoada completa (costelinha defumada, pernil, carne seca, linguiça toscana, paio, calabresa e bacon)',
+      'Pernil pururuca',
+      'Torresmo',
+      'Couve refogada',
+      'Farofa de cebola',
+      'Mandioca cozida',
+      'Vinagrete',
+      'Laranja',
+      'Arroz branco',
+      // Mesa de Café
+      'Cup cake de laranja',
+      'Café',
+      // Bebidas
+      'Água normal e com gás',
+      'Coca-Cola normal e zero',
+      'Suco de laranja natural',
+    ],
+    premium: [
+      // Feijoada
+      'Pastel de carne',
+      'Pastel de queijo',
+      'Polenta frita',
+      'Feijoada completa (costelinha defumada, pernil, carne seca, linguiça toscana, paio, calabresa e bacon)',
+      'Pernil pururuca',
+      'Torresmo',
+      'Couve refogada',
+      'Farofa de cebola',
+      'Mandioca cozida',
+      'Vinagrete',
+      'Laranja',
+      'Arroz branco',
+      // Sobremesas
+      'Brownie com doce de leite',
+      'Petit fours',
+      // Mesa de Café
+      'Café',
+      // Bebidas
+      'Água normal e com gás',
+      'Coca-Cola normal e zero',
+      'Suco de laranja natural',
+    ]
+  },
+  'Churrasco': {
+    padrao: [
+      // Churrasco
+      'Panceta',
+      'Linguiça artesanal',
+      'Maminha',
+      'Frango temperado',
+      'Pão de alho',
+      // Almoço / Jantar
+      'Mix de folhas e frutas com molho de mostarda e mel',
+      'Arroz branco com amêndoas',
+      'Salpicão',
+      // Bebidas
+      'Água normal e com gás',
+      'Coca-Cola normal e zero',
+      'Suco de laranja natural',
+    ],
+    premium: [
+      // Churrasco
+      'Ancho',
+      'Panceta',
+      'Linguiça artesanal',
+      'Maminha',
+      'Picanha (+R$25/pessoa)',
+      'Frango temperado',
+      'Pão de alho',
+      // Almoço / Jantar
+      'Mix de folhas e frutas com molho de mostarda e mel',
+      'Salada grega com molho de iogurte',
+      'Arroz branco com amêndoas',
+      'Salpicão',
+      'Farofa de cebola',
+      // Bebidas
+      'Água normal e com gás',
+      'Coca-Cola normal e zero',
+      'Suco de laranja natural',
+    ]
+  },
+  'Treinamento Corporativo': {
+    padrao: [
+      // Coffee Break / Brunch (manhã)
+      'Croissant de presunto e queijo',
+      'Mini sanduíche sírio de frango',
+      'Bolo de chocolate',
+      'Taça de frutas',
+      'Café coado',
+      'Suco de laranja natural',
+      // Almoço / Jantar
+      'Mix de folhas e frutas com molho de mostarda e mel',
+      'Arroz branco com amêndoas',
+      'Filé de frango ao molho gorgonzola',
+      'Rigatoni ao molho branco e crispy de bacon',
+      // Coffee tarde
+      'Baguete de frios, alface e tomate',
+      'Esfirra de carne',
+      'Esfirra de queijo',
+      // Bebidas
+      'Água normal e com gás',
+      'Coca-Cola normal e zero',
+    ],
+    premium: [
+      // Coffee manhã
+      'Croissant de presunto e queijo',
+      'Sanduíche natural de frango',
+      'Bolo de iogurte e canela',
+      'Brownie com castanhas',
+      'Taça de frutas',
+      'Café coado',
+      'Suco de laranja natural',
+      // Almoço
+      'Mix de folhas e frutas com molho de mostarda e mel',
+      'Salada grega com molho de iogurte',
+      'Arroz branco com amêndoas',
+      'Salpicão',
+      'Filé mignon ao molho roti',
+      'Rigatoni ao molho branco e crispy de bacon',
+      // Coffee tarde
+      'Baguete de frios, alface e tomate',
+      'Esfirra de queijo',
+      'Cup cake de cenoura',
+      // Bebidas
+      'Água normal e com gás',
+      'Coca-Cola normal e zero',
+    ]
+  },
+};
+
+function aplicarSugestaoMenu(nivel) {
+  const tipo = getTipo();
+  if(!tipo || !SUGESTOES_MENU[tipo]) return;
+
+  // Desmarcar todos os itens primeiro
+  document.querySelectorAll('#cardapio-body input[type=checkbox]').forEach(cb => cb.checked = false);
+
+  const sugestao = nivel === 'premium'
+    ? (SUGESTOES_MENU[tipo].premium || SUGESTOES_MENU[tipo].padrao)
+    : SUGESTOES_MENU[tipo].padrao;
+
+  let marcados = 0;
+  sugestao.forEach(item => {
+    const cb = document.querySelector(`#cardapio-body input[data-item="${CSS.escape(item)}"]`);
+    if(cb) { cb.checked = true; marcados++; }
+  });
+
+  calcCusto();
+  atualizar();
+
+  // Feedback
+  const btn = nivel === 'premium'
+    ? document.getElementById('btn-sugestao-premium')
+    : document.getElementById('btn-sugestao-padrao');
+  if(btn){
+    const orig = btn.textContent;
+    btn.textContent = `✓ ${marcados} itens marcados!`;
+    btn.style.background = '#4ADE80';
+    btn.style.color = '#1C1C1A';
+    setTimeout(() => { btn.textContent = orig; btn.style.background = ''; btn.style.color = ''; }, 2000);
+  }
+}
+
+// ===== GOOGLE AGENDA =====
+const GCAL_CLIENT_ID = "767662597003-f6idv5i9vsss12b3j025g5rcre9250vf.apps.googleusercontent.com";
+const GCAL_SCOPES = "https://www.googleapis.com/auth/calendar";
+const GCAL_NOME = "Buffet Manacá";
+let gcalToken = null;
+let gcalId = null;
+
+function gcalSalvarToken(token){
+  gcalToken = token;
+  localStorage.setItem('manaca_gcal_token', JSON.stringify(token));
+  atualizarBarraGcal(true);
+}
+function gcalCarregarToken(){
+  try {
+    const t = localStorage.getItem('manaca_gcal_token');
+    if(t) { gcalToken = JSON.parse(t); atualizarBarraGcal(true); }
+  } catch(e){}
+}
+function atualizarBarraGcal(conectado){
+  const status = document.getElementById('gcal-bar-status');
+  const btnCon = document.getElementById('gcal-btn-conectar');
+  const btnDes = document.getElementById('gcal-btn-desconectar');
+  if(conectado){
+    status.innerHTML = '📅 Google Agenda: <strong>Conectado ✓</strong>';
+    btnCon.style.display = 'none';
+    btnDes.style.display = 'inline-flex';
+  } else {
+    status.innerHTML = '📅 Google Agenda: <strong>Não conectado</strong>';
+    btnCon.style.display = 'inline-flex';
+    btnDes.style.display = 'none';
+  }
+}
+function conectarGoogle(){
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: GCAL_CLIENT_ID,
+    scope: GCAL_SCOPES,
+    callback: (resp) => {
+      if(resp.error){ alert('Erro ao conectar: ' + resp.error); return; }
+      gcalSalvarToken(resp);
+      buscarOuCriarCalendario();
+    }
+  });
+  client.requestAccessToken();
+}
+function desconectarGoogle(){
+  if(gcalToken) google.accounts.oauth2.revoke(gcalToken.access_token, ()=>{});
+  gcalToken = null;
+  gcalId = null;
+  localStorage.removeItem('manaca_gcal_token');
+  localStorage.removeItem('manaca_gcal_id');
+  atualizarBarraGcal(false);
+}
+
+async function buscarOuCriarCalendario(){
+  // Verificar se já temos o ID salvo
+  const idSalvo = localStorage.getItem('manaca_gcal_id');
+  if(idSalvo){ gcalId = idSalvo; return; }
+
+  // Buscar calendários existentes
+  try {
+    const resp = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
+      headers: { Authorization: 'Bearer ' + gcalToken.access_token }
+    });
+    const data = await resp.json();
+    const cal = (data.items||[]).find(c => c.summary === GCAL_NOME);
+    if(cal){
+      gcalId = cal.id;
+      localStorage.setItem('manaca_gcal_id', gcalId);
+      return;
+    }
+  } catch(e){}
+
+  // Criar novo calendário
+  try {
+    const resp = await fetch('https://www.googleapis.com/calendar/v3/calendars', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + gcalToken.access_token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        summary: GCAL_NOME,
+        description: 'Eventos do Buffet Manacá',
+        timeZone: 'America/Sao_Paulo'
+      })
+    });
+    const cal = await resp.json();
+    gcalId = cal.id;
+    localStorage.setItem('manaca_gcal_id', gcalId);
+    alert('✓ Calendário "Buffet Manacá" criado no Google Agenda!');
+  } catch(e){
+    alert('Erro ao criar calendário: ' + e.message);
+  }
+}
+
+async function criarEventoGcal(orc){
+  if(!gcalToken || !orc.data) return;
+  if(!gcalId) await buscarOuCriarCalendario();
+  if(!gcalId) return;
+
+  const inicio = orc.hora_inicio || '08:00';
+  const fim = orc.hora_fim || '13:00';
+  const dataInicio = orc.data + 'T' + inicio + ':00';
+  const dataFim = orc.data + 'T' + fim + ':00';
+
+  const statusEmoji = {
+    'Rascunho':'📝','Ag. Chef':'👩‍🍳','Aprovado':'✅','Enviado ao Cliente':'📨','Cancelado':'❌'
+  }[orc.status] || '📋';
+
+  const evento = {
+    summary: statusEmoji + ' ' + (orc.nome||'Sem nome') + ' — ' + (orc.tipo||'Evento'),
+    description: [
+      'Tipo: ' + (orc.tipo||'—'),
+      'Local: ' + (orc.local||'—'),
+      'Convidados: ' + (orc.adultos||0) + ' adultos',
+      orc.total ? 'Valor: R$ ' + fmtN(orc.total) : '',
+      'Status: ' + (orc.status||'—'),
+      '',
+      'Gerenciado pelo Sistema Buffet Manacá'
+    ].filter(Boolean).join('\n'),
+    location: orc.local || '',
+    start: { dateTime: dataInicio, timeZone: 'America/Sao_Paulo' },
+    end: { dateTime: dataFim, timeZone: 'America/Sao_Paulo' },
+    colorId: {'Rascunho':'8','Ag. Chef':'5','Aprovado':'2','Enviado ao Cliente':'9','Cancelado':'11'}[orc.status] || '7'
+  };
+
+  // Verificar se já existe evento para esse orçamento
+  const evIdSalvo = localStorage.getItem('manaca_ev_' + orc.id);
+
+  try {
+    let url, method;
+    if(evIdSalvo){
+      url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(gcalId)}/events/${evIdSalvo}`;
+      method = 'PUT';
+    } else {
+      url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(gcalId)}/events`;
+      method = 'POST';
+    }
+
+    const resp = await fetch(url, {
+      method,
+      headers: {
+        Authorization: 'Bearer ' + gcalToken.access_token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(evento)
+    });
+
+    if(resp.status === 401){
+      // Token expirado — pedir reconexão
+      gcalToken = null;
+      localStorage.removeItem('manaca_gcal_token');
+      atualizarBarraGcal(false);
+      return;
+    }
+
+    const evCriado = await resp.json();
+    if(evCriado.id){
+      localStorage.setItem('manaca_ev_' + orc.id, evCriado.id);
+    }
+  } catch(e){
+    console.warn('Erro Google Agenda:', e);
+  }
+}
+
+// ===== INIT =====
+gcalCarregarToken();
+renderLista();
+</script>
+</body>
+</html>
