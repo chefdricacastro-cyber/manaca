@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manacá · Nosso trabalho</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream: #FAF6EF;
+    --ink: #23281F;
+    --deep-green: #2C3826;
+    --deep-green-dark: #1D2519;
+    --gold: #A9824C;
+    --gold-light: #D9C7A0;
+    --line: rgba(35,40,31,0.12);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,h2,.serif{ font-family:'Fraunces', serif; font-weight:500; letter-spacing:-0.01em; }
+  button{ font-family:'Inter', sans-serif; }
+
+  /* ---------- HOME: CATEGORIAS ---------- */
+  header.top{
+    padding: 54px 6vw 30px;
+    text-align:center;
+  }
+  header.top .eyebrow{ font-size:14px; color: var(--gold); margin-bottom:12px; }
+  header.top h1{ font-size: clamp(30px, 5vw, 44px); margin:0 0 12px; }
+  header.top p{ font-size:15px; color: rgba(35,40,31,0.6); max-width:480px; margin:0 auto; }
+
+  .categorias{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    padding: 20px 6vw 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .cat-card{
+    position:relative;
+    aspect-ratio: 4/5;
+    border-radius: 8px;
+    overflow:hidden;
+    cursor:pointer;
+    background-size: cover;
+    background-position:center;
+  }
+  .cat-card::after{
+    content:'';
+    position:absolute; inset:0;
+    background: linear-gradient(180deg, rgba(20,26,16,0.05) 40%, rgba(18,23,14,0.82) 100%);
+    transition: background .25s ease;
+  }
+  .cat-card:hover::after{ background: linear-gradient(180deg, rgba(20,26,16,0.15) 20%, rgba(18,23,14,0.9) 100%); }
+  .cat-card img{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+    transition: transform .6s ease;
+  }
+  .cat-card:hover img{ transform: scale(1.06); }
+  .cat-label{
+    position:absolute; left:22px; right:22px; bottom:20px; z-index:2;
+    color: var(--cream);
+  }
+  .cat-label h2{ font-size: 24px; margin:0 0 4px; }
+  .cat-label span{ font-size:13px; color: rgba(250,246,239,0.75); }
+
+  @media (max-width:900px){ .categorias{ grid-template-columns: repeat(2,1fr); } }
+  @media (max-width:600px){ .categorias{ grid-template-columns: 1fr; } header.top{ padding:40px 6vw 20px; } }
+
+  /* ---------- GALERIA DA CATEGORIA ---------- */
+  #categoria-view{ display:none; }
+  .cat-hero{
+    position:relative;
+    height: 38vh;
+    min-height: 260px;
+    display:flex;
+    align-items:flex-end;
+    padding: 34px 6vw;
+    background-size: cover;
+    background-position: center;
+  }
+  .cat-hero::before{
+    content:'';
+    position:absolute; inset:0;
+    background: linear-gradient(180deg, rgba(20,26,16,0.15) 0%, rgba(18,23,14,0.78) 100%);
+  }
+  .cat-hero-inner{ position:relative; color:var(--cream); }
+  .cat-hero-inner h1{ font-size: clamp(28px,4.5vw,42px); margin:0 0 6px; }
+  .cat-hero-inner p{ font-size:14px; color: rgba(250,246,239,0.8); margin:0; max-width: 460px; }
+
+  .voltar{
+    position:relative;
+    z-index:2;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:none;
+    border:none;
+    color: var(--cream);
+    font-size:14px;
+    cursor:pointer;
+    padding:0;
+    margin-bottom: 18px;
+  }
+  .voltar:hover{ color: var(--gold-light); }
+
+  .grid{
+    padding: 28px 6vw 90px;
+    column-count: 4;
+    column-gap: 14px;
+    max-width: 1400px;
+    margin:0 auto;
+  }
+  .grid figure{
+    margin: 0 0 14px;
+    break-inside: avoid;
+    position: relative;
+    overflow:hidden;
+    border-radius: 6px;
+    cursor: zoom-in;
+  }
+  .grid img{ width:100%; display:block; transition: transform .5s ease; }
+  .grid figure:hover img{ transform: scale(1.035); }
+
+  @media (max-width: 1000px){ .grid{ column-count: 3; } }
+  @media (max-width: 680px){ .grid{ column-count: 2; } }
+
+  .cta-strip{
+    text-align:center;
+    padding: 50px 6vw 70px;
+    border-top: 1px solid var(--line);
+  }
+  .cta-strip p{ font-size:15px; color: rgba(35,40,31,0.65); margin:0 0 18px; }
+  .cta-btn{
+    background: var(--deep-green);
+    color: var(--cream);
+    border:none;
+    padding: 13px 30px;
+    border-radius: 999px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .cta-btn:hover{ background: var(--deep-green-dark); }
+
+  /* ---------- LIGHTBOX ---------- */
+  #lightbox{
+    display:none; position:fixed; inset:0;
+    background: rgba(20,24,16,0.94);
+    z-index: 50; align-items:center; justify-content:center;
+  }
+  #lightbox img{ max-width: 88vw; max-height: 84vh; border-radius: 4px; }
+  .lb-close, .lb-nav{
+    position:absolute; background:none; border:none;
+    color: rgba(250,246,239,0.85); font-size: 26px; cursor:pointer; padding:10px;
+  }
+  .lb-close{ top: 18px; right: 24px; }
+  .lb-prev{ left: 10px; top:50%; transform:translateY(-50%); font-size:34px;}
+  .lb-next{ right: 10px; top:50%; transform:translateY(-50%); font-size:34px;}
+  .lb-close:hover, .lb-nav:hover{ color: var(--gold-light); }
+</style>
+</head>
+<body>
+
+  <!-- ================= HOME: CATEGORIAS ================= -->
+  <div id="home-view">
+    <header class="top">
+      <div class="eyebrow">Chácara Manacá</div>
+      <h1>Conheça o nosso trabalho</h1>
+      <p>Cada tipo de evento tem sua própria atmosfera. Escolha uma categoria abaixo para ver fotos reais de eventos que já realizamos.</p>
+    </header>
+    <div class="categorias" id="categorias"></div>
+  </div>
+
+  <!-- ================= GALERIA DA CATEGORIA ================= -->
+  <div id="categoria-view">
+    <div class="cat-hero" id="cat-hero-bg">
+      <div class="cat-hero-inner">
+        <button class="voltar" onclick="voltarHome()">‹ Todas as categorias</button>
+        <h1 id="cat-titulo">Casamentos</h1>
+        <p id="cat-desc"></p>
+      </div>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="cta-strip">
+      <p>Gostou do que viu? Vamos conversar sobre o seu evento.</p>
+      <button class="cta-btn" onclick="alert('Aqui entra o link do WhatsApp ou formulário de contato da Drica.')">Falar com a Drica</button>
+    </div>
+  </div>
+
+  <!-- ================= LIGHTBOX ================= -->
+  <div id="lightbox">
+    <button class="lb-close" onclick="fecharLightbox()">✕</button>
+    <button class="lb-nav lb-prev" onclick="navegar(-1)">‹</button>
+    <img id="lb-img" src="" alt="">
+    <button class="lb-nav lb-next" onclick="navegar(1)">›</button>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+  // ---- Config do projeto manaca-buffet (mesmo do sistema de orçamentos) ----
+  const firebaseConfig = {
+    apiKey: "AIzaSyBgfScWXpS7MVX0YjffkNckKgPrfOvBM4I",
+    authDomain: "manaca-buffet-29d1f.firebaseapp.com",
+    projectId: "manaca-buffet-29d1f",
+    storageBucket: "manaca-buffet-29d1f.firebasestorage.app",
+    messagingSenderId: "901332399199",
+    appId: "1:901332399199:web:3bc9e1bb1128218cd317ea"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ---- Categorias (na versão real, viria do mesmo cadastro de menus do sistema de orçamentos) ----
+  const categorias = [
+    { id:'casamento',        nome:'Casamentos',          desc:'Cerimônias e recepções, do jardim ao salão.' },
+    { id:'aniversario',      nome:'Aniversários',        desc:'De debutantes a bodas, festas de todas as idades.' },
+    { id:'festainfantil',    nome:'Festa Infantil',      desc:'Cardápio e clima pensados para o público mirim.' },
+    { id:'coquetel',         nome:'Coquetel',            desc:'Volante e estações, para eventos em pé.' },
+    { id:'jantar',           nome:'Jantar / Almoço',     desc:'Serviço à mesa, do corporativo ao íntimo.' },
+    { id:'coffeebrunch',     nome:'Coffee Break / Brunch', desc:'Mesas fartas para encontros de manhã ou meio de tarde.' },
+    { id:'feijoada',         nome:'Feijoada',            desc:'Tradição e fartura para reunir todo mundo à mesa.' },
+    { id:'churrasco',        nome:'Churrasco',           desc:'Na brasa, do jeito que reúne todo mundo.' },
+    { id:'mesadefrios',      nome:'Mesa de Frios',       desc:'Composições frias para complementar qualquer evento.' },
+    { id:'corporativo',      nome:'Treinamento Corporativo', desc:'Workshops e confraternizações de empresa.' },
+  ];
+
+  // Cache local: { [categoriaId]: [{url, path, capa}, ...] }
+  const fotosPorCategoria = {};
+
+  async function carregarFotos(categoriaId){
+    if(fotosPorCategoria[categoriaId]) return fotosPorCategoria[categoriaId];
+    const snap = await getDoc(doc(db, 'portfolio_fotos', categoriaId));
+    const fotos = snap.exists() ? (snap.data().fotos || []) : [];
+    fotosPorCategoria[categoriaId] = fotos;
+    return fotos;
+  }
+
+  // ---- Monta os cards da home ----
+  async function renderHome(){
+    const catGrid = document.getElementById('categorias');
+    catGrid.innerHTML = '';
+    for(const cat of categorias){
+      const fotos = await carregarFotos(cat.id);
+      const capaFoto = fotos.find(f=>f.capa) || fotos[0];
+      const card = document.createElement('div');
+      card.className = 'cat-card';
+      card.onclick = () => abrirCategoria(cat.id);
+      card.innerHTML = `
+        ${capaFoto ? `<img src="${capaFoto.url}" alt="${cat.nome}">` : `<div style="position:absolute;inset:0;background:var(--deep-green);"></div>`}
+        <div class="cat-label">
+          <h2>${cat.nome}</h2>
+          <span>${fotos.length > 0 ? cat.desc : 'Em breve'}</span>
+        </div>`;
+      catGrid.appendChild(card);
+    }
+  }
+  renderHome();
+
+  // ---- Navegação entre home e categoria ----
+  let fotos = [];
+  let indiceAtual = 0;
+
+  window.abrirCategoria = async function(id){
+    const cat = categorias.find(c=>c.id===id);
+    document.getElementById('home-view').style.display = 'none';
+    document.getElementById('categoria-view').style.display = 'block';
+    document.getElementById('cat-titulo').textContent = cat.nome;
+    document.getElementById('cat-desc').textContent = cat.desc;
+
+    fotos = await carregarFotos(id);
+    const capaFoto = fotos.find(f=>f.capa) || fotos[0];
+    if(capaFoto){
+      document.getElementById('cat-hero-bg').style.backgroundImage = `url('${capaFoto.url}')`;
+    }
+
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    if(fotos.length === 0){
+      grid.innerHTML = `<p style="grid-column:1/-1;color:rgba(35,40,31,0.5);font-size:14px;">Ainda não temos fotos publicadas nesta categoria.</p>`;
+    }
+    fotos.forEach((foto,i)=>{
+      const fig = document.createElement('figure');
+      fig.innerHTML = `<img src="${foto.url}" alt="Foto de ${cat.nome}" loading="lazy" onclick="abrirLightbox(${i})">`;
+      grid.appendChild(fig);
+    });
+    window.scrollTo(0,0);
+  };
+
+  window.voltarHome = function(){
+    document.getElementById('categoria-view').style.display = 'none';
+    document.getElementById('home-view').style.display = 'block';
+    window.scrollTo(0,0);
+  };
+
+  // ---- Lightbox ----
+  window.abrirLightbox = function(i){
+    indiceAtual = i;
+    document.getElementById('lb-img').src = fotos[i].url;
+    document.getElementById('lightbox').style.display = 'flex';
+  };
+  window.fecharLightbox = function(){ document.getElementById('lightbox').style.display = 'none'; };
+  window.navegar = function(dir){
+    indiceAtual = (indiceAtual + dir + fotos.length) % fotos.length;
+    document.getElementById('lb-img').src = fotos[indiceAtual].url;
+  };
+  document.addEventListener('keydown', e=>{
+    if(document.getElementById('lightbox').style.display === 'flex'){
+      if(e.key === 'Escape') fecharLightbox();
+      if(e.key === 'ArrowRight') navegar(1);
+      if(e.key === 'ArrowLeft') navegar(-1);
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manacá · Admin de fotos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream: #FAF6EF;
+    --ink: #23281F;
+    --deep-green: #2C3826;
+    --deep-green-dark: #1D2519;
+    --gold: #A9824C;
+    --gold-light: #D9C7A0;
+    --line: rgba(35,40,31,0.12);
+    --danger: #B0503F;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{ background: var(--cream); color: var(--ink); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; }
+  h1,h2,.serif{ font-family:'Fraunces',serif; font-weight:500; letter-spacing:-0.01em; }
+  button{ font-family:'Inter',sans-serif; }
+
+  /* ---------- LOGIN ---------- */
+  #login-view{
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+    background: var(--deep-green-dark);
+  }
+  .login-card{ text-align:center; max-width:340px; }
+  .login-card .eyebrow{ font-size:13px; color:var(--gold-light); margin-bottom:10px; }
+  .login-card h1{ color:var(--cream); font-size:28px; margin:0 0 8px; }
+  .login-card p{ color:rgba(250,246,239,0.6); font-size:14px; margin:0 0 34px; }
+  .google-btn{
+    display:inline-flex; align-items:center; gap:10px;
+    background:var(--cream); color:var(--ink); border:none;
+    padding:13px 26px; border-radius:999px; font-size:14px; font-weight:600; cursor:pointer;
+  }
+  .google-btn:hover{ background:var(--gold-light); }
+  .login-error{ color:#E7B7A6; font-size:13px; margin-top:16px; min-height:16px; }
+
+  /* ---------- SHELL ---------- */
+  #admin-view{ display:none; min-height:100vh; }
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 5vw; border-bottom:1px solid var(--line); background:var(--cream);
+    position:sticky; top:0; z-index:10;
+  }
+  .topbar .brand{ font-size:15px; font-weight:600; }
+  .topbar .quem{ display:flex; align-items:center; gap:10px; font-size:13px; color:rgba(35,40,31,0.6); }
+  .avatar{ width:28px; height:28px; border-radius:50%; background:var(--gold-light); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:var(--deep-green-dark); }
+  .sair{ background:none; border:none; color:rgba(35,40,31,0.5); font-size:13px; cursor:pointer; text-decoration:underline; }
+
+  /* ---------- HOME (LISTA DE CATEGORIAS) ---------- */
+  #cats-view{ padding: 34px 5vw 70px; max-width:1100px; margin:0 auto; }
+  #cats-view h1{ font-size:26px; margin:0 0 6px; }
+  #cats-view > p{ font-size:14px; color:rgba(35,40,31,0.6); margin:0 0 30px; }
+
+  .cat-list{ display:flex; flex-direction:column; gap:10px; }
+  .cat-row{
+    display:flex; align-items:center; gap:16px;
+    padding: 14px 16px; border:1px solid var(--line); border-radius:10px;
+    background:#fff; cursor:pointer; transition: border-color .15s ease;
+  }
+  .cat-row:hover{ border-color: var(--gold); }
+  .cat-row .thumb{ width:52px; height:52px; border-radius:6px; object-fit:cover; background:var(--line); flex-shrink:0; }
+  .cat-row .info{ flex:1; }
+  .cat-row .info h3{ margin:0 0 2px; font-size:15px; font-weight:600; }
+  .cat-row .info span{ font-size:13px; color:rgba(35,40,31,0.5); }
+  .cat-row .arrow{ color:var(--gold); font-size:20px; }
+
+  /* ---------- CATEGORIA (UPLOAD + GRADE) ---------- */
+  #cat-detail-view{ display:none; padding: 30px 5vw 90px; max-width:1100px; margin:0 auto; }
+  .voltar{
+    background:none; border:none; color:var(--gold); font-size:14px; cursor:pointer; padding:0; margin-bottom:18px;
+  }
+  .cat-detail-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; flex-wrap:wrap; gap:10px; }
+  .cat-detail-head h1{ font-size:24px; margin:0; }
+  .cat-detail-head span{ font-size:13px; color:rgba(35,40,31,0.5); }
+
+  .dropzone{
+    border: 1.5px dashed var(--gold-light);
+    border-radius: 10px;
+    padding: 34px 20px;
+    text-align:center;
+    color: rgba(35,40,31,0.6);
+    font-size:14px;
+    margin-bottom: 28px;
+    transition: background .15s ease, border-color .15s ease;
+    cursor:pointer;
+  }
+  .dropzone.arrastando{ background: rgba(169,130,76,0.08); border-color: var(--gold); }
+  .dropzone strong{ color: var(--ink); }
+  .dropzone input{ display:none; }
+
+  .fotos-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px,1fr));
+    gap: 12px;
+  }
+  .foto-item{
+    position:relative; border-radius:8px; overflow:hidden; aspect-ratio: 4/5;
+    background: var(--line);
+    cursor: grab;
+    transition: opacity .15s ease, transform .15s ease;
+  }
+  .foto-item.arrastando-item{ opacity: 0.35; }
+  .foto-item.sobre-alvo{ outline: 2px solid var(--gold); outline-offset: -2px; }
+  .foto-item img{ width:100%; height:100%; object-fit:cover; display:block; pointer-events:none; }
+  .foto-item .handle{
+    position:absolute; top:8px; right:8px;
+    background: rgba(255,255,255,0.85); border-radius:6px;
+    width:26px; height:22px; display:flex; align-items:center; justify-content:center;
+    font-size:13px; color: var(--ink); letter-spacing:-1px;
+  }
+  .foto-item .capa-tag{
+    position:absolute; top:8px; left:8px; background: var(--gold); color:var(--deep-green-dark);
+    font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px;
+  }
+  .foto-item .acoes{
+    position:absolute; inset:auto 0 0 0;
+    display:flex; justify-content:space-between; gap:6px; padding:8px;
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,0.55));
+    opacity:0; transition: opacity .15s ease;
+  }
+  .foto-item:hover .acoes{ opacity:1; }
+  .acao-btn{
+    background: rgba(255,255,255,0.92); border:none; border-radius:6px;
+    font-size:12px; padding:6px 9px; cursor:pointer; font-weight:600; color:var(--ink);
+  }
+  .acao-btn.excluir{ color: var(--danger); }
+  .acao-btn:hover{ background:#fff; }
+
+  .empty-state{
+    text-align:center; padding: 40px 0; color: rgba(35,40,31,0.45); font-size:14px;
+  }
+  .reordenar-dica{
+    font-size:13px; color: rgba(35,40,31,0.5); margin: -6px 0 14px;
+  }
+</style>
+</head>
+<body>
+
+  <!-- ================= LOGIN ================= -->
+  <div id="login-view">
+    <div class="login-card">
+      <div class="eyebrow">Chácara Manacá</div>
+      <h1>Admin de fotos</h1>
+      <p>Acesso restrito à equipe responsável por organizar as fotos do portfólio.</p>
+      <button class="google-btn" onclick="entrarComGoogle()">
+        <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.8 32.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.5 5.5 29.6 3.5 24 3.5 12.7 3.5 3.5 12.7 3.5 24S12.7 44.5 24 44.5 44.5 35.3 44.5 24c0-1.2-.1-2.4-.3-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.5 6.5 29.6 4.5 24 4.5c-7.9 0-14.6 4.5-17.7 11.2z"/><path fill="#4CAF50" d="M24 44.5c5.5 0 10.4-1.9 14.2-5.1l-6.5-5.5c-2 1.5-4.6 2.5-7.7 2.5-5.3 0-9.7-3.4-11.3-8l-6.6 5.1C9.4 39.9 16.1 44.5 24 44.5z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.5l6.5 5.5C41.6 35.6 44.5 30.2 44.5 24c0-1.2-.1-2.4-.3-3.5z"/></svg>
+        Entrar com Google
+      </button>
+      <div class="login-error" id="login-error"></div>
+    </div>
+  </div>
+
+  <!-- ================= ADMIN ================= -->
+  <div id="admin-view">
+    <div class="topbar">
+      <div class="brand">Manacá · Admin de fotos</div>
+      <div class="quem">
+        <div class="avatar" id="avatar-inicial">L</div>
+        <span id="nome-usuario">Laura</span>
+        <button class="sair" onclick="sair()">Sair</button>
+      </div>
+    </div>
+
+    <!-- Lista de categorias -->
+    <div id="cats-view">
+      <h1>Categorias</h1>
+      <p>Escolha um tipo de evento para subir ou organizar as fotos dele.</p>
+      <div class="cat-list" id="cat-list"></div>
+    </div>
+
+    <!-- Detalhe de uma categoria -->
+    <div id="cat-detail-view">
+      <button class="voltar" onclick="voltarCategorias()">‹ Todas as categorias</button>
+      <div class="cat-detail-head">
+        <h1 id="detail-titulo">Casamentos</h1>
+        <span id="detail-contagem">0 fotos</span>
+      </div>
+
+      <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
+        <strong>Clique para escolher as fotos</strong> ou arraste e solte aqui<br>
+        Pode selecionar várias de uma vez
+        <input type="file" id="file-input" multiple accept="image/*">
+      </div>
+
+      <p class="reordenar-dica" id="reordenar-dica" style="display:none;">Arraste as fotos para mudar a ordem em que aparecem para o cliente.</p>
+      <div class="fotos-grid" id="fotos-grid"></div>
+      <div class="empty-state" id="empty-state" style="display:none;">Nenhuma foto ainda nesta categoria.</div>
+    </div>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import {
+    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc, setDoc
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+  import {
+    getStorage, ref, uploadBytes, getDownloadURL, deleteObject
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
+
+  // ---- Config do projeto manaca-buffet (mesmo do sistema de orçamentos) ----
+  const firebaseConfig = {
+    apiKey: "AIzaSyBgfScWXpS7MVX0YjffkNckKgPrfOvBM4I",
+    authDomain: "manaca-buffet-29d1f.firebaseapp.com",
+    projectId: "manaca-buffet-29d1f",
+    storageBucket: "manaca-buffet-29d1f.firebasestorage.app",
+    messagingSenderId: "901332399199",
+    appId: "1:901332399199:web:3bc9e1bb1128218cd317ea"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const storage = getStorage(app);
+  const provider = new GoogleAuthProvider();
+
+  // ---- Lista de categorias (mesma do portfólio do cliente) ----
+  const categorias = [
+    { id:'casamento',    nome:'Casamentos' },
+    { id:'aniversario',  nome:'Aniversários' },
+    { id:'festainfantil',nome:'Festa Infantil' },
+    { id:'coquetel',     nome:'Coquetel' },
+    { id:'jantar',       nome:'Jantar / Almoço' },
+    { id:'coffeebrunch', nome:'Coffee Break / Brunch' },
+    { id:'feijoada',     nome:'Feijoada' },
+    { id:'churrasco',    nome:'Churrasco' },
+    { id:'mesadefrios',  nome:'Mesa de Frios' },
+    { id:'corporativo',  nome:'Treinamento Corporativo' },
+  ];
+
+  // Cache local: { [categoriaId]: [{url, path, capa}, ...] }
+  const fotosPorCategoria = {};
+
+  // ---- Login ----
+  document.querySelector('.google-btn').addEventListener('click', async ()=>{
+    document.getElementById('login-error').textContent = '';
+    try{
+      await signInWithPopup(auth, provider);
+      // onAuthStateChanged cuida do resto
+    }catch(err){
+      console.error(err);
+      document.getElementById('login-error').textContent = 'Não foi possível entrar. Tente novamente.';
+    }
+  });
+
+  onAuthStateChanged(auth, async (user)=>{
+    if(!user){
+      mostrarLogin();
+      return;
+    }
+    // Confere se esse e-mail está na coleção fotos_autorizados
+    const permissaoRef = doc(db, 'fotos_autorizados', user.email);
+    const permissaoSnap = await getDoc(permissaoRef);
+    if(!permissaoSnap.exists()){
+      document.getElementById('login-error').textContent =
+        'Sua conta (' + user.email + ') ainda não tem acesso a este sistema.';
+      await signOut(auth);
+      return;
+    }
+    const nome = (permissaoSnap.data() && permissaoSnap.data().nome) || user.displayName || user.email;
+    document.getElementById('login-view').style.display = 'none';
+    document.getElementById('admin-view').style.display = 'block';
+    document.getElementById('nome-usuario').textContent = nome;
+    document.getElementById('avatar-inicial').textContent = nome[0].toUpperCase();
+    renderCategorias();
+  });
+
+  function mostrarLogin(){
+    document.getElementById('admin-view').style.display = 'none';
+    document.getElementById('cat-detail-view').style.display = 'none';
+    document.getElementById('cats-view').style.display = 'block';
+    document.getElementById('login-view').style.display = 'flex';
+  }
+
+  window.sair = ()=> signOut(auth);
+
+  // ---- Buscar fotos de uma categoria no Firestore (com cache simples) ----
+  async function carregarFotos(categoriaId){
+    if(fotosPorCategoria[categoriaId]) return fotosPorCategoria[categoriaId];
+    const snap = await getDoc(doc(db, 'portfolio_fotos', categoriaId));
+    const fotos = snap.exists() ? (snap.data().fotos || []) : [];
+    fotosPorCategoria[categoriaId] = fotos;
+    return fotos;
+  }
+
+  async function salvarFotos(categoriaId){
+    await setDoc(doc(db, 'portfolio_fotos', categoriaId), { fotos: fotosPorCategoria[categoriaId] });
+  }
+
+  // ---- Lista de categorias na home do admin ----
+  async function renderCategorias(){
+    const list = document.getElementById('cat-list');
+    list.innerHTML = '<p style="font-size:13px;color:rgba(35,40,31,0.5);">Carregando...</p>';
+    for(const cat of categorias){ await carregarFotos(cat.id); }
+    list.innerHTML = '';
+    categorias.forEach(cat=>{
+      const fotos = fotosPorCategoria[cat.id];
+      const capa = fotos.find(f=>f.capa) || fotos[0];
+      const row = document.createElement('div');
+      row.className = 'cat-row';
+      row.onclick = () => abrirCategoria(cat.id);
+      row.innerHTML = `
+        ${capa ? `<img class="thumb" src="${capa.url}">` : `<div class="thumb"></div>`}
+        <div class="info">
+          <h3>${cat.nome}</h3>
+          <span>${fotos.length} foto${fotos.length===1?'':'s'}</span>
+        </div>
+        <div class="arrow">›</div>`;
+      list.appendChild(row);
+    });
+  }
+
+  // ---- Detalhe de categoria: grade + upload ----
+  let categoriaAtual = null;
+
+  window.abrirCategoria = async function(id){
+    categoriaAtual = id;
+    document.getElementById('cats-view').style.display = 'none';
+    document.getElementById('cat-detail-view').style.display = 'block';
+    const cat = categorias.find(c=>c.id===id);
+    document.getElementById('detail-titulo').textContent = cat.nome;
+    await carregarFotos(id);
+    renderFotos();
+  };
+  window.voltarCategorias = function(){
+    document.getElementById('cat-detail-view').style.display = 'none';
+    document.getElementById('cats-view').style.display = 'block';
+    renderCategorias();
+  };
+
+  function renderFotos(){
+    const fotos = fotosPorCategoria[categoriaAtual];
+    const grid = document.getElementById('fotos-grid');
+    const empty = document.getElementById('empty-state');
+    const dica = document.getElementById('reordenar-dica');
+    document.getElementById('detail-contagem').textContent = fotos.length + ' foto' + (fotos.length===1?'':'s');
+    grid.innerHTML = '';
+    empty.style.display = fotos.length === 0 ? 'block' : 'none';
+    dica.style.display = fotos.length > 1 ? 'block' : 'none';
+
+    fotos.forEach((foto, i)=>{
+      const item = document.createElement('div');
+      item.className = 'foto-item';
+      item.draggable = true;
+      item.dataset.index = i;
+      item.innerHTML = `
+        <img src="${foto.url}">
+        <div class="handle">⠿</div>
+        ${foto.capa ? '<div class="capa-tag">Capa</div>' : ''}
+        <div class="acoes">
+          <button class="acao-btn" onclick="definirCapa(${i})">${foto.capa ? '★ Capa' : '☆ Definir capa'}</button>
+          <button class="acao-btn excluir" onclick="excluirFoto(${i})">Excluir</button>
+        </div>`;
+      grid.appendChild(item);
+    });
+  }
+
+  // ---- Reordenar por arrastar-e-soltar ----
+  let indiceArrastado = null;
+  const grid = document.getElementById('fotos-grid');
+
+  grid.addEventListener('dragstart', e => {
+    const item = e.target.closest('.foto-item');
+    if(!item) return;
+    indiceArrastado = Number(item.dataset.index);
+    item.classList.add('arrastando-item');
+  });
+  grid.addEventListener('dragend', e => {
+    const item = e.target.closest('.foto-item');
+    if(item) item.classList.remove('arrastando-item');
+    grid.querySelectorAll('.sobre-alvo').forEach(el => el.classList.remove('sobre-alvo'));
+    indiceArrastado = null;
+  });
+  grid.addEventListener('dragover', e => {
+    e.preventDefault();
+    const item = e.target.closest('.foto-item');
+    if(!item) return;
+    grid.querySelectorAll('.sobre-alvo').forEach(el => el.classList.remove('sobre-alvo'));
+    item.classList.add('sobre-alvo');
+  });
+  grid.addEventListener('drop', async e => {
+    e.preventDefault();
+    const item = e.target.closest('.foto-item');
+    if(!item || indiceArrastado === null) return;
+    const indiceAlvo = Number(item.dataset.index);
+    if(indiceAlvo === indiceArrastado) return;
+
+    const fotos = fotosPorCategoria[categoriaAtual];
+    const [movida] = fotos.splice(indiceArrastado, 1);
+    fotos.splice(indiceAlvo, 0, movida);
+    renderFotos();
+    await salvarFotos(categoriaAtual);
+  });
+
+  window.definirCapa = async function(i){
+    const fotos = fotosPorCategoria[categoriaAtual];
+    fotos.forEach(f=>f.capa=false);
+    fotos[i].capa = true;
+    renderFotos();
+    await salvarFotos(categoriaAtual);
+  };
+
+  window.excluirFoto = async function(i){
+    if(!confirm('Excluir esta foto desta categoria?')) return;
+    const fotos = fotosPorCategoria[categoriaAtual];
+    const [removida] = fotos.splice(i,1);
+    renderFotos();
+    await salvarFotos(categoriaAtual);
+    if(removida.path){
+      try{ await deleteObject(ref(storage, removida.path)); }
+      catch(err){ console.warn('Não achei o arquivo no Storage pra apagar:', err); }
+    }
+  };
+
+  // ---- Upload real para o Firebase Storage ----
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('file-input');
+
+  fileInput.addEventListener('change', e => adicionarFotos(e.target.files));
+  dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('arrastando'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('arrastando'));
+  dropzone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropzone.classList.remove('arrastando');
+    adicionarFotos(e.dataTransfer.files);
+  });
+
+  async function adicionarFotos(fileList){
+    const fotos = fotosPorCategoria[categoriaAtual];
+    const arquivos = Array.from(fileList);
+    dropzone.textContent = `Enviando ${arquivos.length} foto${arquivos.length===1?'':'s'}...`;
+
+    for(const file of arquivos){
+      const caminho = `portfolio-fotos/${categoriaAtual}/${Date.now()}_${file.name}`;
+      const storageRef = ref(storage, caminho);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      fotos.push({ url, path: caminho, capa: fotos.length === 0 });
+    }
+
+    await salvarFotos(categoriaAtual);
+    dropzone.innerHTML = `
+      <strong>Clique para escolher as fotos</strong> ou arraste e solte aqui<br>
+      Pode selecionar várias de uma vez
+      <input type="file" id="file-input" multiple accept="image/*">`;
+    document.getElementById('file-input').addEventListener('change', e => adicionarFotos(e.target.files));
+    renderFotos();
+  }
+</script>
+
+</body>
+</html>
