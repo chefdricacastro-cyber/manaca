@@ -1821,15 +1821,7 @@ input:focus,select:focus,textarea:focus,.busca:focus{border-color:#282B1C !impor
                 <div class="field" style="margin-bottom:0"><label class="fl" style="font-size:9px">Horário de montagem</label><input type="time" id="cmontagem" oninput="renderContrPreview()"></div>
                 <div class="field" style="margin-bottom:0"><label class="fl" style="font-size:9px">Horário de desmontagem</label><input type="time" id="cdesmontagem" oninput="renderContrPreview()"></div>
               </div>
-              <div style="margin-top:10px">
-                <div style="display:flex;align-items:center;justify-content:space-between">
-                  <label class="fl" style="font-size:9px;margin-bottom:0">Itens que acompanham o kit nesta locação <span style="font-weight:300;text-transform:none">(desmarque o que não for junto)</span></label>
-                  <div style="flex-shrink:0;margin-left:8px">
-                    <span class="sel-all" onclick="marcarTodosItensCasinha(true)">marcar todos</span><span class="sel-all" onclick="marcarTodosItensCasinha(false)">desmarcar todos</span>
-                  </div>
-                </div>
-                <div id="casinha-itens-lista" style="margin-top:4px"></div>
-              </div>
+              <div style="margin-top:8px;font-size:10.5px;color:var(--leve)">Os itens do kit desta locação agora são escritos no campo <b>Menu Acordado</b> (seção 3), um por linha. Eles entram na Cláusula 2ª do contrato.</div>
             </div>
             <div class="row2">
               <div class="field"><label class="fl">Local</label><input type="text" spellcheck="true" id="cev_local" placeholder="Nome do espaço ou endereço" oninput="renderContrPreview()"></div>
@@ -1867,7 +1859,7 @@ input:focus,select:focus,textarea:focus,.busca:focus{border-color:#282B1C !impor
           <div class="sh open" data-sec="contr_menu" onclick="tog(this)"><h3><span class="sh-num">3</span>Menu Acordado</h3><span class="arr">▼</span></div>
           <div class="sb open">
             <div class="field">
-              <label class="fl">Itens do menu <span style="font-weight:300;text-transform:none">— um por linha</span></label>
+              <label class="fl" id="cmenu-label">Itens do menu <span style="font-weight:300;text-transform:none">— um por linha</span></label>
               <textarea spellcheck="true" id="cmenu" rows="10" placeholder="Ex:&#10;Quiche de brie e mel&#10;Mini hambúrguer artesanal&#10;Nhoque ao molho rústico&#10;..." oninput="renderContrPreview()" style="font-size:12px;line-height:1.6"></textarea>
             </div>
             <div class="field">
@@ -5574,11 +5566,11 @@ async function gerarPDFOrcamentoModerno(opts){
     getCardapioAgrupado().forEach(s=>{
       y=quebra(y,16);
       PDFM.pill(doc,M,y,s.label); y+=7.5;
-      y=PDFM.lista(doc,y,s.items,{cols:2,quebra});
+      y=PDFM.lista(doc,y,s.items,{cols:1,quebra});
       if(s.bebidas&&s.bebidas.length){
         y=quebra(y,12); y+=1;
         PDFM.f(doc,'sb',7,PDFM.MU); PDFM.esp(doc,'BEBIDAS',M,y,0.7); y+=5;
-        y=PDFM.lista(doc,y,s.bebidas,{cols:2,quebra});
+        y=PDFM.lista(doc,y,s.bebidas,{cols:1,quebra});
       }
       y+=3.5;
     });
@@ -5586,10 +5578,10 @@ async function gerarPDFOrcamentoModerno(opts){
   }
 
   const adds=getAddsSel().filter(x=>x.tipo!=='info');
-  if(adds.length){ secao('Adicionais inclusos'); y=PDFM.lista(doc,y,adds.map(x=>x.nome),{cols:2,quebra}); y+=5; }
+  if(adds.length){ secao('Adicionais inclusos'); y=PDFM.lista(doc,y,adds.map(x=>x.nome),{cols:1,quebra}); y+=5; }
 
   const svs=getServSel();
-  if(svs.length){ secao('Serviços inclusos'); y=PDFM.lista(doc,y,svs,{cols:2,quebra}); y+=5; }
+  if(svs.length){ secao('Serviços inclusos'); y=PDFM.lista(doc,y,svs,{cols:1,quebra}); y+=5; }
 
   // Investimento
   secao('Investimento');
@@ -8495,6 +8487,9 @@ function preencherFormContrato(ct){
   sv('cev_local',ct.local);sv('cev_conv',ct.conv);
   sv('cev_assessora_nome',ct.assessora_nome||'');sv('cev_assessora_fone',ct.assessora_fone||'');
   sv('cmenu',ct.menu);sv('cservicos',ct.servicos);
+  if(ehCasinhaDecaContrato() && !(ct.menu||'').trim()){
+    sv('cmenu', linhasCasinhaDaSelecaoAntiga(itensCasinhaSelecionados).join('\n'));
+  }
   { const ce=document.getElementById('c_cobrar_entrada'); if(ce) ce.checked = !ct.sem_entrada; }
   sv('cvalor_total',ct.valor_total);sv('cvalor_ext',ct.valor_ext);sv('cforma_pgto',ct.forma_pgto);
   sv('ct_adultos',ct.t_adultos||0);sv('ct_val_adulto',ct.tv_adulto||'');
@@ -8546,7 +8541,16 @@ function onTipoContratoChange(){
   const el = document.getElementById('casinha-deca-contrato-campos');
   const ehCasinha = ehCasinhaDecaContrato();
   if(el) el.style.display = ehCasinha ? 'block' : 'none';
-  if(ehCasinha) renderItensCasinhaDeca();
+  // Casinha da Deca: o campo "Menu Acordado" vira a lista de itens do kit
+  // (escrita à mão, um por linha) — é ela que entra na Cláusula 2ª.
+  const lblMenu = document.getElementById('cmenu-label');
+  if(lblMenu) lblMenu.innerHTML = ehCasinha
+    ? 'Itens que acompanham o kit <span style="font-weight:300;text-transform:none">— um por linha (entram na Cláusula 2ª do contrato)</span>'
+    : 'Itens do menu <span style="font-weight:300;text-transform:none">— um por linha</span>';
+  const taMenu = document.getElementById('cmenu');
+  if(taMenu) taMenu.placeholder = ehCasinha
+    ? 'Ex:\nCasinha com teto\nJogo didático tartaruga\nPanelinhas\nTapete emborrachado bege e cinza (5x5m)\n...'
+    : 'Ex:\nQuiche de brie e mel\nMini hambúrguer artesanal\nNhoque ao molho rústico\n...';
   atualizarSugestoesTaxasContrato(gv('cev_tipo'));
   // Casinha da Deca trabalha com sinal de 30% (não os 10% padrão do buffet) —
   // só troca automaticamente se o campo ainda estiver com um dos dois textos
@@ -8628,16 +8632,27 @@ function marcarTodosItensCasinha(marcarTudo){
 // Monta o texto da Cláusula 2 a partir do que estiver marcado — sem isso,
 // era um texto fixo que sempre listava TUDO, mesmo quando um item não fosse
 // junto naquela locação específica.
+// (21/10/2026) A Cláusula 2ª agora usa a lista escrita à mão no campo "Menu
+// Acordado" (um item por linha) — o checklist fixo saiu do contrato, porque
+// cada cliente escolhe o kit na hora e a lista muda sempre.
+function itensClausula2Casinha(){
+  return (gv('cmenu')||'').split('\n').map(l=>l.trim()).filter(Boolean);
+}
 function gerarTextoClausula2Casinha(){
-  const c1 = ITENS_CASINHA_DECA[0].itens.filter(it=>itensCasinhaSelecionados.has('Casinha com teto||'+it));
-  const c2 = ITENS_CASINHA_DECA[1].itens.filter(it=>itensCasinhaSelecionados.has('Cafeteria||'+it));
-  const tapeteMarcado = itensCasinhaSelecionados.has('Outros||Tapete emborrachado bege e cinza (5x5m)');
-  const partes = [];
-  if(c1.length) partes.push(`Casinha com teto: ${c1.join(', ')}`);
-  if(c2.length) partes.push(`Cafeteria: ${c2.join(', ')}, e demais itens que compõe o kit cozinha`);
-  let texto = partes.length ? partes.join('. ') + '.' : 'A combinar conforme o kit disponível na data.';
-  if(tapeteMarcado) texto += ' Acompanha também tapete emborrachado bege e cinza de tamanho 5 x 5 m.';
-  return `Cláusula 2ª - Cabe ao LOCATÁRIO o zelo e cuidado com os brinquedos e as casinhas, para que não sejam danificados. Os componentes que acompanham este kit são: ${texto}`;
+  const itens = itensClausula2Casinha();
+  return `Cláusula 2ª - Cabe ao LOCATÁRIO o zelo e cuidado com os brinquedos e as casinhas, para que não sejam danificados. Os componentes que acompanham este kit são: ${itens.length ? '' : 'a combinar conforme o kit disponível na data.'}`.trim();
+}
+// Contratos da Casinha salvos ANTES dessa mudança (itens marcados no
+// checklist, campo Menu Acordado vazio): transforma os itens marcados em
+// linhas de texto, pra o contrato continuar com a mesma lista.
+function linhasCasinhaDaSelecaoAntiga(sel){
+  const linhas = [];
+  const c1 = ITENS_CASINHA_DECA[0].itens.filter(it=>sel.has('Casinha com teto||'+it));
+  const c2 = ITENS_CASINHA_DECA[1].itens.filter(it=>sel.has('Cafeteria||'+it));
+  if(c1.length){ linhas.push('— CASINHA COM TETO —'); linhas.push(...c1); }
+  if(c2.length){ linhas.push('— CAFETERIA —'); linhas.push(...c2); linhas.push('Demais itens que compõem o kit cozinha'); }
+  if(sel.has('Outros||Tapete emborrachado bege e cinza (5x5m)')) linhas.push('Tapete emborrachado bege e cinza (5x5m)');
+  return linhas;
 }
 
 function atualizarConfirmacaoOrcVinc(){
@@ -8807,7 +8822,9 @@ function preencherDoOrc(){
     // Orçamento sem nenhum item de cardápio (ex: Casinha da Deca, locação
     // avulsa) — precisa LIMPAR o campo, senão fica um menu antigo "grudado"
     // de uma versão anterior do contrato, mesmo o orçamento estando vazio.
-    sv('cmenu', '');
+    // Exceção: na Casinha da Deca esse campo é a lista do kit escrita à mão
+    // no contrato — não pode ser apagada.
+    if(!ehCasinhaDecaContrato()) sv('cmenu', '');
   }
   // Valor
   if(orc.total){
@@ -9411,6 +9428,10 @@ function renderContrPreview(){
     }
     h+=`<div class="cl-sec">Das Obrigações</div>`;
     h+=`<div class="cl-body" style="font-size:9.5px">${gerarTextoClausula2Casinha()}</div>`;
+    itensClausula2Casinha().forEach(item=>{
+      if(/^— .+ —$/.test(item)) h+=`<div style="font-weight:700;padding-left:8px;margin-top:4px;font-size:10px">${item.replace(/^— /,'').replace(/ —$/,'')}</div>`;
+      else h+=`<div style="padding-left:8px;font-size:10.5px">· ${item}</div>`;
+    });
     h+=`<div class="cl-body" style="font-size:9.5px">Cabe ao LOCATÁRIO disponibilizar um ambiente seguro (protegido em possibilidade de chuva) para a montagem da estrutura, de tamanho mínimo de 6x6m.</div>`;
     if(servicos.length>0){
       h+=`<div class="cl-sec">Serviços Inclusos</div>`;
@@ -9835,6 +9856,8 @@ async function gerarPDFContrato(opts){
 
     titulo('Das Obrigações');
     corpo(gerarTextoClausula2Casinha(),9);
+    itensClausula2Casinha().forEach(i2=>item(i2));
+    y+=2;
     corpo('Cabe ao LOCATÁRIO disponibilizar um ambiente seguro (protegido em possibilidade de chuva) para a montagem da estrutura, de tamanho mínimo de 6x6m.',9);
 
     if(servicos.length>0){titulo('Serviços Inclusos');servicos.forEach(s=>item(s));}
@@ -10207,6 +10230,7 @@ async function gerarWordContrato(){
     children.push(tituloBanner('Das Obrigações'));
     children.push(espacoW(70));
     children.push(corpoW(gerarTextoClausula2Casinha()));
+    itensClausula2Casinha().forEach(l=>children.push(itemW(l)));
     children.push(corpoW('Cabe ao LOCATÁRIO disponibilizar um ambiente seguro (protegido em possibilidade de chuva) para a montagem da estrutura, de tamanho mínimo de 6x6m.'));
     children.push(espacoW(140));
 
