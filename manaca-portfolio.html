@@ -562,8 +562,16 @@
     { id:'corporativo',   nome:'Treinamento Corporativo', desc:'Workshops e confraternizações de empresa.' },
   ];
 
+  // Tipo de evento do sistema de orçamentos ligado a cada categoria (para usar a "foto de capa" escolhida no admin)
+  const TIPO_DA_CATEGORIA = {
+    casamento:'Casamento', aniversario:'Aniversário', festainfantil:'Festa Infantil', coquetel:'Coquetel',
+    jantar:'Jantar', coffeebrunch:'Coffee Break', feijoada:'Feijoada', churrasco:'Churrasco',
+    corporativo:'Treinamento Corporativo'
+  };
+
   const fotosPorCategoria = {};
-  let comFotos = [];          // categorias que têm pelo menos 1 foto, na ordem acima
+  let capas = {};             // fotos de capa escolhidas no admin (documento portfolio_fotos/_capas)
+  let comFotos = [];          // categorias visíveis: com fotos ou "em breve" (com foto de capa), na ordem acima
   let fotos = [];             // fotos da categoria aberta
   let catAberta = null;
   let indiceAtual = 0;
@@ -604,8 +612,20 @@
   observar();
 
   // ---- Carrega todas as categorias de uma vez (em paralelo) ----
+  // Capa de uma categoria: a marcada no admin; sem fotos, a foto de capa do tipo de evento
+  function capaCategoria(cat){
+    const lista = fotosPorCategoria[cat.id] || [];
+    if(lista.length) return capaDe(lista);
+    const t = TIPO_DA_CATEGORIA[cat.id];
+    return t && capas.eventos && capas.eventos[t] && capas.eventos[t].url ? capas.eventos[t] : null;
+  }
+  const emBreve = cat => !(fotosPorCategoria[cat.id] || []).length;
+
   async function carregarTudo(){
-    await Promise.all(categorias.map(async cat => {
+    const pCapas = getDoc(doc(db, 'portfolio_fotos', '_capas'))
+      .then(s => { capas = s.exists() ? (s.data() || {}) : {}; })
+      .catch(() => { capas = {}; });
+    await Promise.all([pCapas, ...categorias.map(async cat => {
       try{
         const snap = await getDoc(doc(db, 'portfolio_fotos', cat.id));
         fotosPorCategoria[cat.id] = snap.exists() ? (snap.data().fotos || []).filter(f => f && f.url) : [];
@@ -613,8 +633,12 @@
         console.error('Erro ao carregar', cat.id, err);
         fotosPorCategoria[cat.id] = [];
       }
-    }));
-    comFotos = categorias.filter(c => fotosPorCategoria[c.id].length > 0);
+    })]);
+    // Primeiro as que têm fotos; depois as "em breve" que já têm foto de capa
+    comFotos = [
+      ...categorias.filter(c => fotosPorCategoria[c.id].length > 0),
+      ...categorias.filter(c => emBreve(c) && capaCategoria(c)),
+    ];
   }
 
   // ---- HOME ----
@@ -638,7 +662,7 @@
     });
     comFotos.forEach((cat, i) => {
       const lista = fotosPorCategoria[cat.id];
-      const capa = capaDe(lista);
+      const capa = capaCategoria(cat);
       const card = document.createElement('button');
       card.className = 'cat-card revelar';
       card.style.setProperty('--span', spans[i]);
@@ -649,7 +673,7 @@
         <img src="${esc(opt(capa.url, largura))}" alt="${esc(cat.nome)}" loading="${i < 3 ? 'eager' : 'lazy'}" onload="this.classList.add('ok')">
         <div class="cat-info">
           <div>
-            <span class="cat-qtd">${lista.length} foto${lista.length === 1 ? '' : 's'}</span>
+            <span class="cat-qtd">${lista.length ? `${lista.length} foto${lista.length === 1 ? '' : 's'}` : 'Em breve'}</span>
             <h3>${esc(cat.nome)}</h3>
             <p>${esc(cat.desc)}</p>
           </div>
@@ -662,8 +686,13 @@
 
   // ---- Slideshow do topo com as capas ----
   let slideTimer = null;
+  function capasDoSite(){
+    if(capas.site && capas.site.url) return [capas.site];
+    return comFotos.map(c => capaCategoria(c)).filter(Boolean).slice(0, 6);
+  }
   function montarHero(){
-    const capas = comFotos.map(c => capaDe(fotosPorCategoria[c.id])).slice(0, 6);
+    // Se a equipe escolheu uma foto de abertura no admin, ela fica fixa; senão, passam as capas das categorias
+    const capas = capasDoSite();
     const box = $('hero-slides'), pontos = $('hero-pontos');
     if(!capas.length) return;
     const largura = Math.min(2400, Math.round(window.innerWidth * (window.devicePixelRatio || 1)));
@@ -705,7 +734,7 @@
     const bg = $('cat-hero-bg');
     bg.classList.remove('ok');
     bg.style.backgroundImage = '';
-    const capa = capaDe(fotos);
+    const capa = capaCategoria(cat);
     if(capa){
       const url = opt(capa.url, Math.min(2400, Math.round(window.innerWidth * (window.devicePixelRatio || 1))));
       const pre = new Image();
@@ -716,7 +745,7 @@
     // Abas para pular entre categorias
     const abas = comFotos.length ? comFotos : categorias;
     $('abas').innerHTML = abas.map(c =>
-      `<button class="aba ${c.id === id ? 'ativa' : ''}" onclick="irPara('${c.id}')">${esc(c.nome)}<small>${fotosPorCategoria[c.id]?.length || 0}</small></button>`
+      `<button class="aba ${c.id === id ? 'ativa' : ''}" onclick="irPara('${c.id}')">${esc(c.nome)}<small>${fotosPorCategoria[c.id]?.length || 'em breve'}</small></button>`
     ).join('');
     const ativa = $('abas').querySelector('.ativa');
     if(ativa) ativa.scrollIntoView({ inline:'center', block:'nearest' });
@@ -724,7 +753,11 @@
     // Grade
     const grade = $('grade');
     if(!fotos.length){
-      grade.innerHTML = `<div class="grade-vazia">Ainda não temos fotos publicadas nesta categoria.</div>`;
+      grade.innerHTML = `<div class="grade-vazia">
+          <p class="serif" style="font-size:30px;margin:0 0 8px;color:var(--tinta)">Fotos <em>em breve</em></p>
+          <p style="margin:0 0 22px">Estamos organizando as fotos desta categoria. Peça exemplos de eventos parecidos pelo WhatsApp.</p>
+          <a class="btn btn-oliva js-wa" href="#" target="_blank" rel="noopener">Pedir fotos e orçamento</a>
+        </div>`;
     }else{
       grade.innerHTML = fotos.map((f, i) => `
         <figure class="revelar" style="transition-delay:${(i % 4) * 60}ms" onclick="abrirLightbox(${i})">

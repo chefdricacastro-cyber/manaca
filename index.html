@@ -180,6 +180,11 @@
     async getGcalEventosList() {
       const snap = await getDocs(collection(db, "gcal_eventos"));
       return snap.docs.map(d => d.data());
+    },
+    // ===== FOTOS DE CAPA (escolhidas no admin de fotos, tela "Fotos de capa") =====
+    async getCapas() {
+      const snap = await getDoc(doc(db, "portfolio_fotos", "_capas"));
+      return snap.exists() ? (snap.data() || {}) : {};
     }
   };
 
@@ -1147,6 +1152,22 @@ input:focus,select:focus,textarea:focus,.busca:focus{border-color:#282B1C !impor
 :root[data-theme="dark"] .preview-box .pv-logo-img{filter:none}
 :root[data-theme="dark"] .preview-box .pv-tot{background:#282B1C !important;color:#F4EBD8 !important}
 </style>
+<style>
+/* ===== Faixa com foto no topo do Início (foto escolhida no admin de fotos) ===== */
+.inicio-capa.com-foto{
+  position:relative; overflow:hidden; border-radius:14px; min-height:180px;
+  padding:26px 28px; margin-bottom:18px; display:flex; align-items:flex-end;
+  background-size:cover; background-position:center; background-color:#1F2116;
+}
+.inicio-capa.com-foto::before{
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(0deg, rgba(20,21,14,.82) 0%, rgba(20,21,14,.35) 55%, rgba(20,21,14,.08) 100%);
+}
+.inicio-capa.com-foto > div{ position:relative; }
+.inicio-capa.com-foto .pg-title, :root[data-theme="dark"] .inicio-capa.com-foto .pg-title{ color:#F4EBD8 !important; }
+.inicio-capa.com-foto .pg-sub{ color:rgba(244,235,216,.78); margin-bottom:0; }
+@media (max-width:700px){ .inicio-capa.com-foto{ min-height:140px; padding:20px; } }
+</style>
 </head>
 <body>
 
@@ -1192,8 +1213,10 @@ input:focus,select:focus,textarea:focus,.busca:focus{border-color:#282B1C !impor
 <!-- ===== INÍCIO ===== -->
 <div class="tela ativa" id="tela-inicio">
   <div class="pg-wrap larga">
-    <div class="pg-title">Início</div>
-    <div class="pg-sub" id="inicio-saudacao">Visão geral</div>
+    <div class="inicio-capa" id="inicio-capa"><div>
+      <div class="pg-title">Início</div>
+      <div class="pg-sub" id="inicio-saudacao">Visão geral</div>
+    </div></div>
 
     <div style="position:relative;margin:12px 0 20px 0">
       <input class="busca" id="busca-global" placeholder="Buscar em orçamentos e contratos: cliente, tipo de evento, local..." oninput="renderBuscaGlobal(this.value)" onblur="setTimeout(()=>{const r=document.getElementById('busca-global-resultados');if(r)r.style.display='none'},200)" onfocus="if(this.value)renderBuscaGlobal(this.value)">
@@ -5522,6 +5545,58 @@ const PDFM={
   quebra(doc,topo=22,limite=272){ return (y,h)=>{ if(y+h>limite){ doc.addPage(); return topo; } return y; }; }
 };
 
+// ===== FOTOS DE CAPA =====
+// Escolhidas no admin de fotos (tela "Fotos de capa"). Ficam no Firebase em portfolio_fotos/_capas.
+// Se não houver foto, nada muda: o Início e o PDF ficam como antes.
+let _capasPromessa = null;
+function carregarCapas(){
+  if(_capasPromessa) return _capasPromessa;
+  _capasPromessa = new Promise(resolve => {
+    const ler = () => window._fb.getCapas().then(c => resolve(c || {})).catch(() => resolve({}));
+    if(window._fbReady && window._fb?.getCapas) ler();
+    else {
+      window.addEventListener('fbready', ler, { once:true });
+      setTimeout(() => resolve({}), 8000);
+    }
+  });
+  return _capasPromessa;
+}
+// Pede ao Cloudinary a foto já cortada no tamanho certo
+function urlCapa(url, transformacao){
+  if(!url || !url.includes('res.cloudinary.com') || !url.includes('/image/upload/')) return url;
+  return url.replace('/image/upload/', '/image/upload/' + transformacao + '/');
+}
+async function aplicarCapaInicio(){
+  const el = document.getElementById('inicio-capa');
+  if(!el) return;
+  const c = await carregarCapas();
+  const f = c.inicio && c.inicio.url ? c.inicio : null;
+  if(!f){ el.classList.remove('com-foto'); el.style.backgroundImage = ''; return; }
+  el.style.backgroundImage = `url("${urlCapa(f.url, 'f_auto,q_auto,c_fill,g_auto,w_1800,h_420')}")`;
+  el.classList.add('com-foto');
+}
+window.addEventListener('fbready', aplicarCapaInicio);
+if(window._fbReady) aplicarCapaInicio();
+
+// Foto da capa da proposta (PDF): a do tipo de evento; sem ela, a capa padrão. Devolve imagem pronta para o jsPDF.
+const _capaPDFCache = {};
+async function capaPropostaDataURL(tipo){
+  try{
+    const c = await carregarCapas();
+    const f = (c.eventos && c.eventos[tipo] && c.eventos[tipo].url) ? c.eventos[tipo] : (c.padrao && c.padrao.url ? c.padrao : null);
+    if(!f) return null;
+    const url = urlCapa(f.url, 'f_jpg,q_80,c_fill,g_auto,w_1600,h_450');
+    if(_capaPDFCache[url]) return _capaPDFCache[url];
+    const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 8000);
+    const resp = await fetch(url, { signal: ctrl.signal }); clearTimeout(t);
+    if(!resp.ok) return null;
+    const blob = await resp.blob();
+    const dataURL = await new Promise((ok, erro) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = erro; r.readAsDataURL(blob); });
+    _capaPDFCache[url] = dataURL;
+    return dataURL;
+  }catch(e){ console.warn('Capa da proposta não carregou:', e); return null; }
+}
+
 // ===== PDF DO ORÇAMENTO — layout moderno (todos os tipos, menos Casinha da Deca) =====
 async function gerarPDFOrcamentoModerno(opts){
   const {jsPDF}=window.jspdf;
@@ -5535,6 +5610,11 @@ async function gerarPDFOrcamentoModerno(opts){
   const numOrc=gv('num_orc');
   const hoje=new Date().toLocaleDateString('pt-BR');
   let y=PDFM.cabecalho(doc,{rotulo:'Proposta comercial',data:'Emitida em '+hoje}); // sem o nº do orçamento (pedido de 21/10/2026)
+  // Foto de capa do tipo de evento (escolhida no admin de fotos). Sem foto, o PDF fica como antes.
+  const fotoCapa=await capaPropostaDataURL(getTipo());
+  if(fotoCapa){
+    try{ doc.addImage(fotoCapa,'JPEG',0,40,W,59,'capaProposta','FAST'); y=40+59+14; }catch(e){ console.warn('Capa no PDF:',e); }
+  }
 
   const cliente=gv('cli_nome')||'—';
   y=PDFM.hero(doc,y,{
