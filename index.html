@@ -185,6 +185,11 @@
     async getCapas() {
       const snap = await getDoc(doc(db, "portfolio_fotos", "_capas"));
       return snap.exists() ? (snap.data() || {}) : {};
+    },
+    // Quantas fotos uma categoria do site de fotos tem (para saber se vale mandar o link dela)
+    async getQtdFotosPortfolio(cat) {
+      const snap = await getDoc(doc(db, "portfolio_fotos", cat));
+      return snap.exists() ? ((snap.data().fotos || []).length) : 0;
     }
   };
 
@@ -3740,15 +3745,43 @@ function formatarFoneWhats(fone){
   if(n.length<=11) n = '55'+n; // adiciona DDI Brasil se não tiver
   return n;
 }
-function enviarWhatsApp(orcId){
+// ===== LINK DO SITE DE FOTOS NAS MENSAGENS =====
+// Cada tipo de evento aponta para a categoria parecida do site de fotos.
+// Se a categoria ainda não tiver fotos, vai o link do site inteiro.
+const CATEGORIA_FOTOS_DO_TIPO = {
+  'Casamento':'casamento', 'Aniversário':'aniversario', 'Festa Infantil':'festainfantil', 'Casinha da Deca':'festainfantil',
+  'Coquetel':'coquetel', 'Carrinho de Salgadinhos':'coquetel', 'Ilha Gastronômica':'coquetel', 'Evento Corporativo':'coquetel',
+  'Jantar':'jantar', 'Almoço':'jantar', 'Menu Degustação':'jantar',
+  'Coffee Break':'coffeebrunch', 'Brunch':'coffeebrunch',
+  'Feijoada':'feijoada', 'Churrasco':'churrasco', 'Treinamento Corporativo':'corporativo'
+};
+async function linkFotosDoTipo(tipo){
+  const base = new URL('manaca-portfolio.html', location.href).href;
+  const cat = CATEGORIA_FOTOS_DO_TIPO[tipo];
+  if(!cat) return base;
+  try{
+    if(window._fbReady && window._fb?.getQtdFotosPortfolio){
+      const qtd = await Promise.race([window._fb.getQtdFotosPortfolio(cat), new Promise(r=>setTimeout(()=>r(-1),3000))]);
+      if(qtd === 0) return base;
+    }
+  }catch(e){}
+  return base + '#' + cat;
+}
+
+async function enviarWhatsApp(orcId){
   const orc=getOrcs().find(o=>o.id===orcId);if(!orc)return;
   const numero=formatarFoneWhats(orc.fone);
   if(!numero){alert('Esse orçamento não tem um contato/WhatsApp cadastrado.');return;}
+  // Abre a janela já, para o navegador não bloquear; o texto entra assim que o link das fotos estiver pronto
+  const janela=window.open('', '_blank');
   const primeiroNome=(orc.nome||'').split(' ')[0]||'';
+  const link=await linkFotosDoTipo(orc.tipo);
   const msg=`Olá${primeiroNome?' '+primeiroNome:''}! Segue o orçamento do seu evento`+
-    `${orc.tipo?' ('+orc.tipo+')':''}${orc.data?' — '+fmtD(orc.data):''}. `+
-    `Estou anexando o PDF aqui em seguida. Qualquer dúvida, é só chamar! 😊`;
-  window.open(`https://wa.me/${numero}?text=${encodeURIComponent(msg)}`, '_blank');
+    `${orc.tipo?' ('+tipoExibicao(orc.tipo)+')':''}${orc.data?' — '+fmtD(orc.data):''}. `+
+    `Estou anexando o PDF aqui em seguida. Qualquer dúvida, é só chamar! 😊\n\n`+
+    `Para você ter uma ideia de como fica, separei fotos de eventos que já fizemos:\n${link}`;
+  const url=`https://wa.me/${numero}?text=${encodeURIComponent(msg)}`;
+  if(janela) janela.location.href=url; else window.open(url,'_blank');
 }
 
 function atualizarPainelFinanceiro(contrs){
@@ -12419,6 +12452,7 @@ function mensagemFollowupOrc(o){
     `Passando para saber se você conseguiu ver a proposta que enviamos para o seu ${evento}${o.data?' do dia '+fmtD(o.data):''}.\n\n`+
     `Se quiser ajustar alguma coisa no cardápio, no número de convidados ou nos valores, é só me falar que eu refaço.`+
     `${o.data?' Como a data ainda está livre na nossa agenda, vale a gente conversar logo para garantir.':''}\n\n`+
+    `Se quiser ver como fica, aqui estão fotos de eventos que já fizemos:\n${new URL('manaca-portfolio.html'+(CATEGORIA_FOTOS_DO_TIPO[o.tipo]?'#'+CATEGORIA_FOTOS_DO_TIPO[o.tipo]:''), location.href).href}\n\n`+
     `Buffet Manacá`;
 }
 
