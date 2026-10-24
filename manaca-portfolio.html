@@ -621,10 +621,26 @@
   }
   const emBreve = cat => !(fotosPorCategoria[cat.id] || []).length;
 
+  // Capas que já vêm prontas (escolhidas em 23/10/2026 nas pastas do Drive da Drica).
+  // O que for escolhido no admin de fotos (tela "Fotos de capa") tem prioridade sobre estas.
+  const CL = 'https://res.cloudinary.com/nhdgiswb/image/upload/';
+  const CAPAS_PADRAO = {
+    site: { url: CL+'v1792804321/portfolio-fotos/capas/hdgclkwsdkc5hr13a6y1.jpg' },
+    eventos: {
+      'Coffee Break': { url: CL+'v1792804328/portfolio-fotos/capas/abwde9ttqspzy6xzehth.jpg' },
+      'Coquetel':     { url: CL+'v1792804332/portfolio-fotos/capas/ub6phcchljuur8mkgz7e.jpg' },
+      'Feijoada':     { url: CL+'v1792804333/portfolio-fotos/capas/gwsayflujfq669jrzzow.jpg' },
+    }
+  };
+  function comPadrao(c){
+    c = c || {};
+    return { ...CAPAS_PADRAO, ...c, eventos: { ...CAPAS_PADRAO.eventos, ...(c.eventos || {}) } };
+  }
+
   async function carregarTudo(){
     const pCapas = getDoc(doc(db, 'portfolio_fotos', '_capas'))
-      .then(s => { capas = s.exists() ? (s.data() || {}) : {}; })
-      .catch(() => { capas = {}; });
+      .then(s => { capas = comPadrao(s.exists() ? s.data() : {}); })
+      .catch(() => { capas = comPadrao({}); });
     await Promise.all([pCapas, ...categorias.map(async cat => {
       try{
         const snap = await getDoc(doc(db, 'portfolio_fotos', cat.id));

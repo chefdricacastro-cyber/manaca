@@ -5548,15 +5548,32 @@ const PDFM={
 // ===== FOTOS DE CAPA =====
 // Escolhidas no admin de fotos (tela "Fotos de capa"). Ficam no Firebase em portfolio_fotos/_capas.
 // Se não houver foto, nada muda: o Início e o PDF ficam como antes.
+// Capas que já vêm prontas (escolhidas em 23/10/2026 nas pastas do Drive da Drica).
+// O que for escolhido no admin de fotos tem prioridade sobre estas.
+const _CL = 'https://res.cloudinary.com/nhdgiswb/image/upload/';
+const CAPAS_PADRAO = {
+  inicio: { url: _CL+'v1792804323/portfolio-fotos/capas/ufrg8neqoip27nxo64pc.jpg' },
+  padrao: { url: _CL+'v1792804322/portfolio-fotos/capas/faewgszkgg35nkerlbid.jpg' },
+  eventos: {
+    'Coffee Break': { url: _CL+'v1792804328/portfolio-fotos/capas/abwde9ttqspzy6xzehth.jpg' },
+    'Brunch':       { url: _CL+'v1792804330/portfolio-fotos/capas/hxnnv36x7fuvnqsnwyro.jpg' },
+    'Coquetel':     { url: _CL+'v1792804332/portfolio-fotos/capas/ub6phcchljuur8mkgz7e.jpg' },
+    'Feijoada':     { url: _CL+'v1792804333/portfolio-fotos/capas/gwsayflujfq669jrzzow.jpg' },
+  }
+};
+function capasComPadrao(c){
+  c = c || {};
+  return { ...CAPAS_PADRAO, ...c, eventos: { ...CAPAS_PADRAO.eventos, ...(c.eventos || {}) } };
+}
 let _capasPromessa = null;
 function carregarCapas(){
   if(_capasPromessa) return _capasPromessa;
   _capasPromessa = new Promise(resolve => {
-    const ler = () => window._fb.getCapas().then(c => resolve(c || {})).catch(() => resolve({}));
+    const ler = () => window._fb.getCapas().then(c => resolve(capasComPadrao(c))).catch(() => resolve(capasComPadrao({})));
     if(window._fbReady && window._fb?.getCapas) ler();
     else {
       window.addEventListener('fbready', ler, { once:true });
-      setTimeout(() => resolve({}), 8000);
+      setTimeout(() => resolve(capasComPadrao({})), 8000);
     }
   });
   return _capasPromessa;
