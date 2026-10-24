@@ -107,6 +107,9 @@
     background: rgba(244,235,216,0.10);
   }
   .nav-item .nome{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .nav-item img.mini.vazia{ opacity:.55; filter: saturate(.7); }
+  .cat-cartao .capa img.vazia{ opacity:.5; filter: grayscale(.35); }
+  .cat-cartao .capa .sem-foto{ position:absolute; left:10px; bottom:10px; background: rgba(28,30,20,.72); color:#fff; font-size:11.5px; font-weight:600; padding:4px 10px; border-radius:999px; }
   .nav-item .num{ font-size:12px; color: rgba(244,235,216,0.45); font-variant-numeric: tabular-nums; }
   .nav-item.ativo .num{ color: rgba(244,235,216,0.75); }
   .nav-item.inicio .mini{ display:flex; align-items:center; justify-content:center; }
@@ -497,6 +500,22 @@
   }
   const nomeCat = id => (categorias.find(c => c.id === id) || {}).nome || id;
   const capaDe = lista => lista.find(f => f.capa) || lista[0];
+  // Miniatura das categorias que ainda não têm fotos: fotos de comida do Manacá (Drive da Drica, 23/10/2026)
+  const MINI_CL = 'https://res.cloudinary.com/nhdgiswb/image/upload/';
+  const MINI_PADRAO = {
+    festainfantil: MINI_CL+'v1792804323/portfolio-fotos/capas/ufrg8neqoip27nxo64pc.jpg',
+    coffeebrunch:  MINI_CL+'v1792804328/portfolio-fotos/capas/abwde9ttqspzy6xzehth.jpg',
+    feijoada:      MINI_CL+'v1792804333/portfolio-fotos/capas/gwsayflujfq669jrzzow.jpg',
+    churrasco:     MINI_CL+'v1792804322/portfolio-fotos/capas/faewgszkgg35nkerlbid.jpg',
+    corporativo:   MINI_CL+'v1792804330/portfolio-fotos/capas/hxnnv36x7fuvnqsnwyro.jpg',
+    casamento:     MINI_CL+'v1792804321/portfolio-fotos/capas/hdgclkwsdkc5hr13a6y1.jpg',
+    aniversario:   MINI_CL+'v1792804323/portfolio-fotos/capas/ufrg8neqoip27nxo64pc.jpg',
+    coquetel:      MINI_CL+'v1792804332/portfolio-fotos/capas/ub6phcchljuur8mkgz7e.jpg',
+    jantar:        MINI_CL+'v1792804321/portfolio-fotos/capas/hdgclkwsdkc5hr13a6y1.jpg',
+    mesadefrios:   MINI_CL+'v1792804322/portfolio-fotos/capas/faewgszkgg35nkerlbid.jpg',
+  };
+  // Foto da miniatura: a capa da categoria; sem fotos, uma foto de comida do Manacá
+  const miniDe = (id, lista) => { const c = capaDe(lista || []); return c ? c.url : (MINI_PADRAO[id] || ''); };
 
   const IC = {
     estrela: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>',
@@ -607,7 +626,7 @@
         const lista = fotosPorCategoria[c.id] || [];
         const capa = capaDe(lista);
         return `<button class="nav-item ${categoriaAtual === c.id ? 'ativo' : ''}" onclick="abrir('${c.id}')">
-          ${capa ? `<img class="mini" src="${esc(opt(capa.url, 80))}" alt="">` : '<span class="mini"></span>'}
+          ${miniDe(c.id, lista) ? `<img class="mini ${lista.length ? '' : 'vazia'}" src="${esc(opt(miniDe(c.id, lista), 80))}" alt="">` : '<span class="mini"></span>'}
           <span class="nome">${esc(c.nome)}</span><span class="num">${lista.length}</span>
         </button>`;
       }).join('') +
@@ -648,7 +667,7 @@
           const lista = fotosPorCategoria[c.id];
           const capa = capaDe(lista);
           return `<button class="cat-cartao" onclick="abrir('${c.id}')">
-            <div class="capa">${capa ? `<img src="${esc(opt(capa.url, 440))}" alt="" loading="lazy">` : `<div class="sem">${IC.foto}Sem fotos</div>`}</div>
+            <div class="capa">${capa ? `<img src="${esc(opt(capa.url, 440))}" alt="" loading="lazy">` : (MINI_PADRAO[c.id] ? `<img class="vazia" src="${esc(opt(MINI_PADRAO[c.id], 440))}" alt="" loading="lazy"><span class="sem-foto">Sem fotos ainda</span>` : `<div class="sem">${IC.foto}Sem fotos</div>`)}</div>
             <div class="rodape"><h3>${esc(c.nome)}</h3><span class="pilula ${lista.length ? '' : 'vazia'}">${lista.length ? plural(lista.length, 'foto', 'fotos') : 'Fora do site'}</span></div>
           </button>`;
         }).join('')}
@@ -827,7 +846,7 @@
       const lista = fotosPorCategoria[c.id] || [];
       const capa = capaDe(lista);
       return `<button class="opcao" data-destino="${c.id}">
-        ${capa ? `<img src="${esc(opt(capa.url, 80))}" alt="">` : '<span class="mini"></span>'}
+        ${miniDe(c.id, lista) ? `<img src="${esc(opt(miniDe(c.id, lista), 80))}" alt="">` : '<span class="mini"></span>'}
         ${esc(c.nome)}<span>${lista.length}</span></button>`;
     }).join('');
     $('mover-opcoes').onclick = e => {
