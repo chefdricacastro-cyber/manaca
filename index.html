@@ -1186,7 +1186,7 @@ input:focus,select:focus,textarea:focus,.busca:focus{border-color:#282B1C !impor
 
 /* ===== Foto da capa da proposta (26/10/2026) ===== */
 .fc-campo{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid var(--borda);border-radius:10px;padding:8px;background:var(--creme)}
-.fc-mini{width:130px;height:75px;border-radius:8px;background:var(--verde-claro) center/cover no-repeat;flex-shrink:0}
+.fc-mini{width:196px;height:70px;border-radius:8px;background:var(--verde-claro) center/cover no-repeat;flex-shrink:0}
 .fc-mini.vazia{background-image:none!important;background:var(--verde)}
 .fc-txt{flex:1;min-width:160px}
 .fc-desc{font-size:13px;font-weight:600;color:var(--texto)}
@@ -1215,7 +1215,7 @@ input:focus,select:focus,textarea:focus,.busca:focus{border-color:#282B1C !impor
 .fc-aviso a{color:var(--texto);font-weight:600}
 .fc-dica{font-size:11.5px;color:var(--leve);margin:14px 0 6px}
 .fc-rodape{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px 16px;border-top:1px solid var(--borda)}
-@media (max-width:600px){.fc-fotos{grid-template-columns:repeat(2,1fr)}.fc-mini{width:100%;height:110px}}
+@media (max-width:600px){.fc-fotos{grid-template-columns:repeat(2,1fr)}.fc-mini{width:100%;height:auto;aspect-ratio:2.8/1}}
 </style>
 <style>
 /* ===== Faixa com foto no topo do Início (foto escolhida no admin de fotos) ===== */
@@ -1620,12 +1620,13 @@ input:focus,select:focus,textarea:focus,.busca:focus{border-color:#282B1C !impor
           </div>
           <div class="field" id="fc-bloco">
             <label class="fl">Foto da capa da proposta <span style="font-weight:300;text-transform:none;font-size:9px">— sai no topo do PDF</span></label>
-            <input type="hidden" id="orc_foto_capa">
+            <input type="hidden" id="orc_foto_capa"><input type="hidden" id="orc_foto_capa_ajuste">
             <div class="fc-campo">
               <div class="fc-mini" id="fc-mini"></div>
               <div class="fc-txt"><div class="fc-desc" id="fc-desc">Automática</div><div class="fc-sub" id="fc-sub"></div></div>
               <div class="fc-botoes">
                 <button type="button" class="btn-sm" onclick="abrirEscolhaFotoCapa()">Escolher foto</button>
+                <button type="button" class="btn-sm" id="fc-ajustar" onclick="ajustarFotoCapaOrc()" style="display:none">Ajustar enquadramento</button>
                 <button type="button" class="btn-sm" id="fc-limpar" onclick="limparFotoCapa()" style="display:none">Voltar à automática</button>
               </div>
             </div>
@@ -4750,13 +4751,13 @@ function limparForm(){
   document.getElementById('ev_pre_reservado').checked=false;
   document.getElementById('pre_reserva_status').textContent='';
   datasExtrasOrc=[];renderDatasExtrasOrc();
-  sv('orc_foto_capa','');atualizarCampoFotoCapa();
+  sv('orc_foto_capa','');sv('orc_foto_capa_ajuste','');atualizarCampoFotoCapa();
 }
 
 function preencherForm(o){
   sv('cli_nome',o.nome);sv('cli_fone',o.fone);sv('cli_email',o.email);sv('cli_tipo',o.pj?'PJ':'PF');
   sv('cli_responsavel',o.responsavel||'');sv('ev_servico',o.servico||'aparador');{const ol=document.getElementById('ev_ocultar_local');if(ol)ol.checked=!!o.ocultar_local;}
-  sv('orc_foto_capa',o.foto_capa||'');atualizarCampoFotoCapa();
+  sv('orc_foto_capa',o.foto_capa||'');sv('orc_foto_capa_ajuste',o.foto_capa_ajuste?JSON.stringify(o.foto_capa_ajuste):'');atualizarCampoFotoCapa();
   sv('ev_titulo',o.titulo||'');
   sv('ev_data',o.data);sv('ev_hora_inicio',o.hora_inicio);sv('ev_hora_fim',o.hora_fim);sv('ev_local',o.local);sv('ev_obs',o.obs_evento);calcDuracao();
   sv('orc_montagem',o.montagem||'');sv('orc_desmontagem',o.desmontagem||'');
@@ -5691,7 +5692,7 @@ function salvarOrc(){
     atualizadoEm:new Date().toISOString(),
     status,num:gv('num_orc'),
     nome:gv('cli_nome'),fone:gv('cli_fone'),email:gv('cli_email'),pj:gv('cli_tipo')==='PJ',
-    responsavel:gv('cli_responsavel'),servico:gv('ev_servico'),ocultar_local:!!document.getElementById('ev_ocultar_local')?.checked,foto_capa:gv('orc_foto_capa'),
+    responsavel:gv('cli_responsavel'),servico:gv('ev_servico'),ocultar_local:!!document.getElementById('ev_ocultar_local')?.checked,foto_capa:gv('orc_foto_capa'),foto_capa_ajuste:lerAjusteOrc(),
     tipo,titulo:gv('ev_titulo'),data:gv('ev_data'),hora_inicio:gv('ev_hora_inicio'),hora_fim:gv('ev_hora_fim'),duracao:gv('ev_duracao'),local:gv('ev_local'),obs_evento:gv('ev_obs'),
     montagem:gv('orc_montagem'),desmontagem:gv('orc_desmontagem'),
     preco:gv('preco_pp'),preco_c59:gv('preco_c59'),preco_staff:gv('preco_staff'),adultos:parseInt(gv('n_adultos'))||0,c59:parseInt(gv('n_c59'))||0,
@@ -6056,26 +6057,179 @@ if(window._fbReady) aplicarCapaInicio();
 
 // Foto da capa da proposta (PDF): a do tipo de evento; sem ela, a capa padrão. Devolve imagem pronta para o jsPDF.
 const _capaPDFCache = {};
-async function capaPropostaDataURL(tipo, fotoEscolhida){
+async function capaPropostaDataURL(tipo, fotoEscolhida, ajusteEscolhido){
   try{
     // 1º a foto escolhida nesta proposta; 2º a capa do tipo de evento; 3º a capa padrão
-    const f = fotoEscolhida ? { url: fotoEscolhida } : capaAutomatica(await carregarCapas(), tipo);
+    const f = fotoEscolhida ? { url: fotoEscolhida, ajuste: ajusteEscolhido } : capaAutomatica(await carregarCapas(), tipo);
     if(!f) return null;
-    // A foto ocupa de FAIXA_CAPA.fotoIni até o fim do bloco (210 × 75 mm). O corte automático do Cloudinary
-    // centraliza na comida (g_auto), já na proporção exata da área onde a foto aparece.
+    // A foto ocupa de FAIXA_CAPA.fotoIni até o fim do bloco (210 × 75 mm).
+    // Sem ajuste: o corte automático do Cloudinary centraliza na comida (g_auto).
+    // Com ajuste (enquadramento escolhido pela pessoa): baixa a foto inteira e corta aqui, no pedaço escolhido.
     const hCorte = Math.round(1600 * (FAIXA_CAPA.alt - FAIXA_CAPA.fotoIni) / 210);
-    const url = urlCapa(f.url, 'f_jpg,q_85,c_fill,g_auto,w_1600,h_' + hCorte);
-    if(_capaPDFCache[url]) return _capaPDFCache[url];
-    const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 8000);
+    const url = f.ajuste ? urlCapa(f.url, 'f_jpg,q_85,c_limit,w_2400') : urlCapa(f.url, 'f_jpg,q_85,c_fill,g_auto,w_1600,h_' + hCorte);
+    const chaveCache = url + (f.ajuste ? JSON.stringify(f.ajuste) : '');
+    if(_capaPDFCache[chaveCache]) return _capaPDFCache[chaveCache];
+    const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 10000);
     const resp = await fetch(url, { signal: ctrl.signal }); clearTimeout(t);
     if(!resp.ok) return null;
     const blob = await resp.blob();
-    const dataURL = await new Promise((ok, erro) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = erro; r.readAsDataURL(blob); });
+    let dataURL = await new Promise((ok, erro) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = erro; r.readAsDataURL(blob); });
+    if(f.ajuste){
+      dataURL = await new Promise((ok, erro) => {
+        const im = new Image();
+        im.onload = () => {
+          const cv = document.createElement('canvas'); cv.width = 1600; cv.height = hCorte;
+          const r = recorteCapa(im.naturalWidth, im.naturalHeight, f.ajuste, 1600 / hCorte);
+          cv.getContext('2d').drawImage(im, r.sx, r.sy, r.sw, r.sh, 0, 0, cv.width, cv.height);
+          ok(cv.toDataURL('image/jpeg', 0.88));
+        };
+        im.onerror = erro; im.src = dataURL;
+      });
+    }
+    const _chave = chaveCache;
     let pronta = dataURL;
     try{ pronta = await montarFaixaCapa(dataURL); }catch(e){ console.warn('Degradê da capa:', e); pronta = null; }
-    _capaPDFCache[url] = pronta;
+    _capaPDFCache[_chave] = pronta;
     return pronta;
   }catch(e){ console.warn('Capa da proposta não carregou:', e); return null; }
+}
+
+// ===== AJUSTAR O ENQUADRAMENTO DA FOTO DE CAPA DA PROPOSTA (pedido de 26/10/2026) =====
+// A foto aparece deitada no topo do PDF (área de 210 × 75 mm). Aqui a pessoa arrasta a foto para escolher
+// o pedaço que aparece e usa o zoom para aproximar. Fica guardado como { x, y, z }:
+// x e y = centro do pedaço visível (0 a 1, da esquerda/de cima), z = zoom (1 = foto inteira na largura).
+const PROPORCAO_CAPA = 210 / 75;
+const FRACAO_SOB_VERDE = (46 - 29) / 75;   // parte de cima da foto que fica embaixo do degradê verde
+function recorteCapa(W, H, aj, A){
+  A = A || PROPORCAO_CAPA; aj = aj || {};
+  const z = Math.max(1, Math.min(4, Number(aj.z) || 1));
+  let sw, sh;
+  if(W / H > A){ sh = H; sw = H * A; } else { sw = W; sh = W / A; }
+  sw /= z; sh /= z;
+  const cx = (aj.x == null ? 0.5 : aj.x) * W, cy = (aj.y == null ? 0.5 : aj.y) * H;
+  const sx = Math.min(Math.max(cx - sw / 2, 0), W - sw), sy = Math.min(Math.max(cy - sh / 2, 0), H - sh);
+  return { sx, sy, sw, sh };
+}
+function urlFotoGrande(url, largura){
+  if(!url || !url.includes('res.cloudinary.com') || !url.includes('/image/upload/')) return url;
+  return url.replace('/image/upload/', `/image/upload/f_auto,q_auto,c_limit,w_${largura || 1600}/`);
+}
+// Mostra numa caixa (div) só o pedaço da foto que vai sair no PDF
+const _tamanhoFoto = {};
+function pintarRecorte(el, url, aj){
+  if(!el) return;
+  if(!url){ el.style.backgroundImage = ''; return; }
+  const src = urlFotoGrande(url, 900);
+  el.dataset.src = src;
+  const aplicar = (W, H) => {
+    if(el.dataset.src !== src) return;
+    const bw = el.clientWidth || 1, bh = el.clientHeight || 1;
+    const r = recorteCapa(W, H, aj, bw / bh);
+    el.style.backgroundImage = `url("${src}")`;
+    el.style.backgroundRepeat = 'no-repeat';
+    el.style.backgroundSize = `${W / r.sw * bw}px ${H / r.sh * bh}px`;
+    el.style.backgroundPosition = `${-r.sx / r.sw * bw}px ${-r.sy / r.sh * bh}px`;
+  };
+  if(_tamanhoFoto[src]) return aplicar(..._tamanhoFoto[src]);
+  const im = new Image();
+  im.onload = () => { _tamanhoFoto[src] = [im.naturalWidth, im.naturalHeight]; aplicar(im.naturalWidth, im.naturalHeight); };
+  im.src = src;
+}
+function abrirEnquadrar(opcoes){
+  const { url, titulo, aoSalvar } = opcoes;
+  let aj = { x: 0.5, y: 0.5, z: 1, ...(opcoes.ajuste || {}) };
+  if(!document.getElementById('enq-estilo')){
+    const st = document.createElement('style');
+    st.id = 'enq-estilo';
+    st.textContent = `
+      .enq-fundo{position:fixed;inset:0;z-index:10000;background:rgba(20,22,14,.62);display:none;align-items:center;justify-content:center;padding:16px;font-family:inherit}
+      .enq-fundo.on{display:flex}
+      .enq-caixa{background:#fff;color:#1C1E14;border-radius:16px;width:100%;max-width:820px;padding:20px;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+      .enq-caixa h3{margin:0 0 2px;font-size:17px}
+      .enq-caixa p{margin:0 0 14px;font-size:13px;color:#6B6E60}
+      .enq-palco{position:relative;border-radius:10px;overflow:hidden;background:#E6E8DC;touch-action:none;cursor:grab;user-select:none}
+      .enq-palco.arrastando{cursor:grabbing}
+      .enq-palco canvas{display:block;width:100%}
+      .enq-carregando{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#6B6E60;font-size:13px}
+      .enq-zoom{display:flex;align-items:center;gap:12px;margin:14px 0 4px;font-size:13px;color:#6B6E60}
+      .enq-zoom input{flex:1;accent-color:#282B1C}
+      .enq-botoes{display:flex;justify-content:space-between;gap:8px;margin-top:14px;flex-wrap:wrap}
+      .enq-botoes div{display:flex;gap:8px}
+      .enq-btn{height:38px;padding:0 16px;border-radius:10px;border:1px solid #E4E4DD;background:#fff;color:#1C1E14;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+      .enq-btn:hover{border-color:#cfd0c5;background:#fafaf7}
+      .enq-btn.enq-ok{background:#282B1C;border-color:#282B1C;color:#F4EBD8}`;
+    document.head.appendChild(st);
+  }
+  let fundo = document.getElementById('enq-janela');
+  if(!fundo){
+    fundo = document.createElement('div');
+    fundo.id = 'enq-janela';
+    fundo.className = 'enq-fundo';
+    fundo.innerHTML = `
+      <div class="enq-caixa" role="dialog" aria-modal="true" aria-label="Ajustar a foto da capa">
+        <h3 id="enq-titulo">Ajustar a foto da capa</h3>
+        <p>Arraste a foto para escolher o pedaço que aparece. Use o zoom para aproximar. A faixa escura em cima é onde ficam a logo e o título.</p>
+        <div class="enq-palco" id="enq-palco"><canvas id="enq-canvas"></canvas><div class="enq-carregando" id="enq-carregando">Carregando a foto…</div></div>
+        <div class="enq-zoom"><span>Zoom</span><input type="range" id="enq-zoom" min="1" max="3" step="0.01" value="1"><span id="enq-zoom-num">100%</span></div>
+        <div class="enq-botoes">
+          <button type="button" class="enq-btn" id="enq-centro">Centralizar</button>
+          <div><button type="button" class="enq-btn" id="enq-cancelar">Cancelar</button><button type="button" class="enq-btn enq-ok" id="enq-salvar">Salvar enquadramento</button></div>
+        </div>
+      </div>`;
+    document.body.appendChild(fundo);
+  }
+  const $e = id => document.getElementById(id);
+  $e('enq-titulo').textContent = titulo || 'Ajustar a foto da capa';
+  const cv = $e('enq-canvas'), ctx = cv.getContext('2d'), palco = $e('enq-palco');
+  const img = new Image();
+  let pronta = false, W = 1, H = 1;
+  function desenhar(){
+    const larg = palco.clientWidth || 600, alt = Math.round(larg / PROPORCAO_CAPA), dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(larg * dpr); cv.height = Math.round(alt * dpr); cv.style.height = alt + 'px';
+    if(!pronta) return;
+    const r = recorteCapa(W, H, aj);
+    aj.x = (r.sx + r.sw / 2) / W; aj.y = (r.sy + r.sh / 2) / H;   // não deixa sair da foto
+    ctx.drawImage(img, r.sx, r.sy, r.sw, r.sh, 0, 0, cv.width, cv.height);
+    const hv = cv.height * FRACAO_SOB_VERDE * 1.35;
+    const g = ctx.createLinearGradient(0, 0, 0, hv);
+    g.addColorStop(0, 'rgba(40,43,28,0.92)'); g.addColorStop(0.55, 'rgba(40,43,28,0.55)'); g.addColorStop(1, 'rgba(40,43,28,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, cv.width, hv);
+    ctx.fillStyle = 'rgba(244,235,216,0.85)';
+    ctx.font = `600 ${Math.round(11 * dpr)}px sans-serif`;
+    ctx.fillText('logo e "Proposta comercial"', Math.round(14 * dpr), Math.round(20 * dpr));
+    $e('enq-zoom').value = aj.z; $e('enq-zoom-num').textContent = Math.round(aj.z * 100) + '%';
+  }
+  img.onload = () => { pronta = true; W = img.naturalWidth; H = img.naturalHeight; $e('enq-carregando').style.display = 'none'; desenhar(); };
+  img.onerror = () => { $e('enq-carregando').textContent = 'Não consegui carregar a foto.'; };
+  $e('enq-carregando').style.display = 'flex'; $e('enq-carregando').textContent = 'Carregando a foto…';
+  img.src = urlFotoGrande(url, 1600);
+  fundo.classList.add('on');
+  requestAnimationFrame(desenhar);
+
+  let toque = null;
+  palco.onpointerdown = e => { if(!pronta) return; toque = { x: e.clientX, y: e.clientY }; palco.setPointerCapture(e.pointerId); palco.classList.add('arrastando'); };
+  palco.onpointermove = e => {
+    if(!toque) return;
+    const r = recorteCapa(W, H, aj), larg = palco.clientWidth || 1;
+    const escala = r.sw / larg;   // pixels da foto por pixel da tela
+    aj.x -= (e.clientX - toque.x) * escala / W;
+    aj.y -= (e.clientY - toque.y) * escala / H;
+    toque = { x: e.clientX, y: e.clientY };
+    desenhar();
+  };
+  palco.onpointerup = palco.onpointercancel = () => { toque = null; palco.classList.remove('arrastando'); };
+  palco.onwheel = e => { e.preventDefault(); aj.z = Math.max(1, Math.min(3, aj.z * (e.deltaY < 0 ? 1.06 : 1 / 1.06))); desenhar(); };
+  $e('enq-zoom').oninput = e => { aj.z = Number(e.target.value); desenhar(); };
+  $e('enq-centro').onclick = () => { aj = { x: 0.5, y: 0.5, z: 1 }; desenhar(); };
+  const fechar = () => { fundo.classList.remove('on'); window.removeEventListener('resize', desenhar); };
+  window.addEventListener('resize', desenhar);
+  $e('enq-cancelar').onclick = fechar;
+  fundo.onclick = e => { if(e.target === fundo) fechar(); };
+  $e('enq-salvar').onclick = () => {
+    fechar();
+    const r4 = n => Math.round(n * 10000) / 10000;
+    aoSalvar && aoSalvar({ x: r4(aj.x), y: r4(aj.y), z: r4(aj.z) });
+  };
 }
 
 // ===== FOTO DE CAPA ESCOLHIDA EM CADA PROPOSTA (pedido de 26/10/2026) =====
@@ -6102,7 +6256,7 @@ async function atualizarCampoFotoCapa(){
   bloco.style.display = tipo === 'Casinha da Deca' ? 'none' : '';   // a Casinha tem visual próprio, sem foto
   const escolhida = gv('orc_foto_capa');
   document.getElementById('fc-limpar').style.display = escolhida ? '' : 'none';
-  let url = escolhida, desc, sub;
+  let url = escolhida, desc, sub, aj = escolhida ? lerAjusteOrc() : null;
   if(escolhida){
     desc = 'Foto escolhida para esta proposta';
     sub = 'Só vale para este orçamento.';
@@ -6111,18 +6265,30 @@ async function atualizarCampoFotoCapa(){
     if(vez !== _fcVez) return;
     const auto = capaAutomatica(c, tipo);
     url = auto ? auto.url : '';
+    aj = auto ? auto.ajuste || null : null;
     desc = 'Automática';
     sub = !tipo ? 'Escolha o tipo de evento.'
       : (c.eventos && c.eventos[tipo] && c.eventos[tipo].url) ? `Capa de ${tipoExibicao(tipo)} (admin de fotos → Fotos de capa).`
       : url ? 'Capa padrão: este tipo de evento ainda não tem capa própria.' : 'Sem foto: o PDF sai com a faixa verde lisa.';
   }
   const mini = document.getElementById('fc-mini');
-  mini.style.backgroundImage = url ? `url("${fcMini(url, 260, 150)}")` : '';
   mini.classList.toggle('vazia', !url);
+  pintarRecorte(mini, url, aj);
+  document.getElementById('fc-ajustar').style.display = url ? '' : 'none';
+  _fcUrlAtual = url; _fcAjAtual = aj;
   document.getElementById('fc-desc').textContent = desc;
   document.getElementById('fc-sub').textContent = sub;
 }
+let _fcUrlAtual = '', _fcAjAtual = null;
+function lerAjusteOrc(){ try{ const v = gv('orc_foto_capa_ajuste'); return v ? JSON.parse(v) : null; }catch(e){ return null; } }
+// Ajustar o enquadramento (vale só para este orçamento; se a foto era a automática, ela passa a ser a escolhida)
+function ajustarFotoCapaOrc(){
+  if(!_fcUrlAtual) return;
+  abrirEnquadrar({ url: _fcUrlAtual, ajuste: _fcAjAtual, titulo: 'Ajustar a foto da capa desta proposta',
+    aoSalvar: aj => { sv('orc_foto_capa', _fcUrlAtual); sv('orc_foto_capa_ajuste', JSON.stringify(aj)); atualizarCampoFotoCapa(); } });
+}
 function limparFotoCapa(){
+  sv('orc_foto_capa_ajuste', '');
   sv('orc_foto_capa', '');
   atualizarCampoFotoCapa();
 }
@@ -6151,8 +6317,12 @@ function criarJanelaFotoCapa(){
     const b = e.target.closest('[data-url]');
     if(!b) return;
     sv('orc_foto_capa', b.dataset.url);
+    sv('orc_foto_capa_ajuste', '');
     fecharEscolhaFotoCapa();
     atualizarCampoFotoCapa();
+    // Já abre o ajuste: arrastar para escolher o pedaço da foto que aparece
+    abrirEnquadrar({ url: b.dataset.url, titulo: 'Ajustar a foto da capa desta proposta',
+      aoSalvar: aj => { sv('orc_foto_capa_ajuste', JSON.stringify(aj)); atualizarCampoFotoCapa(); } });
   });
   document.body.appendChild(el);
   document.addEventListener('keydown', e => { if(e.key === 'Escape') fecharEscolhaFotoCapa(); });
@@ -6256,7 +6426,7 @@ async function gerarPDFOrcamentoModerno(opts){
   const hoje=new Date().toLocaleDateString('pt-BR');
   // Foto de capa do tipo de evento (escolhida no admin de fotos), em degradê com o verde (26/10/2026).
   // Sem foto, o PDF fica como antes (faixa verde lisa).
-  const fotoCapa=await capaPropostaDataURL(getTipo(), gv('orc_foto_capa'));
+  const fotoCapa=await capaPropostaDataURL(getTipo(), gv('orc_foto_capa'), lerAjusteOrc());
   let y=PDFM.cabecalho(doc,{rotulo:'Proposta comercial',data:'Emitida em '+hoje,fundo:fotoCapa}); // sem o nº do orçamento (pedido de 21/10/2026)
 
   const cliente=gv('cli_nome')||'—';
