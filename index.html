@@ -1156,6 +1156,28 @@ input:focus,select:focus,textarea:focus,.busca:focus{border-color:#282B1C !impor
 :root[data-theme="dark"] .preview-box{--verde:#282B1C;--verde-m:#4A4D3A;--leve:#6B6E62;--texto:#282B1C;--borda:#D9CFBA;color:#282B1C;background:#F4EBD8 !important}
 :root[data-theme="dark"] .preview-box .pv-logo-img{filter:none}
 :root[data-theme="dark"] .preview-box .pv-tot{background:#282B1C !important;color:#F4EBD8 !important}
+/* ===== RELATÓRIO DE LUCRO (janela de período) ===== */
+.rl-fundo{position:fixed;inset:0;background:rgba(20,21,15,.45);z-index:3000;display:flex;align-items:center;justify-content:center;padding:16px}
+.rl-caixa{background:var(--creme,#fff);color:var(--texto);border:1px solid var(--borda);border-radius:var(--radius,12px);width:100%;max-width:560px;max-height:calc(100vh - 32px);overflow-y:auto;padding:22px 22px 18px;box-shadow:0 12px 40px rgba(0,0,0,.25);font-family:'Inter',sans-serif}
+.rl-titulo{font-size:18px;font-weight:700;margin:0 0 4px}
+.rl-sub{font-size:12.5px;color:var(--leve);margin:0 0 16px}
+.rl-rot{display:block;font-size:12px;font-weight:600;color:var(--leve);margin:14px 0 6px}
+.rl-atalhos{display:flex;flex-wrap:wrap;gap:6px}
+.rl-chip{border:1px solid var(--borda);background:transparent;color:var(--texto);border-radius:999px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit}
+.rl-chip.on{background:#282B1C;border-color:#282B1C;color:#F4EBD8}
+.rl-datas{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rl-datas input,.rl-caixa select{width:100%;box-sizing:border-box;border:1px solid var(--borda);border-radius:8px;padding:8px 10px;font-size:13px;background:var(--creme,#fff);color:var(--texto);font-family:inherit}
+.rl-resumo{margin-top:16px;background:var(--creme2,#F5F5F2);border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.rl-resumo div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.rl-resumo span{font-size:11px;color:var(--leve)}
+.rl-resumo b{font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.rl-aviso{font-size:11.5px;color:var(--leve);margin:8px 0 0;font-style:italic}
+.rl-botoes{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:18px}
+.rl-btn{border:1px solid var(--borda);background:transparent;color:var(--texto);border-radius:8px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.rl-btn.pri{background:#282B1C;border-color:#282B1C;color:#F4EBD8}
+.rl-btn:disabled{opacity:.45;cursor:default}
+@media(max-width:520px){.rl-resumo{grid-template-columns:repeat(2,minmax(0,1fr))}.rl-datas{grid-template-columns:1fr}}
+:root[data-theme="dark"] .rl-chip.on,:root[data-theme="dark"] .rl-btn.pri{background:#EFE5CF;border-color:#EFE5CF;color:#17180F}
 </style>
 <style>
 /* ===== Faixa com foto no topo do Início (foto escolhida no admin de fotos) ===== */
@@ -2154,6 +2176,7 @@ Chegamos com antecedência para montagem e preparação dos pratos</textarea>
       <button class="btn-sm" id="btn-visao-anual" onclick="finToggleVisaoAnual()">Visão anual</button>
       <button class="btn-sm" id="btn-lucro-eventos" onclick="finToggleLucroEventos()">Lucro por evento</button>
       <button class="btn-sm" id="btn-lucro-tipo" onclick="finToggleLucroTipo()">Lucro por tipo de evento</button>
+      <button class="btn-sm" onclick="abrirRelatorioLucro()">Imprimir relatório de lucro</button>
       <button class="btn-sm" id="btn-cardapio-ranking" onclick="finToggleCardapioRanking()">Itens mais pedidos</button>
       <details class="fin-manut"><summary>Manutenção e Google Agenda</summary><div class="fin-manut-botoes">
       <button class="btn-sm" onclick="finRestaurarContasPadrao()" title="Recoloca qualquer conta fixa padrão que estiver faltando, sem duplicar nem apagar o que já existe">Restaurar contas padrão</button>
@@ -2297,6 +2320,7 @@ Chegamos com antecedência para montagem e preparação dos pratos</textarea>
         <button class="cal-nb" onclick="mudarMesResultados(-1)" aria-label="Mês anterior">‹</button>
         <span id="resultados-mes"></span>
         <button class="cal-nb" onclick="mudarMesResultados(1)" aria-label="Próximo mês">›</button>
+        <button class="btn-sm" onclick="abrirRelatorioLucro()" style="margin-left:8px">Imprimir relatório de lucro</button>
       </div>
     </div>
     <div id="resultados-body"></div>
@@ -8327,6 +8351,306 @@ function renderLucroPorTipo(){
         <div style="background:${g.lucroMedio>=0?'#6A1B9A':'#C62828'};height:100%;width:${Math.min(100,Math.abs(g.lucroMedio)/maxLucroMedio*100)}%;border-radius:20px"></div>
       </div>
     </div>`).join('');
+}
+
+// ===== RELATÓRIO DE LUCRO POR PERÍODO E POR TIPO DE EVENTO (PDF e Excel) =====
+// Abre uma janela para escolher o período (pela DATA DO EVENTO) e o tipo de evento.
+// Usa as mesmas contas da tela Resultados: receita = valor do contrato; despesas =
+// as lançadas em Livro-Caixa → Lucro por evento. Evento sem despesa lançada entra
+// na receita, mas fica fora do lucro (senão o lucro apareceria inflado).
+let _rlAtalho = 'ano';
+
+function _rlIso(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+function _rlPeriodoAtalho(at){
+  const h = new Date(); const a = h.getFullYear(), m = h.getMonth();
+  if(at==='mes')     return [new Date(a,m,1), new Date(a,m+1,0)];
+  if(at==='mesant')  return [new Date(a,m-1,1), new Date(a,m,0)];
+  if(at==='tri')     return [new Date(a,m-2,1), new Date(a,m+1,0)];
+  if(at==='ano')     return [new Date(a,0,1), new Date(a,11,31)];
+  if(at==='anoant')  return [new Date(a-1,0,1), new Date(a-1,11,31)];
+  if(at==='12m')     return [new Date(a,m-11,1), new Date(a,m+1,0)];
+  return null;
+}
+
+function abrirRelatorioLucro(){
+  fecharRelatorioLucro();
+  const tipos = [...new Set(getContrs().filter(c=>(c.status||'Ativo')!=='Cancelado').map(c=>c.tipo||'Sem tipo'))]
+    .sort((x,y)=>tipoExibicao(x).localeCompare(tipoExibicao(y),'pt-BR'));
+  const fundo = document.createElement('div');
+  fundo.className = 'rl-fundo'; fundo.id = 'rl-fundo';
+  fundo.onclick = e=>{ if(e.target===fundo) fecharRelatorioLucro(); };
+  fundo.innerHTML = `
+    <div class="rl-caixa" role="dialog" aria-label="Relatório de lucro">
+      <h2 class="rl-titulo">Relatório de lucro</h2>
+      <p class="rl-sub">Escolha o período (pela data do evento) e o tipo de evento. O relatório sai com o resumo por tipo, por mês e a lista de cada evento.</p>
+      <label class="rl-rot">Período</label>
+      <div class="rl-atalhos">
+        ${[['mes','Este mês'],['mesant','Mês passado'],['tri','Últimos 3 meses'],['12m','Últimos 12 meses'],['ano','Este ano'],['anoant','Ano passado']]
+          .map(([k,t])=>`<button type="button" class="rl-chip" data-at="${k}" onclick="rlAtalho('${k}')">${t}</button>`).join('')}
+      </div>
+      <div class="rl-datas" style="margin-top:10px">
+        <div><label class="rl-rot" style="margin-top:0">De</label><input type="date" id="rl-de" onchange="rlMudouData()"></div>
+        <div><label class="rl-rot" style="margin-top:0">Até</label><input type="date" id="rl-ate" onchange="rlMudouData()"></div>
+      </div>
+      <label class="rl-rot" for="rl-tipo">Tipo de evento</label>
+      <select id="rl-tipo" onchange="rlAtualizarResumo()">
+        <option value="">Todos os tipos</option>
+        ${tipos.map(t=>`<option value="${_esc(t)}">${_esc(tipoExibicao(t))}</option>`).join('')}
+      </select>
+      <div class="rl-resumo" id="rl-resumo"></div>
+      <p class="rl-aviso" id="rl-aviso"></p>
+      <div class="rl-botoes">
+        <button type="button" class="rl-btn" onclick="fecharRelatorioLucro()">Fechar</button>
+        <button type="button" class="rl-btn" id="rl-btn-xls" onclick="rlBaixarExcel()">Baixar Excel</button>
+        <button type="button" class="rl-btn pri" id="rl-btn-pdf" onclick="rlBaixarPDF()">Baixar PDF para imprimir</button>
+      </div>
+    </div>`;
+  document.body.appendChild(fundo);
+  rlAtalho(_rlAtalho);
+}
+
+function fecharRelatorioLucro(){ const f=document.getElementById('rl-fundo'); if(f) f.remove(); }
+
+function rlAtalho(at){
+  _rlAtalho = at;
+  const p = _rlPeriodoAtalho(at);
+  if(p){ document.getElementById('rl-de').value=_rlIso(p[0]); document.getElementById('rl-ate').value=_rlIso(p[1]); }
+  document.querySelectorAll('#rl-fundo .rl-chip').forEach(b=>b.classList.toggle('on', b.dataset.at===at));
+  rlAtualizarResumo();
+}
+
+function rlMudouData(){
+  _rlAtalho = '';
+  document.querySelectorAll('#rl-fundo .rl-chip').forEach(b=>b.classList.remove('on'));
+  rlAtualizarResumo();
+}
+
+// Junta os números do período. Devolve tudo pronto para a tela, o PDF e o Excel.
+function rlCalcular(){
+  let de = document.getElementById('rl-de').value, ate = document.getElementById('rl-ate').value;
+  if(de && ate && de>ate){ const t=de; de=ate; ate=t; }
+  const tipoSel = document.getElementById('rl-tipo').value;
+  const orcPorId = {}; getOrcs().forEach(o=>orcPorId[o.id]=o);
+  const eventos = getContrs()
+    .filter(c=>(c.status||'Ativo')!=='Cancelado' && c.ev_data)
+    .filter(c=>(!de || c.ev_data>=de) && (!ate || c.ev_data<=ate))
+    .filter(c=>!tipoSel || (c.tipo||'Sem tipo')===tipoSel)
+    .sort((a,b)=>(a.ev_data||'').localeCompare(b.ev_data||''))
+    .map(ct=>{
+      const receita = parseMoedaBR(ct.valor_total);
+      const despesas = getDespesasEvento(ct.id).reduce((s,d)=>s+(Number(d.valor)||0),0);
+      const temDesp = despesas>0;
+      const conv = _convidadosCt(ct, orcPorId);
+      return {ct, nome:ct.nome||'Sem nome', tipo:tipoExibicao(ct.tipo)||'Sem tipo', data:ct.ev_data,
+        receita, despesas, temDesp, lucro: temDesp ? receita-despesas : null, conv};
+    });
+  const somar = lista=>{
+    const com = lista.filter(e=>e.temDesp);
+    const receita = lista.reduce((s,e)=>s+e.receita,0);
+    const despesas = lista.reduce((s,e)=>s+e.despesas,0);
+    const recCom = com.reduce((s,e)=>s+e.receita,0);
+    const lucro = com.reduce((s,e)=>s+e.lucro,0);
+    const conv = com.reduce((s,e)=>s+(e.conv||0),0);
+    return {qtd:lista.length, comDesp:com.length, receita, despesas, lucro,
+      lucroMedio: com.length ? lucro/com.length : null,
+      margem: recCom ? lucro/recCom*100 : null,
+      lucroConv: conv ? lucro/conv : null};
+  };
+  const agrupar = chave=>{
+    const g = {};
+    eventos.forEach(e=>{ const k=chave(e); (g[k]=g[k]||[]).push(e); });
+    return Object.entries(g).map(([k,l])=>({chave:k, ...somar(l)}));
+  };
+  const porTipo = agrupar(e=>e.tipo).sort((a,b)=>(b.lucro-a.lucro)||(b.receita-a.receita));
+  const porMes = agrupar(e=>e.data.slice(0,7)).sort((a,b)=>a.chave.localeCompare(b.chave));
+  return {de, ate, tipoSel, tipoNome: tipoSel?tipoExibicao(tipoSel):'', eventos, total:somar(eventos), porTipo, porMes};
+}
+
+function _rlPeriodoTexto(r){
+  if(r.de && r.ate) return `${fmtD(r.de)} a ${fmtD(r.ate)}`;
+  if(r.de) return `a partir de ${fmtD(r.de)}`;
+  if(r.ate) return `até ${fmtD(r.ate)}`;
+  return 'todo o período';
+}
+function _rlMesNome(chave){ const [a,m]=chave.split('-'); const n=FIN_MESES_NOMES[Number(m)-1]||''; return n.charAt(0).toUpperCase()+n.slice(1)+' '+a; }
+function _rlR(v){ return v==null ? '—' : (v<0?'- ':'')+'R$ '+fmtN(Math.abs(v)); }
+function _rlPct(v){ return v==null ? '—' : Math.round(v)+'%'; }
+
+function rlAtualizarResumo(){
+  const r = rlCalcular(), t = r.total;
+  document.getElementById('rl-resumo').innerHTML = `
+    <div><span>Eventos</span><b>${t.qtd}</b></div>
+    <div><span>Receita</span><b>${_rlR(t.receita)}</b></div>
+    <div><span>Despesas</span><b>${_rlR(t.despesas)}</b></div>
+    <div><span>Lucro</span><b>${t.comDesp?_rlR(t.lucro):'—'}</b></div>`;
+  const sem = t.qtd - t.comDesp;
+  document.getElementById('rl-aviso').textContent = !t.qtd
+    ? 'Nenhum evento com contrato neste período.'
+    : sem ? `${sem} evento(s) sem despesas lançadas: entram na receita, mas ficam fora do lucro. Lance as despesas em Livro-Caixa → Lucro por evento.`
+    : 'Todos os eventos do período têm despesas lançadas.';
+  document.getElementById('rl-btn-pdf').disabled = !t.qtd;
+  document.getElementById('rl-btn-xls').disabled = !t.qtd;
+}
+
+// Tabela do relatório: colunas com largura relativa; a coluna "forte" sai em negrito
+// e valores negativos saem em vermelho.
+function _rlTabela(doc, y, colunas, linhas, quebra, o={}){
+  const {M,W}=PDFM, CW=W-2*M, soma=colunas.reduce((s,c)=>s+c.w,0);
+  const cols=colunas.map(c=>({...c,w:CW*c.w/soma}));
+  const posX=i=>M+cols.slice(0,i).reduce((s,c)=>s+c.w,0);
+  const xCol=i=>cols[i].align==='right'?posX(i)+cols[i].w:posX(i);
+  const VM=[183,28,28];
+  const cab=()=>{
+    PDFM.f(doc,'sb',6.2,PDFM.MU);
+    cols.forEach((c,i)=>PDFM.esp(doc,c.t.toUpperCase(),xCol(i),y,0.4,c.align));
+    y+=2.4; doc.setDrawColor(...PDFM.ESC); doc.setLineWidth(0.3); doc.line(M,y,W-M,y); y+=5.2;
+  };
+  y = quebra(y,16); cab();
+  linhas.forEach((r,ri)=>{
+    PDFM.f(doc,'sb',8.4);
+    const c0=(r[0]&&typeof r[0]==='object')?r[0]:{t:String(r[0]??'')};
+    const l1=doc.splitTextToSize(String(c0.t),cols[0].w-3);
+    const sub=c0.sub ? (PDFM.f(doc,'r',7,PDFM.MU), doc.splitTextToSize(String(c0.sub),cols[0].w-3)) : [];
+    const h=l1.length*4+sub.length*3.4+3.6;
+    const ny=quebra(y,h); if(ny!==y){ y=ny; cab(); }
+    const total = !!r.total;
+    if(total){ doc.setFillColor(...PDFM.BG); doc.rect(M,y-4.2,CW,h+0.6,'F'); }
+    PDFM.f(doc,'sb',8.4,PDFM.ESC); l1.forEach((l,k)=>doc.text(l,posX(0),y+k*4));
+    PDFM.f(doc,'r',7,PDFM.MU); sub.forEach((l,k)=>doc.text(l,posX(0),y+l1.length*4+k*3.4-0.6));
+    for(let i=1;i<cols.length;i++){
+      const cel=r[i]; const txt=cel&&typeof cel==='object'?cel.t:String(cel??'');
+      const neg=cel&&typeof cel==='object'&&cel.neg;
+      const forte=total||cols[i].forte;
+      PDFM.f(doc,forte?'sb':'r',8.4,neg?VM:(forte?PDFM.ESC:PDFM.TX));
+      doc.text(txt,xCol(i),y,{align:cols[i].align==='right'?'right':'left'});
+    }
+    y+=h-3.6;
+    if(ri<linhas.length-1 && !linhas[ri+1].total){ doc.setDrawColor(...PDFM.LN); doc.setLineWidth(0.2); doc.line(M,y-1.4,W-M,y-1.4); }
+    y+=3.6;
+  });
+  return y;
+}
+
+async function rlBaixarPDF(){
+  const r = rlCalcular(), t = r.total;
+  if(!t.qtd){ alert('Nenhum evento com contrato neste período.'); return; }
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF({unit:'mm',format:'a4',compress:true});
+  PDFM.fontes(doc);
+  const quebra = PDFM.quebra(doc);
+  const periodo = _rlPeriodoTexto(r);
+  const cel = v=>({t:_rlR(v), neg:v!=null&&v<0});
+
+  let y = PDFM.cabecalho(doc,{rotulo:'Relatório de lucro',data:periodo});
+  y = PDFM.hero(doc,y,{
+    sobre:'Relatório de lucro',
+    titulo: r.tipoNome ? 'Lucro dos eventos · '+r.tipoNome : 'Lucro dos eventos',
+    sub:`Eventos com data entre ${periodo}${r.tipoNome?', só do tipo '+r.tipoNome:', todos os tipos'}. Gerado em ${fmtD(_rlIso(new Date()))}.`
+  });
+  y = PDFM.fatos(doc,y,[[
+    {l:'Eventos',v:String(t.qtd)},
+    {l:'Receita',v:_rlR(t.receita),w:1.4},
+    {l:'Despesas',v:_rlR(t.despesas),w:1.4},
+    {l:'Lucro',v:t.comDesp?_rlR(t.lucro):'—',w:1.4},
+    {l:'Margem',v:_rlPct(t.margem)}
+  ]]);
+
+  let n=0; const num=()=>String(++n).padStart(2,'0');
+
+  if(!r.tipoSel){
+    y = quebra(y,30);
+    y = PDFM.secao(doc,y,'Por tipo de evento',num());
+    y = _rlTabela(doc,y,[
+      {t:'Tipo',w:2.2},{t:'Eventos',w:0.8,align:'right'},{t:'Receita',w:1.45,align:'right'},
+      {t:'Despesas',w:1.45,align:'right'},{t:'Lucro',w:1.45,align:'right',forte:true},
+      {t:'Médio/evento',w:1.45,align:'right'},{t:'Margem',w:0.85,align:'right'}
+    ], [
+      ...r.porTipo.map(g=>[g.chave, String(g.qtd), _rlR(g.receita), _rlR(g.despesas),
+        g.comDesp?cel(g.lucro):'—', g.comDesp?cel(g.lucroMedio):'—', _rlPct(g.margem)]),
+      Object.assign([ 'Total', String(t.qtd), _rlR(t.receita), _rlR(t.despesas),
+        t.comDesp?cel(t.lucro):'—', t.comDesp?cel(t.lucroMedio):'—', _rlPct(t.margem)],{total:true})
+    ], quebra);
+    y+=7;
+  }
+
+  if(r.porMes.length>1){
+    y = quebra(y,30);
+    y = PDFM.secao(doc,y,'Por mês',num());
+    y = _rlTabela(doc,y,[
+      {t:'Mês',w:2.2},{t:'Eventos',w:0.8,align:'right'},{t:'Receita',w:1.45,align:'right'},
+      {t:'Despesas',w:1.45,align:'right'},{t:'Lucro',w:1.45,align:'right',forte:true},{t:'Margem',w:0.85,align:'right'}
+    ], r.porMes.map(g=>[_rlMesNome(g.chave), String(g.qtd), _rlR(g.receita), _rlR(g.despesas),
+      g.comDesp?cel(g.lucro):'—', _rlPct(g.margem)]), quebra);
+    y+=7;
+  }
+
+  y = quebra(y,30);
+  y = PDFM.secao(doc,y,'Evento por evento',num());
+  y = _rlTabela(doc,y,[
+    {t:'Evento',w:2.9},{t:'Conv.',w:0.7,align:'right'},{t:'Receita',w:1.45,align:'right'},
+    {t:'Despesas',w:1.45,align:'right'},{t:'Lucro',w:1.45,align:'right',forte:true},{t:'Margem',w:0.85,align:'right'}
+  ], r.eventos.map(e=>[
+    {t:e.nome, sub:`${fmtD(e.data)} · ${e.tipo}`},
+    e.conv?String(e.conv):'—', _rlR(e.receita),
+    e.temDesp?_rlR(e.despesas):'não lançadas',
+    e.temDesp?cel(e.lucro):'—',
+    e.temDesp&&e.receita?_rlPct(e.lucro/e.receita*100):'—'
+  ]), quebra);
+  y+=6;
+
+  const sem = t.qtd - t.comDesp;
+  if(sem){
+    y = quebra(y,12);
+    y = PDFM.paragrafo(doc,y,`${sem} evento(s) sem despesas lançadas no Livro-Caixa: entram na receita, mas ficam fora do lucro e da margem. O lucro considera só os ${t.comDesp} evento(s) com despesas.`,{tam:7.8,cor:PDFM.MU,quebra});
+    y+=4;
+  }
+  y = quebra(y,24);
+  PDFM.total(doc,y,'Lucro do período',t.comDesp?_rlR(t.lucro):'—',
+    t.comDesp?`${t.comDesp} evento(s) com despesas · margem ${_rlPct(t.margem)}${t.lucroConv!=null?' · R$ '+fmtN(t.lucroConv)+' por convidado':''}`:'Nenhum evento com despesas lançadas');
+
+  PDFM.rodape(doc,{titulo:'Relatório de lucro · '+periodo,interno:true,extra:r.tipoNome||'Todos os tipos'});
+  const nomeTipo = r.tipoNome ? '_'+r.tipoNome.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'-') : '';
+  doc.save(`Relatorio_de_lucro_${r.de||'inicio'}_a_${r.ate||'hoje'}${nomeTipo}.pdf`);
+}
+
+function rlBaixarExcel(){
+  const r = rlCalcular(), t = r.total;
+  if(!t.qtd){ alert('Nenhum evento com contrato neste período.'); return; }
+  const v = x=>x==null?'':Math.round(x*100)/100;
+  const p = x=>x==null?'':Math.round(x)/100;
+  const resumo = [
+    ['Relatório de lucro — Buffet Manacá'],
+    ['Período (data do evento)', _rlPeriodoTexto(r)],
+    ['Tipo de evento', r.tipoNome||'Todos os tipos'],
+    [],
+    ['Eventos', t.qtd],
+    ['Eventos com despesas lançadas', t.comDesp],
+    ['Receita (R$)', v(t.receita)],
+    ['Despesas (R$)', v(t.despesas)],
+    ['Lucro (R$) — só eventos com despesas', v(t.comDesp?t.lucro:null)],
+    ['Margem', p(t.margem)],
+    ['Lucro médio por evento (R$)', v(t.lucroMedio)],
+    ['Lucro por convidado (R$)', v(t.lucroConv)],
+  ];
+  const linhaGrupo = (nome,g)=>[nome, g.qtd, g.comDesp, v(g.receita), v(g.despesas), v(g.comDesp?g.lucro:null), v(g.lucroMedio), p(g.margem)];
+  const cabGrupo = ['','Eventos','Com despesas','Receita (R$)','Despesas (R$)','Lucro (R$)','Lucro médio (R$)','Margem'];
+  const porTipo = [['Tipo',...cabGrupo.slice(1)], ...r.porTipo.map(g=>linhaGrupo(g.chave,g)), linhaGrupo('Total',t)];
+  const porMes = [['Mês',...cabGrupo.slice(1)], ...r.porMes.map(g=>linhaGrupo(_rlMesNome(g.chave),g)), linhaGrupo('Total',t)];
+  const porEvento = [['Data','Cliente','Tipo','Convidados','Receita (R$)','Despesas (R$)','Lucro (R$)','Margem'],
+    ...r.eventos.map(e=>[fmtD(e.data), e.nome, e.tipo, e.conv||'', v(e.receita), e.temDesp?v(e.despesas):'não lançadas',
+      e.temDesp?v(e.lucro):'', e.temDesp&&e.receita?p(e.lucro/e.receita*100):''])];
+  const wb = XLSX.utils.book_new();
+  const fmtPct = (ws,col)=>{ const rg=XLSX.utils.decode_range(ws['!ref']); for(let R=1;R<=rg.e.r;R++){ const c=ws[XLSX.utils.encode_cell({r:R,c:col})]; if(c&&typeof c.v==='number') c.z='0%'; } };
+  const wsR = XLSX.utils.aoa_to_sheet(resumo); if(wsR['B10']&&typeof wsR['B10'].v==='number') wsR['B10'].z='0%'; wsR['!cols']=[{wch:38},{wch:26}];
+  const wsT = XLSX.utils.aoa_to_sheet(porTipo); fmtPct(wsT,7); wsT['!cols']=[{wch:24},{wch:9},{wch:13},{wch:14},{wch:14},{wch:14},{wch:16},{wch:9}];
+  const wsM = XLSX.utils.aoa_to_sheet(porMes); fmtPct(wsM,7); wsM['!cols']=wsT['!cols'];
+  const wsE = XLSX.utils.aoa_to_sheet(porEvento); fmtPct(wsE,7); wsE['!cols']=[{wch:11},{wch:30},{wch:20},{wch:11},{wch:14},{wch:14},{wch:14},{wch:9}];
+  XLSX.utils.book_append_sheet(wb, wsR, 'Resumo');
+  if(!r.tipoSel) XLSX.utils.book_append_sheet(wb, wsT, 'Por tipo');
+  XLSX.utils.book_append_sheet(wb, wsM, 'Por mês');
+  XLSX.utils.book_append_sheet(wb, wsE, 'Por evento');
+  XLSX.writeFile(wb, `Relatorio_de_lucro_${r.de||'inicio'}_a_${r.ate||'hoje'}.xlsx`);
 }
 
 // ===== ITENS DO CARDÁPIO MAIS PEDIDOS =====
