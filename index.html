@@ -6008,8 +6008,10 @@ async function capaPropostaDataURL(tipo){
     const c = await carregarCapas();
     const f = (c.eventos && c.eventos[tipo] && c.eventos[tipo].url) ? c.eventos[tipo] : (c.padrao && c.padrao.url ? c.padrao : null);
     if(!f) return null;
-    // A foto ocupa de FAIXA_CAPA.fotoIni até o fim do bloco (proporção 210 × 74 mm)
-    const url = urlCapa(f.url, 'f_jpg,q_85,c_fill,g_auto,w_1600,h_564');
+    // A foto ocupa de FAIXA_CAPA.fotoIni até o fim do bloco (210 × 75 mm). O corte automático do Cloudinary
+    // centraliza na comida (g_auto), já na proporção exata da área onde a foto aparece.
+    const hCorte = Math.round(1600 * (FAIXA_CAPA.alt - FAIXA_CAPA.fotoIni) / 210);
+    const url = urlCapa(f.url, 'f_jpg,q_85,c_fill,g_auto,w_1600,h_' + hCorte);
     if(_capaPDFCache[url]) return _capaPDFCache[url];
     const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 8000);
     const resp = await fetch(url, { signal: ctrl.signal }); clearTimeout(t);
@@ -6026,7 +6028,9 @@ async function capaPropostaDataURL(tipo){
 // Faixa do topo da proposta com foto (pedido da Laís, 26/10/2026): o verde-oliva e a foto viram uma
 // imagem só. O verde fica firme atrás da logo e do texto e vai se dissolvendo na foto, sem linha de corte.
 // Medidas em mm (página A4 = 210 mm de largura).
-const FAIXA_CAPA = { alt: 94, fotoIni: 20, verdeFirme: 31, verdeFim: 72 };
+// 26/10 (15h): o degradê ia até 72 mm e cobria quase toda a foto; sobrava só a borda de baixo (aparecia só uma folha).
+// Agora o verde se dissolve logo abaixo do texto (31 → 46 mm) e a foto aparece quase inteira, com mais altura.
+const FAIXA_CAPA = { alt: 104, fotoIni: 29, verdeFirme: 31, verdeFim: 46 };
 function montarFaixaCapa(fotoDataURL){
   return new Promise((ok, erro) => {
     const img = new Image();
