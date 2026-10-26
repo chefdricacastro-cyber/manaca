@@ -5784,9 +5784,12 @@ const PDFM={
     doc.text(t,xx,y,{charSpace:cs}); return w;
   },
   // Faixa verde-oliva do topo da 1ª página
-  cabecalho(doc,{rotulo,numero,data}){
+  cabecalho(doc,{rotulo,numero,data,fundo}){
     const {W,M}=PDFM;
-    doc.setFillColor(...PDFM.V); doc.rect(0,0,W,40,'F');
+    // fundo = faixa já montada com a foto de capa em degradê (só na proposta). Sem ela, faixa verde lisa.
+    let comFoto=false;
+    if(fundo){ try{ doc.addImage(fundo,'JPEG',0,0,W,FAIXA_CAPA.alt,'faixaCapa','FAST'); comFoto=true; }catch(e){ console.warn('Faixa com foto:',e); } }
+    if(!comFoto){ doc.setFillColor(...PDFM.V); doc.rect(0,0,W,40,'F'); }
     try{ doc.addImage(LOGO_MANACA_CREME_PNG,'PNG',M,12.2,44,15.5,'logoCreme','FAST'); }catch(e){}
     PDFM.f(doc,'sb',6.8,PDFM.CRM); PDFM.esp(doc,String(rotulo||'').toUpperCase(),W-M,15.5,1,'right');
     if(numero){
@@ -5795,7 +5798,7 @@ const PDFM={
     } else if(data){
       PDFM.f(doc,'sb',9.5,PDFM.CR); doc.text(data,W-M,23,{align:'right'});
     }
-    return 54;
+    return comFoto ? FAIXA_CAPA.alt+14 : 54;
   },
   // Sobretítulo + título grande + linha de apoio
   hero(doc,y,{sobre,titulo,sub}){
@@ -6005,16 +6008,60 @@ async function capaPropostaDataURL(tipo){
     const c = await carregarCapas();
     const f = (c.eventos && c.eventos[tipo] && c.eventos[tipo].url) ? c.eventos[tipo] : (c.padrao && c.padrao.url ? c.padrao : null);
     if(!f) return null;
-    const url = urlCapa(f.url, 'f_jpg,q_80,c_fill,g_auto,w_1600,h_450');
+    // A foto ocupa de FAIXA_CAPA.fotoIni até o fim do bloco (proporção 210 × 74 mm)
+    const url = urlCapa(f.url, 'f_jpg,q_85,c_fill,g_auto,w_1600,h_564');
     if(_capaPDFCache[url]) return _capaPDFCache[url];
     const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 8000);
     const resp = await fetch(url, { signal: ctrl.signal }); clearTimeout(t);
     if(!resp.ok) return null;
     const blob = await resp.blob();
     const dataURL = await new Promise((ok, erro) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = erro; r.readAsDataURL(blob); });
-    _capaPDFCache[url] = dataURL;
-    return dataURL;
+    let pronta = dataURL;
+    try{ pronta = await montarFaixaCapa(dataURL); }catch(e){ console.warn('Degradê da capa:', e); pronta = null; }
+    _capaPDFCache[url] = pronta;
+    return pronta;
   }catch(e){ console.warn('Capa da proposta não carregou:', e); return null; }
+}
+
+// Faixa do topo da proposta com foto (pedido da Laís, 26/10/2026): o verde-oliva e a foto viram uma
+// imagem só. O verde fica firme atrás da logo e do texto e vai se dissolvendo na foto, sem linha de corte.
+// Medidas em mm (página A4 = 210 mm de largura).
+const FAIXA_CAPA = { alt: 94, fotoIni: 20, verdeFirme: 31, verdeFim: 72 };
+function montarFaixaCapa(fotoDataURL){
+  return new Promise((ok, erro) => {
+    const img = new Image();
+    img.onload = () => {
+      const px = 7.6; // pixels por mm (≈ 1600 px de largura)
+      const Wc = Math.round(210 * px), Hc = Math.round(FAIXA_CAPA.alt * px);
+      const cv = document.createElement('canvas'); cv.width = Wc; cv.height = Hc;
+      const g = cv.getContext('2d');
+      const [r, gr, b] = PDFM.V;
+      // 1) fundo verde-oliva
+      g.fillStyle = `rgb(${r},${gr},${b})`; g.fillRect(0, 0, Wc, Hc);
+      // 2) foto, da altura fotoIni até o fim (cobrindo a largura toda, sem distorcer)
+      const yFoto = FAIXA_CAPA.fotoIni * px, hFoto = Hc - yFoto;
+      const esc = Math.max(Wc / img.width, hFoto / img.height);
+      const dw = img.width * esc, dh = img.height * esc;
+      g.drawImage(img, (Wc - dw) / 2, yFoto + (hFoto - dh) / 2, dw, dh);
+      // 3) véu verde: firme até verdeFirme e some suavemente até verdeFim (curva suave, sem "degrau")
+      const y0 = FAIXA_CAPA.verdeFirme * px, y1 = FAIXA_CAPA.verdeFim * px;
+      g.fillStyle = `rgb(${r},${gr},${b})`; g.fillRect(0, 0, Wc, y0 + 1);
+      const grad = g.createLinearGradient(0, y0, 0, y1);
+      for(let i = 0; i <= 24; i++){
+        const t = i / 24;
+        const a = 1 - (t * t * (3 - 2 * t)); // smoothstep: começa e termina sem quina
+        grad.addColorStop(t, `rgba(${r},${gr},${b},${a.toFixed(4)})`);
+      }
+      g.fillStyle = grad; g.fillRect(0, y0, Wc, y1 - y0);
+      // 4) leve escurecido no pé da foto, só para dar acabamento (bem sutil)
+      const hp = 10 * px, gp = g.createLinearGradient(0, Hc - hp, 0, Hc);
+      gp.addColorStop(0, `rgba(${r},${gr},${b},0)`); gp.addColorStop(1, `rgba(${r},${gr},${b},0.18)`);
+      g.fillStyle = gp; g.fillRect(0, Hc - hp, Wc, hp);
+      ok(cv.toDataURL('image/jpeg', 0.84));
+    };
+    img.onerror = erro;
+    img.src = fotoDataURL;
+  });
 }
 
 // ===== PDF DO ORÇAMENTO — layout moderno (todos os tipos, menos Casinha da Deca) =====
@@ -6029,12 +6076,10 @@ async function gerarPDFOrcamentoModerno(opts){
 
   const numOrc=gv('num_orc');
   const hoje=new Date().toLocaleDateString('pt-BR');
-  let y=PDFM.cabecalho(doc,{rotulo:'Proposta comercial',data:'Emitida em '+hoje}); // sem o nº do orçamento (pedido de 21/10/2026)
-  // Foto de capa do tipo de evento (escolhida no admin de fotos). Sem foto, o PDF fica como antes.
+  // Foto de capa do tipo de evento (escolhida no admin de fotos), em degradê com o verde (26/10/2026).
+  // Sem foto, o PDF fica como antes (faixa verde lisa).
   const fotoCapa=await capaPropostaDataURL(getTipo());
-  if(fotoCapa){
-    try{ doc.addImage(fotoCapa,'JPEG',0,40,W,59,'capaProposta','FAST'); y=40+59+14; }catch(e){ console.warn('Capa no PDF:',e); }
-  }
+  let y=PDFM.cabecalho(doc,{rotulo:'Proposta comercial',data:'Emitida em '+hoje,fundo:fotoCapa}); // sem o nº do orçamento (pedido de 21/10/2026)
 
   const cliente=gv('cli_nome')||'—';
   y=PDFM.hero(doc,y,{
