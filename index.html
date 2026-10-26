@@ -13092,6 +13092,8 @@ function aplicarFiltroCardapio(){
 // =====================================================================
 
 var FOLLOWUP_DIAS = 5;          // avisa quando o orçamento enviado está há 5+ dias sem resposta
+var FOLLOWUP_POR_VEZ = 5;       // quantos aparecem de cada vez no Início (os mais recentes primeiro)
+var _followupMostrar = FOLLOWUP_POR_VEZ;
 var CONFIRMAR_CONV_DE = 5;      // pede confirmação do nº de convidados entre 10 e 5 dias antes
 var CONFIRMAR_CONV_ATE = 10;
 
@@ -13112,7 +13114,7 @@ function orcsEsperandoResposta(){
     o._diasSemResposta = _diasEntre(new Date(ref), new Date());
     o._jaCobrado = !!o.followupEm;
     return o._diasSemResposta >= FOLLOWUP_DIAS;
-  }).sort((a,b)=>b._diasSemResposta - a._diasSemResposta);
+  }).sort((a,b)=>a._diasSemResposta - b._diasSemResposta);  // mais recentes primeiro
 }
 
 function mensagemFollowupOrc(o){
@@ -13154,12 +13156,16 @@ function renderFollowup(){
   if(!el) return;
   const lista = orcsEsperandoResposta();
   if(!lista.length){ el.innerHTML=''; return; }
+  // Mostra só alguns de cada vez (os mais recentes). Ao mandar a mensagem ou marcar
+  // como perdido, o orçamento sai da lista e o próximo aparece no lugar.
+  const visiveis = lista.slice(0, _followupMostrar);
+  const faltam = lista.length - visiveis.length;
   el.innerHTML = `
     <div class="acao-bloco">
       <div class="acao-titulo">Orçamentos sem retorno <span>${lista.length}</span></div>
-      <div class="acao-sub">Enviados há ${FOLLOWUP_DIAS} dias ou mais, sem resposta do cliente.</div>
+      <div class="acao-sub">Enviados há ${FOLLOWUP_DIAS} dias ou mais, sem resposta do cliente. Os mais recentes aparecem primeiro; ao mandar a mensagem ou marcar como perdido, o próximo entra no lugar.</div>
       <div class="acao-lista">
-        ${lista.map(o=>`
+        ${visiveis.map(o=>`
           <div class="acao-item">
             <div class="acao-info">
               <div class="acao-nome">${_esc(o.nome||'Sem nome')}</div>
@@ -13172,8 +13178,15 @@ function renderFollowup(){
             </div>
           </div>`).join('')}
       </div>
+      ${faltam>0 || _followupMostrar>FOLLOWUP_POR_VEZ ? `<div class="acao-sub" style="margin:12px 0 0;display:flex;gap:14px;flex-wrap:wrap;align-items:center">
+        <span>Mostrando ${visiveis.length} de ${lista.length}${faltam>0?` · faltam ${faltam}`:''}</span>
+        ${faltam>0?`<button class="btn-sm btn-discreto" onclick="followupVerMais()">Ver mais ${Math.min(FOLLOWUP_POR_VEZ,faltam)}</button>`:''}
+        ${_followupMostrar>FOLLOWUP_POR_VEZ?`<button class="btn-sm btn-discreto" onclick="followupVerMenos()">Mostrar só ${FOLLOWUP_POR_VEZ}</button>`:''}
+      </div>`:''}
     </div>`;
 }
+function followupVerMais(){ _followupMostrar += FOLLOWUP_POR_VEZ; renderFollowup(); }
+function followupVerMenos(){ _followupMostrar = FOLLOWUP_POR_VEZ; renderFollowup(); }
 
 // ---------- 2) CONFIRMAR NÚMERO DE CONVIDADOS ----------
 function contratosConfirmarConvidados(){
