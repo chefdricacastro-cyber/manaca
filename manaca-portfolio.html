@@ -711,15 +711,16 @@
       'Feijoada':     { url: CL+'v1792804333/portfolio-fotos/capas/gwsayflujfq669jrzzow.jpg' },
     }
   };
+  // Depois que o admin salvou capas, as fotos por tipo de evento embutidas aqui não passam mais na frente das escolhidas lá
   function comPadrao(c){
-    c = c || {};
-    return { ...CAPAS_PADRAO, ...c, eventos: { ...CAPAS_PADRAO.eventos, ...(c.eventos || {}) } };
+    if(!c) return { ...CAPAS_PADRAO, eventos: { ...CAPAS_PADRAO.eventos } };
+    return { ...CAPAS_PADRAO, ...c, eventos: { ...(c.eventos || {}) } };
   }
 
   async function carregarTudo(){
     const pCapas = getDoc(doc(db, 'portfolio_fotos', '_capas'))
-      .then(s => { capas = comPadrao(s.exists() ? s.data() : {}); })
-      .catch(() => { capas = comPadrao({}); });
+      .then(s => { capas = comPadrao(s.exists() ? s.data() : null); })
+      .catch(() => { capas = comPadrao(null); });
     await Promise.all([pCapas, ...categorias.map(async cat => {
       try{
         const snap = await getDoc(doc(db, 'portfolio_fotos', cat.id));

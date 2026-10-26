@@ -184,7 +184,7 @@
     // ===== FOTOS DE CAPA (escolhidas no admin de fotos, tela "Fotos de capa") =====
     async getCapas() {
       const snap = await getDoc(doc(db, "portfolio_fotos", "_capas"));
-      return snap.exists() ? (snap.data() || {}) : {};
+      return snap.exists() ? (snap.data() || {}) : null;   // null = o admin ainda nunca salvou capas
     },
     // Quantas fotos uma categoria do site de fotos tem (para saber se vale mandar o link dela)
     // Fotos (e categorias) de um evento do site de fotos, para escolher a capa de cada proposta
@@ -6021,15 +6021,20 @@ const CAPAS_PADRAO = {
     'Feijoada':     { url: _CL+'v1792804333/portfolio-fotos/capas/gwsayflujfq669jrzzow.jpg' },
   }
 };
+// 26/10: depois que o admin passou a salvar, vale só o que está lá. As fotos de capa por tipo de evento
+// embutidas aqui (Brunch, Coffee Break...) só servem enquanto o admin nunca salvou nenhuma capa;
+// senão elas passavam na frente da capa padrão escolhida no admin.
 function capasComPadrao(c){
-  c = c || {};
-  return { ...CAPAS_PADRAO, ...c, eventos: { ...CAPAS_PADRAO.eventos, ...(c.eventos || {}) } };
+  if(!c) return { ...CAPAS_PADRAO, eventos: { ...CAPAS_PADRAO.eventos } };
+  return { inicio: CAPAS_PADRAO.inicio, padrao: CAPAS_PADRAO.padrao, ...c, eventos: { ...(c.eventos || {}) } };
 }
-let _capasPromessa = null;
+// Lê de novo no Firebase a cada 20 segundos no máximo, para pegar na hora o que for trocado no admin de fotos
+let _capasPromessa = null, _capasLidasEm = 0;
 function carregarCapas(){
-  if(_capasPromessa) return _capasPromessa;
+  if(_capasPromessa && Date.now() - _capasLidasEm < 20000) return _capasPromessa;
+  _capasLidasEm = Date.now();
   _capasPromessa = new Promise(resolve => {
-    const ler = () => window._fb.getCapas().then(c => resolve(capasComPadrao(c))).catch(() => resolve(capasComPadrao({})));
+    const ler = () => window._fb.getCapas().then(c => resolve(capasComPadrao(c))).catch(() => resolve(capasComPadrao(null)));
     if(window._fbReady && window._fb?.getCapas) ler();
     else {
       window.addEventListener('fbready', ler, { once:true });
