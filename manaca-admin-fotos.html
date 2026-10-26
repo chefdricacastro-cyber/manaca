@@ -113,6 +113,66 @@
   .nav-item .num{ font-size:12px; color: rgba(244,235,216,0.45); font-variant-numeric: tabular-nums; }
   .nav-item.ativo .num{ color: rgba(244,235,216,0.75); }
   .nav-item.inicio .mini{ display:flex; align-items:center; justify-content:center; }
+  /* "+" ao lado de cada evento e categorias (subcategorias) dentro do evento aberto */
+  .nav-linha{ position:relative; }
+  .nav-linha .nav-item{ padding-right:40px; }
+  .nav-mais{
+    position:absolute; right:7px; top:50%; transform: translateY(-50%); width:26px; height:26px; border-radius:8px;
+    border:none; background: rgba(244,235,216,0.14); color: var(--creme); font-size:18px; line-height:1; font-weight:400;
+    display:flex; align-items:center; justify-content:center; opacity:0; transition: opacity .15s, background .15s;
+  }
+  .nav-mais:hover{ background: rgba(244,235,216,0.28); }
+  .nav-linha:hover .nav-mais, .nav-linha.ativo .nav-mais, .nav-mais:focus-visible{ opacity:1; }
+  .nav-linha:hover .num, .nav-linha.ativo .num{ visibility:hidden; }
+  .nav-subs{ display:flex; flex-direction:column; gap:1px; margin: 2px 0 6px 31px; padding-left:10px; border-left:1px solid rgba(244,235,216,0.14); }
+  .nav-sub{
+    display:flex; align-items:center; gap:8px; width:100%; text-align:left; background:none; border:none;
+    color: rgba(244,235,216,0.68); padding: 6px 10px; border-radius:8px; font-size:12.5px; font-weight:500;
+  }
+  .nav-sub:hover{ background: rgba(244,235,216,0.07); color: var(--creme); }
+  .nav-sub.ativo{ background: rgba(244,235,216,0.13); color: var(--creme); }
+  .nav-sub .nome{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .nav-sub .num{ font-size:11.5px; color: rgba(244,235,216,0.45); }
+  .nav-sub.nova{ color: rgba(244,235,216,0.5); }
+  .nav-sub.nova:hover{ color: var(--creme); }
+
+  /* Categorias dentro do evento (abas na página do evento) */
+  .subs-barra{ display:flex; align-items:center; gap:10px; margin: 0 0 14px; flex-wrap:wrap; }
+  .subs-trilho{ display:flex; gap:6px; flex-wrap:wrap; }
+  .sub-aba{
+    height:34px; padding: 0 13px; border-radius:999px; border:1px solid var(--linha); background: var(--cartao);
+    color: var(--tinta); font-size:13px; font-weight:500; display:flex; align-items:center; gap:6px; white-space:nowrap;
+  }
+  .sub-aba:hover{ border-color: var(--oliva); }
+  .sub-aba.ativa{ background: var(--oliva); border-color: var(--oliva); color: var(--creme); }
+  .sub-aba small{ opacity:.6; font-weight:500; }
+  .sub-aba.arrastavel{ cursor:grab; }
+  .sub-aba.sem{ border-style:dashed; }
+  .sub-nova{
+    height:34px; padding: 0 13px; border-radius:999px; border:1px dashed var(--oliva); background: transparent;
+    color: var(--oliva); font-size:13px; font-weight:600; display:flex; align-items:center; gap:6px; white-space:nowrap;
+  }
+  .sub-nova:hover{ background: var(--oliva-claro); }
+  .sub-info{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin: -4px 0 14px; font-size:13px; color: var(--suave);
+  }
+  .sub-info strong{ color: var(--tinta); }
+  .sub-info button{ background:none; border:none; padding:2px 4px; color: var(--oliva); font-size:13px; font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+  .sub-info button.perigo{ color: var(--perigo); }
+  .foto .sub-tag{
+    position:absolute; left:8px; bottom:8px; max-width: calc(100% - 16px); height:22px; padding:0 8px; border-radius:999px;
+    background: rgba(255,255,255,0.92); color: var(--tinta); font-size:11px; font-weight:600;
+    display:flex; align-items:center; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; transition: opacity .15s;
+  }
+  .foto:hover .sub-tag{ opacity:0; }
+  .opcoes-titulo{ font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color: var(--suave); margin: 8px 2px 2px; }
+  .opcoes-titulo:first-child{ margin-top:0; }
+  .opcao .mini.letra{ display:flex; align-items:center; justify-content:center; font-weight:700; color: var(--oliva); }
+  #sub-nome{ width:100%; height:42px; border:1px solid var(--linha); border-radius:10px; padding: 0 12px; font: inherit; font-size:15px; margin-bottom:10px; }
+  #sub-nome:focus{ outline:none; border-color: var(--oliva); }
+  .sub-sugestoes{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+  .sub-sugestoes button{ height:30px; padding: 0 11px; border-radius:999px; border:1px solid var(--linha); background:#fff; font-size:12.5px; color: var(--tinta); }
+  .sub-sugestoes button:hover{ border-color: var(--oliva); }
   .lateral-rodape{ border-top:1px solid rgba(244,235,216,0.10); padding-top:14px; margin-top:12px; display:flex; flex-direction:column; gap:8px; }
   .usuario{ display:flex; align-items:center; gap:10px; padding: 4px 6px; }
   .avatar{
@@ -420,10 +480,24 @@
   <!-- Janela: mover para outra categoria -->
   <div class="janela-fundo" id="janela-mover" onclick="if(event.target===this) fecharMover()">
     <div class="janela">
-      <h2>Mover para outra categoria</h2>
-      <p id="mover-texto">As fotos saem desta categoria e vão para o fim da outra.</p>
+      <h2>Mover fotos</h2>
+      <p id="mover-texto">Escolha para onde as fotos vão.</p>
       <div class="opcoes" id="mover-opcoes"></div>
       <div class="janela-botoes"><button class="btn" onclick="fecharMover()">Cancelar</button></div>
+    </div>
+  </div>
+
+  <!-- Janela: nova categoria dentro do evento (ou renomear) -->
+  <div class="janela-fundo" id="janela-sub" onclick="if(event.target===this) fecharSub()">
+    <div class="janela">
+      <h2 id="sub-titulo">Adicionar categoria</h2>
+      <p id="sub-texto">Ex.: Welcome, Jantar, Lanche da Madrugada. Depois é só adicionar as fotos dentro dela.</p>
+      <input id="sub-nome" type="text" maxlength="40" placeholder="Nome da categoria" autocomplete="off">
+      <div class="sub-sugestoes" id="sub-sugestoes"></div>
+      <div class="janela-botoes">
+        <button class="btn" onclick="fecharSub()">Cancelar</button>
+        <button class="btn btn-principal" id="sub-salvar" onclick="salvarSub()">Adicionar</button>
+      </div>
     </div>
   </div>
 
@@ -485,22 +559,32 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // ---- Categorias (mesma lista do portfólio do cliente) ----
+  // ---- Eventos (mesma lista do portfólio do cliente e com os mesmos nomes dos tipos de evento do sistema de orçamentos) ----
+  // Os ids antigos foram mantidos (coffeebrunch, corporativo...): as fotos e os links que já existem continuam valendo.
   const categorias = [
-    { id:'casamento',     nome:'Casamentos' },
-    { id:'aniversario',   nome:'Aniversários' },
-    { id:'festainfantil', nome:'Festa Infantil' },
-    { id:'coquetel',      nome:'Coquetel' },
-    { id:'jantar',        nome:'Jantar / Almoço' },
-    { id:'coffeebrunch',  nome:'Coffee Break / Brunch' },
-    { id:'feijoada',      nome:'Feijoada' },
-    { id:'churrasco',     nome:'Churrasco' },
-    { id:'mesadefrios',   nome:'Mesa de Frios' },
-    { id:'corporativo',   nome:'Treinamento Corporativo' },
+    { id:'casamento',         nome:'Casamento' },
+    { id:'aniversario',       nome:'Aniversário' },
+    { id:'festainfantil',     nome:'Festa Infantil' },
+    { id:'casinhadadeca',     nome:'Casinha da Deca' },
+    { id:'coquetel',          nome:'Coquetel' },
+    { id:'ilhagastronomica',  nome:'Ilha Gastronômica' },
+    { id:'estacao',           nome:'Estação' },
+    { id:'jantar',            nome:'Jantar' },
+    { id:'almoco',            nome:'Almoço' },
+    { id:'menudegustacao',    nome:'Menu Degustação' },
+    { id:'brunch',            nome:'Brunch' },
+    { id:'coffeebrunch',      nome:'Coffee Break' },
+    { id:'feijoada',          nome:'Feijoada' },
+    { id:'churrasco',         nome:'Churrasco' },
+    { id:'corporativo',       nome:'Treinamento' },
+    { id:'eventocorporativo', nome:'Evento Corporativo' },
+    { id:'mesadefrios',       nome:'Mesa de Frios' },   // não é tipo de evento no sistema; ficou porque pode ter fotos
   ];
 
-  const fotosPorCategoria = {};   // { categoriaId: [{url, path, capa}, ...] }
+  const fotosPorCategoria = {};   // { categoriaId: [{url, path, capa, sub?}, ...] }
+  const subsPorCategoria = {};    // categorias dentro do evento: { categoriaId: [{id, nome}, ...] } (pedido de 26/10/2026)
   let categoriaAtual = null;      // null = visão geral
+  let subAtual = '';              // '' = todas as fotos do evento; '_sem' = sem categoria; ou o id da categoria
   let selecionando = false;
   const selecionadas = new Set(); // guarda o "path" (ou url) das fotos marcadas
   let sortable = null;
@@ -520,11 +604,29 @@
   }
   const nomeCat = id => (categorias.find(c => c.id === id) || {}).nome || id;
   const capaDe = lista => lista.find(f => f.capa) || lista[0];
+  // ---- Categorias dentro do evento ----
+  const subsDe = id => subsPorCategoria[id] || (subsPorCategoria[id] = []);
+  const subValida = (id, f) => f.sub && subsDe(id).some(s => s.id === f.sub);
+  const nomeSub = (id, sid) => sid === '_sem' ? 'Sem categoria' : ((subsDe(id).find(s => s.id === sid) || {}).nome || '');
+  function combina(id, f, sid = subAtual){
+    if(!sid) return true;
+    if(sid === '_sem') return !subValida(id, f);
+    return f.sub === sid;
+  }
+  const fotosVisiveis = () => (fotosPorCategoria[categoriaAtual] || []).filter(f => combina(categoriaAtual, f));
+  function slug(nome, id){
+    let base = String(nome).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'categoria';
+    let s = base, n = 2;
+    while(subsDe(id).some(x => x.id === s)) s = `${base}-${n++}`;
+    return s;
+  }
+  const hashDe = (id, sid) => id + (sid && sid !== '_sem' ? '/' + sid : '');
   // Miniatura das categorias que ainda não têm fotos: fotos de comida do Manacá (Drive da Drica, 23/10/2026)
   const MINI_CL = 'https://res.cloudinary.com/nhdgiswb/image/upload/';
   const MINI_PADRAO = {
     festainfantil: MINI_CL+'v1792804323/portfolio-fotos/capas/ufrg8neqoip27nxo64pc.jpg',
     coffeebrunch:  MINI_CL+'v1792804328/portfolio-fotos/capas/abwde9ttqspzy6xzehth.jpg',
+    brunch:        MINI_CL+'v1792804330/portfolio-fotos/capas/hxnnv36x7fuvnqsnwyro.jpg',
     feijoada:      MINI_CL+'v1792804333/portfolio-fotos/capas/gwsayflujfq669jrzzow.jpg',
     churrasco:     MINI_CL+'v1792804322/portfolio-fotos/capas/faewgszkgg35nkerlbid.jpg',
     corporativo:   MINI_CL+'v1792804330/portfolio-fotos/capas/hxnnv36x7fuvnqsnwyro.jpg',
@@ -533,6 +635,12 @@
     coquetel:      MINI_CL+'v1792804332/portfolio-fotos/capas/ub6phcchljuur8mkgz7e.jpg',
     jantar:        MINI_CL+'v1792804321/portfolio-fotos/capas/hdgclkwsdkc5hr13a6y1.jpg',
     mesadefrios:   MINI_CL+'v1792804322/portfolio-fotos/capas/faewgszkgg35nkerlbid.jpg',
+    casinhadadeca: MINI_CL+'v1792804323/portfolio-fotos/capas/ufrg8neqoip27nxo64pc.jpg',
+    ilhagastronomica: MINI_CL+'v1792804332/portfolio-fotos/capas/ub6phcchljuur8mkgz7e.jpg',
+    estacao:       MINI_CL+'v1792804322/portfolio-fotos/capas/faewgszkgg35nkerlbid.jpg',
+    almoco:        MINI_CL+'v1792804321/portfolio-fotos/capas/hdgclkwsdkc5hr13a6y1.jpg',
+    menudegustacao: MINI_CL+'v1792804321/portfolio-fotos/capas/hdgclkwsdkc5hr13a6y1.jpg',
+    eventocorporativo: MINI_CL+'v1792804330/portfolio-fotos/capas/hxnnv36x7fuvnqsnwyro.jpg',
   };
   // Foto da miniatura: a capa da categoria; sem fotos, uma foto de comida do Manacá
   const miniDe = (id, lista) => { const c = capaDe(lista || []); return c ? c.url : (MINI_PADRAO[id] || ''); };
@@ -592,15 +700,16 @@
   async function carregarFotos(id){
     const snap = await getDoc(doc(db, 'portfolio_fotos', id));
     fotosPorCategoria[id] = snap.exists() ? (snap.data().fotos || []) : [];
+    subsPorCategoria[id] = snap.exists() ? (snap.data().subs || []) : [];
     return fotosPorCategoria[id];
   }
   async function carregarTodas(){
-    await Promise.all(categorias.map(c => carregarFotos(c.id).catch(err => { console.error(err); fotosPorCategoria[c.id] = []; })));
+    await Promise.all(categorias.map(c => carregarFotos(c.id).catch(err => { console.error(err); fotosPorCategoria[c.id] = []; subsPorCategoria[c.id] = []; })));
   }
   async function salvarFotos(id){
     salvandoCont++; estadoSalvo('salvando');
     try{
-      await setDoc(doc(db, 'portfolio_fotos', id), { fotos: fotosPorCategoria[id] });
+      await setDoc(doc(db, 'portfolio_fotos', id), { fotos: fotosPorCategoria[id], subs: subsDe(id) });
       salvandoCont--; if(!salvandoCont) estadoSalvo('ok');
       renderNav();
     }catch(err){
@@ -611,11 +720,12 @@
     }
   }
 
-  // ---- Navegação (#casamento abre direto a categoria) ----
+  // ---- Navegação (#casamento abre direto o evento; #casamento/welcome abre a categoria dentro dele) ----
   window.abrir = id => { location.hash = id || ''; };
   window.addEventListener('hashchange', rota);
   async function rota(){
-    const id = location.hash.replace('#', '');
+    const [id, sidHash] = decodeURIComponent(location.hash.replace('#', '')).split('/');
+    subAtual = sidHash || '';
     sairSelecao(true);
     if(id === 'capas'){
       categoriaAtual = 'capas';
@@ -624,10 +734,11 @@
       try{ await carregarCapas(); if(categoriaAtual === 'capas') renderCapas(); }catch(e){}
     }else if(id && categorias.some(c => c.id === id)){
       categoriaAtual = id;
+      if(subAtual && subAtual !== '_sem' && !subsDe(id).some(s => s.id === subAtual)) subAtual = '';
       renderNav();
       renderCategoria();
       // Busca de novo no servidor, para não sobrescrever o que outra pessoa acabou de fazer
-      try{ await carregarFotos(id); if(categoriaAtual === id) renderFotos(); }catch(e){}
+      try{ await carregarFotos(id); if(categoriaAtual === id){ renderNav(); renderCategoria(); } }catch(e){}
     }else{
       categoriaAtual = null;
       renderNav();
@@ -645,11 +756,20 @@
        </button>` +
       categorias.map(c => {
         const lista = fotosPorCategoria[c.id] || [];
-        const capa = capaDe(lista);
-        return `<button class="nav-item ${categoriaAtual === c.id ? 'ativo' : ''}" onclick="abrir('${c.id}')">
-          ${miniDe(c.id, lista) ? `<img class="mini ${lista.length ? '' : 'vazia'}" src="${esc(opt(miniDe(c.id, lista), 80))}" alt="">` : '<span class="mini"></span>'}
-          <span class="nome">${esc(c.nome)}</span><span class="num">${lista.length}</span>
-        </button>`;
+        const ativo = categoriaAtual === c.id;
+        const subs = subsDe(c.id);
+        const sem = lista.filter(f => !subValida(c.id, f)).length;
+        return `<div class="nav-linha ${ativo ? 'ativo' : ''}">
+          <button class="nav-item ${ativo ? 'ativo' : ''}" onclick="abrir('${c.id}')">
+            ${miniDe(c.id, lista) ? `<img class="mini ${lista.length ? '' : 'vazia'}" src="${esc(opt(miniDe(c.id, lista), 80))}" alt="">` : '<span class="mini"></span>'}
+            <span class="nome">${esc(c.nome)}</span><span class="num">${lista.length}</span>
+          </button>
+          <button class="nav-mais" onclick="novaSub('${c.id}')" title="Adicionar categoria em ${esc(c.nome)}" aria-label="Adicionar categoria em ${esc(c.nome)}">+</button>
+        </div>` + (ativo && subs.length ? `<div class="nav-subs">
+          ${subs.map(s => `<button class="nav-sub ${subAtual === s.id ? 'ativo' : ''}" onclick="escolherSub('${s.id}')"><span class="nome">${esc(s.nome)}</span><span class="num">${lista.filter(f => f.sub === s.id).length}</span></button>`).join('')}
+          ${sem ? `<button class="nav-sub ${subAtual === '_sem' ? 'ativo' : ''}" onclick="escolherSub('_sem')"><span class="nome">Sem categoria</span><span class="num">${sem}</span></button>` : ''}
+          <button class="nav-sub nova" onclick="novaSub('${c.id}')"><span class="nome">+ Adicionar categoria</span></button>
+        </div>` : '');
       }).join('') +
       `<div class="nav-separador"></div>
        <button class="nav-item inicio ${categoriaAtual === 'capas' ? 'ativo' : ''}" onclick="abrir('capas')">
@@ -672,7 +792,7 @@
       <div class="pagina-topo">
         <div>
           <h1>Fotos do portfólio</h1>
-          <div class="sub">Escolha uma categoria para subir ou organizar as fotos. Categorias sem foto não aparecem para o cliente.</div>
+          <div class="sub">Escolha um evento para subir ou organizar as fotos. No "+" ao lado de cada evento, dá para criar categorias dentro dele (ex.: Welcome, Jantar). Eventos sem foto não aparecem para o cliente.</div>
         </div>
         <div class="acoes-topo">
           <a class="btn" href="manaca-portfolio.html" target="_blank" rel="noopener">${IC.externo}<span class="texto-opcional">Ver o site do cliente</span></a>
@@ -680,7 +800,7 @@
       </div>
       <div class="numeros">
         <div class="numero"><span>Fotos publicadas</span><strong>${total}</strong></div>
-        <div class="numero"><span>Categorias no ar</span><strong>${comFotos}</strong></div>
+        <div class="numero"><span>Eventos no ar</span><strong>${comFotos}</strong></div>
         <div class="numero"><span>Sem fotos ainda</span><strong>${vazias}</strong></div>
       </div>
       <div class="cats-grade">
@@ -689,7 +809,7 @@
           const capa = capaDe(lista);
           return `<button class="cat-cartao" onclick="abrir('${c.id}')">
             <div class="capa">${capa ? `<img src="${esc(opt(capa.url, 440))}" alt="" loading="lazy">` : (MINI_PADRAO[c.id] ? `<img class="vazia" src="${esc(opt(MINI_PADRAO[c.id], 440))}" alt="" loading="lazy"><span class="sem-foto">Sem fotos ainda</span>` : `<div class="sem">${IC.foto}Sem fotos</div>`)}</div>
-            <div class="rodape"><h3>${esc(c.nome)}</h3><span class="pilula ${lista.length ? '' : 'vazia'}">${lista.length ? plural(lista.length, 'foto', 'fotos') : 'Fora do site'}</span></div>
+            <div class="rodape"><h3>${esc(c.nome)}${subsDe(c.id).length ? `<small style="display:block;font-weight:500;font-size:12px;color:var(--suave);margin-top:2px">${plural(subsDe(c.id).length, 'categoria', 'categorias')}</small>` : ''}</h3><span class="pilula ${lista.length ? '' : 'vazia'}">${lista.length ? plural(lista.length, 'foto', 'fotos') : 'Fora do site'}</span></div>
           </button>`;
         }).join('')}
       </div>`;
@@ -698,7 +818,16 @@
   // ---- Página da categoria ----
   function renderCategoria(){
     const id = categoriaAtual;
-    const linkCliente = new URL('manaca-portfolio.html#' + id, location.href).href;
+    const linkCliente = new URL('manaca-portfolio.html#' + hashDe(id, subAtual), location.href).href;
+    const todas = fotosPorCategoria[id] || [];
+    const subs = subsDe(id);
+    const sem = todas.filter(f => !subValida(id, f)).length;
+    const subReal = subAtual && subAtual !== '_sem';
+    const textoEnvio = subReal
+      ? `<strong>Adicionar fotos em ${esc(nomeSub(id, subAtual))}</strong>Clique para escolher ou arraste para cá. Pode mandar várias de uma vez.`
+      : subs.length
+        ? `<strong>Adicionar fotos</strong>Elas entram em "Sem categoria". Para separar, escolha antes uma categoria acima.`
+        : `<strong>Adicionar fotos</strong>Clique para escolher ou arraste para cá. Pode mandar várias de uma vez.`;
     $('conteudo').innerHTML = `
       <div class="pagina-topo">
         <div>
@@ -708,14 +837,26 @@
         <div class="acoes-topo">
           <button class="btn" id="btn-selecionar" onclick="alternarSelecao()">${IC.selecionar}<span class="texto-opcional">Selecionar</span></button>
           <button class="btn" onclick="copiarLink('${linkCliente}')" title="Copiar o link desta categoria para mandar ao cliente">${IC.link}<span class="texto-opcional">Copiar link</span></button>
-          <button class="btn" onclick="abrirMensagem('${id}')" title="Mensagem pronta com o link desta categoria">${IC.whats}<span class="texto-opcional">Mensagem pronta</span></button>
+          <button class="btn" onclick="abrirMensagem('${id}', '${subReal ? subAtual : ''}')" title="Mensagem pronta com o link desta categoria">${IC.whats}<span class="texto-opcional">Mensagem pronta</span></button>
           <a class="btn" href="${esc(linkCliente)}" target="_blank" rel="noopener" title="Ver como o cliente vê">${IC.externo}<span class="texto-opcional">Ver no site</span></a>
         </div>
       </div>
 
+      <div class="subs-barra">
+        <div class="subs-trilho" id="subs-trilho">
+          <button class="sub-aba ${subAtual ? '' : 'ativa'}" onclick="escolherSub('')">Todas <small>${todas.length}</small></button>
+          ${subs.map(s => `<button class="sub-aba arrastavel ${subAtual === s.id ? 'ativa' : ''}" data-sub="${s.id}" onclick="escolherSub('${s.id}')" title="Arraste para mudar a ordem">${esc(s.nome)} <small>${todas.filter(f => f.sub === s.id).length}</small></button>`).join('')}
+          ${subs.length && (sem || subAtual === '_sem') ? `<button class="sub-aba sem ${subAtual === '_sem' ? 'ativa' : ''}" onclick="escolherSub('_sem')">Sem categoria <small>${sem}</small></button>` : ''}
+        </div>
+        <button class="sub-nova" onclick="novaSub('${id}')">+ Adicionar categoria</button>
+      </div>
+      ${subReal ? `<div class="sub-info">Categoria <strong>${esc(nomeSub(id, subAtual))}</strong> ·
+        <button onclick="renomearSub()">Renomear</button>
+        <button class="perigo" onclick="excluirSub()">Excluir categoria</button></div>` : ''}
+
       <label class="dropzone" id="dropzone">
         <span class="ic-grande">${IC.subir}</span>
-        <span><strong>Adicionar fotos</strong>Clique para escolher ou arraste para cá. Pode mandar várias de uma vez.</span>
+        <span>${textoEnvio}</span>
         <input type="file" id="file-input" multiple accept="image/*">
       </label>
 
@@ -729,18 +870,39 @@
         <div class="dica">${IC.arrastar}<span id="dica-texto">Arraste as fotos para mudar a ordem. A primeira com estrela é a capa.</span></div>
       </div>
       <div class="fotos-grid" id="fotos-grid"></div>
-      <div class="vazio" id="empty-state" style="display:none"><strong>Nenhuma foto ainda</strong>Esta categoria não aparece para o cliente até ter pelo menos uma foto.</div>`;
+      <div class="vazio" id="empty-state" style="display:none"></div>`;
 
     ligarEnvio();
     renderFotos();
+    // Arrastar as categorias para mudar a ordem em que aparecem para o cliente
+    if(subs.length > 1){
+      Sortable.create($('subs-trilho'), {
+        animation: 160, draggable: '.arrastavel', delay: 220, delayOnTouchOnly: true,
+        onEnd: async () => {
+          const ordem = [...$('subs-trilho').querySelectorAll('[data-sub]')].map(b => b.dataset.sub);
+          subsPorCategoria[id] = ordem.map(k => subs.find(s => s.id === k)).filter(Boolean);
+          await salvarFotos(id);
+          renderNav();
+        }
+      });
+    }
   }
 
   function renderFotos(){
     const grid = $('fotos-grid');
     if(!grid) return;
-    const fotos = fotosPorCategoria[categoriaAtual];
-    $('detail-contagem').textContent = plural(fotos.length, 'foto', 'fotos');
+    const todas = fotosPorCategoria[categoriaAtual];
+    const fotos = fotosVisiveis();
+    const comSubs = subsDe(categoriaAtual).length > 0;
+    $('detail-contagem').textContent = subAtual
+      ? `${plural(fotos.length, 'foto', 'fotos')} em ${nomeSub(categoriaAtual, subAtual)} · ${todas.length} no evento`
+      : plural(fotos.length, 'foto', 'fotos');
     $('empty-state').style.display = fotos.length ? 'none' : 'block';
+    $('empty-state').innerHTML = subAtual && subAtual !== '_sem'
+      ? '<strong>Nenhuma foto nesta categoria ainda</strong>Adicione fotos aqui em cima, ou use "Mover" em fotos que já estão no evento. A categoria só aparece para o cliente quando tiver foto.'
+      : subAtual === '_sem'
+        ? '<strong>Tudo organizado</strong>Todas as fotos deste evento já estão numa categoria.'
+        : '<strong>Nenhuma foto ainda</strong>Este evento não aparece para o cliente até ter pelo menos uma foto.';
     $('ferramentas').style.display = fotos.length > 1 ? 'flex' : 'none';
     grid.classList.toggle('selecionando', selecionando);
     $('dica-texto').textContent = selecionando
@@ -754,10 +916,11 @@
         <img src="${esc(opt(f.url, 360))}" alt="" loading="lazy" onload="this.classList.add('ok')">
         ${f.capa ? `<div class="capa-tag">${IC.estrela}Capa</div>` : `<div class="ordem">${i + 1}</div>`}
         <div class="check">${IC.check}</div>
+        ${!subAtual && comSubs && subValida(categoriaAtual, f) ? `<div class="sub-tag">${esc(nomeSub(categoriaAtual, f.sub))}</div>` : ''}
         <div class="acoes">
           <button class="acao ${f.capa ? 'ligado' : ''}" data-acao="capa" title="${f.capa ? 'Esta é a capa' : 'Usar como capa'}">${f.capa ? IC.estrela : IC.estrelaVazia}</button>
           <button class="acao" data-acao="ver" title="Ver grande">${IC.ampliar}</button>
-          <button class="acao" data-acao="mover" title="Mover para outra categoria">${IC.mover}</button>
+          <button class="acao" data-acao="mover" title="Mover para uma categoria ou outro evento">${IC.mover}</button>
           <button class="acao excluir" data-acao="excluir" title="Excluir">${IC.lixo}</button>
         </div>
       </div>`).join('');
@@ -771,9 +934,13 @@
       filter: '.acao', preventOnFilter: false,
       onEnd: async ev => {
         if(ev.oldIndex === ev.newIndex) return;
+        // Reordena só as fotos que estão na tela (a categoria aberta) e devolve cada uma ao seu lugar na lista do evento
         const lista = fotosPorCategoria[categoriaAtual];
-        const [movida] = lista.splice(ev.oldIndex, 1);
-        lista.splice(ev.newIndex, 0, movida);
+        const vis = fotosVisiveis();
+        const posicoes = lista.map((f, k) => combina(categoriaAtual, f) ? k : -1).filter(k => k >= 0);
+        const [movida] = vis.splice(ev.oldIndex, 1);
+        vis.splice(ev.newIndex, 0, movida);
+        posicoes.forEach((p, k) => { lista[p] = vis[k]; });
         renderFotos();
         await salvarFotos(categoriaAtual);
       }
@@ -811,7 +978,7 @@
     $('mover-opcoes').innerHTML = `
       <button class="opcao" data-m="ver"><span class="mini" style="display:flex;align-items:center;justify-content:center">${IC.ampliar}</span>Ver grande</button>
       ${f.capa ? '' : `<button class="opcao" data-m="capa"><span class="mini" style="display:flex;align-items:center;justify-content:center">${IC.estrelaVazia}</span>Usar como capa</button>`}
-      <button class="opcao" data-m="mover"><span class="mini" style="display:flex;align-items:center;justify-content:center">${IC.mover}</span>Mover para outra categoria</button>
+      <button class="opcao" data-m="mover"><span class="mini" style="display:flex;align-items:center;justify-content:center">${IC.mover}</span>Mover para…</button>
       <button class="opcao" data-m="excluir" style="color:var(--perigo)"><span class="mini" style="display:flex;align-items:center;justify-content:center">${IC.lixo}</span>Excluir</button>`;
     document.querySelector('#janela-mover h2').textContent = 'Foto ' + (i + 1);
     $('mover-texto').innerHTML = `<img src="${esc(opt(f.url, 400))}" alt="" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px">`;
@@ -862,18 +1029,30 @@
   // ---- Mover para outra categoria ----
   window.abrirMover = function(){
     if(!selecionadas.size) return;
-    document.querySelector('#janela-mover h2').textContent = 'Mover para outra categoria';
-    $('mover-texto').textContent = `${plural(selecionadas.size, 'foto vai', 'fotos vão')} para o fim da categoria escolhida.`;
-    $('mover-opcoes').innerHTML = categorias.filter(c => c.id !== categoriaAtual).map(c => {
-      const lista = fotosPorCategoria[c.id] || [];
-      const capa = capaDe(lista);
-      return `<button class="opcao" data-destino="${c.id}">
-        ${miniDe(c.id, lista) ? `<img src="${esc(opt(miniDe(c.id, lista), 80))}" alt="">` : '<span class="mini"></span>'}
-        ${esc(c.nome)}<span>${lista.length}</span></button>`;
-    }).join('');
+    document.querySelector('#janela-mover h2').textContent = 'Mover fotos';
+    $('mover-texto').textContent = `Para onde ${plural(selecionadas.size, 'esta foto vai', 'estas fotos vão')}?`;
+    const id = categoriaAtual, lista = fotosPorCategoria[id];
+    const subs = subsDe(id);
+    const blocoSubs = subs.length ? `<div class="opcoes-titulo">Categoria dentro de ${esc(nomeCat(id))}</div>` +
+      subs.filter(s => s.id !== subAtual).map(s => {
+        const daSub = lista.filter(f => f.sub === s.id);
+        const c = capaDe(daSub);
+        return `<button class="opcao" data-sub="${s.id}">${c ? `<img src="${esc(opt(c.url, 80))}" alt="">` : `<span class="mini letra">${esc(s.nome.charAt(0).toUpperCase())}</span>`}${esc(s.nome)}<span>${daSub.length}</span></button>`;
+      }).join('') +
+      (subAtual !== '_sem' ? `<button class="opcao" data-sub="_sem"><span class="mini letra">–</span>Sem categoria<span>${lista.filter(f => !subValida(id, f)).length}</span></button>` : '') : '';
+    $('mover-opcoes').innerHTML = blocoSubs +
+      `<div class="opcoes-titulo">Outro evento</div>` +
+      categorias.filter(c => c.id !== id).map(c => {
+        const l = fotosPorCategoria[c.id] || [];
+        return `<button class="opcao" data-destino="${c.id}">
+          ${miniDe(c.id, l) ? `<img src="${esc(opt(miniDe(c.id, l), 80))}" alt="">` : '<span class="mini"></span>'}
+          ${esc(c.nome)}<span>${l.length}</span></button>`;
+      }).join('');
     $('mover-opcoes').onclick = e => {
-      const destino = e.target.closest('[data-destino]')?.dataset.destino;
-      if(destino) moverPara(destino);
+      const b = e.target.closest('[data-destino],[data-sub]');
+      if(!b) return;
+      if(b.dataset.sub) moverParaSub(b.dataset.sub);
+      else moverPara(b.dataset.destino);
     };
     $('janela-mover').classList.add('on');
   };
@@ -886,7 +1065,8 @@
     await carregarFotos(destino).catch(() => {});
     const movidas = fotosPorCategoria[origem].filter(f => chaves.includes(chave(f)));
     const destinoTemCapa = fotosPorCategoria[destino].some(f => f.capa);
-    movidas.forEach((f, k) => { f.capa = !destinoTemCapa && k === 0; });
+    // No outro evento, as fotos chegam em "Sem categoria" (as categorias são de cada evento)
+    movidas.forEach((f, k) => { f.capa = !destinoTemCapa && k === 0; delete f.sub; });
     fotosPorCategoria[destino].push(...movidas);
     fotosPorCategoria[origem] = fotosPorCategoria[origem].filter(f => !chaves.includes(chave(f)));
     if(!fotosPorCategoria[origem].some(f => f.capa) && fotosPorCategoria[origem][0]) fotosPorCategoria[origem][0].capa = true;
@@ -895,6 +1075,115 @@
     await Promise.all([salvarFotos(destino), salvarFotos(origem)]);
     aviso(`${plural(movidas.length, 'foto movida', 'fotos movidas')} para ${nomeCat(destino)}`);
   }
+
+  // Mover para uma categoria dentro do mesmo evento
+  async function moverParaSub(sid){
+    fecharMover();
+    const id = categoriaAtual;
+    const chaves = [...selecionadas];
+    const movidas = fotosPorCategoria[id].filter(f => chaves.includes(chave(f)));
+    movidas.forEach(f => { if(sid === '_sem') delete f.sub; else f.sub = sid; });
+    sairSelecao(true);
+    renderNav(); renderCategoria();
+    await salvarFotos(id);
+    aviso(`${plural(movidas.length, 'foto movida', 'fotos movidas')} para ${nomeSub(id, sid)}`);
+  }
+
+  // =====================================================================
+  // ---- CATEGORIAS DENTRO DO EVENTO (ex.: Casamento → Welcome, Jantar...) ----
+  // Ficam no próprio documento do evento (campo "subs"); cada foto guarda a sua em "sub".
+  // =====================================================================
+  const SUGESTOES_SUB = {
+    casamento: ['Welcome', 'Cerimônia', 'Almoço', 'Jantar', 'Mesa de Frios e Antepastos', 'Mesa de Café', 'Sobremesas', 'Lanche da Madrugada', 'Decoração'],
+    jantar: ['Entradas', 'Prato principal', 'Sobremesas', 'Mesa de Frios e Antepastos', 'Mesa posta'],
+    almoco: ['Entradas', 'Prato principal', 'Sobremesas', 'Mesa de Frios e Antepastos', 'Mesa posta'],
+    ilhagastronomica: ['Mesa de Antepastos', 'Servidos pelos garçons', 'Finger Food', 'Bebidas', 'Versão infantil'],
+    aniversario: ['Entradas', 'Jantar', 'Sobremesas', 'Lanche da Madrugada', 'Decoração'],
+    coquetel: ['Entradas', 'Estação', 'Finger Food', 'Bebidas'],
+  };
+  let subModo = null;   // { tipo:'nova'|'renomear', evento, sid }
+  window.novaSub = function(evento){
+    evento = evento || categoriaAtual;
+    if(categoriaAtual !== evento) abrir(evento);
+    subModo = { tipo:'nova', evento };
+    $('sub-titulo').textContent = `Adicionar categoria em ${nomeCat(evento)}`;
+    $('sub-texto').textContent = 'Ex.: Welcome, Jantar, Lanche da Madrugada. Depois é só adicionar as fotos dentro dela.';
+    $('sub-salvar').textContent = 'Adicionar';
+    $('sub-nome').value = '';
+    const ja = subsDe(evento).map(s => s.nome.toLowerCase());
+    const sug = (SUGESTOES_SUB[evento] || []).filter(n => !ja.includes(n.toLowerCase()));
+    $('sub-sugestoes').innerHTML = sug.map(n => `<button type="button">${esc(n)}</button>`).join('');
+    $('sub-sugestoes').onclick = e => { const b = e.target.closest('button'); if(b){ $('sub-nome').value = b.textContent; salvarSub(); } };
+    $('janela-sub').classList.add('on');
+    setTimeout(() => $('sub-nome').focus(), 60);
+  };
+  window.renomearSub = function(){
+    const evento = categoriaAtual, sid = subAtual;
+    subModo = { tipo:'renomear', evento, sid };
+    $('sub-titulo').textContent = 'Renomear categoria';
+    $('sub-texto').textContent = 'As fotos continuam dentro dela.';
+    $('sub-salvar').textContent = 'Salvar';
+    $('sub-nome').value = nomeSub(evento, sid);
+    $('sub-sugestoes').innerHTML = '';
+    $('janela-sub').classList.add('on');
+    setTimeout(() => { $('sub-nome').focus(); $('sub-nome').select(); }, 60);
+  };
+  window.fecharSub = () => { $('janela-sub').classList.remove('on'); subModo = null; };
+  $('sub-nome').addEventListener('keydown', e => { if(e.key === 'Enter') salvarSub(); });
+  window.salvarSub = async function(){
+    if(!subModo) return;
+    const nome = $('sub-nome').value.trim().replace(/\s+/g, ' ');
+    if(!nome){ $('sub-nome').focus(); return; }
+    const { tipo, evento, sid } = subModo;
+    const subs = subsDe(evento);
+    const repetida = subs.find(s => s.nome.toLowerCase() === nome.toLowerCase() && s.id !== sid);
+    if(repetida){ aviso(`Já existe a categoria ${repetida.nome} neste evento`, { erro:true }); return; }
+    fecharSub();
+    if(tipo === 'renomear'){
+      const s = subs.find(x => x.id === sid);
+      if(s) s.nome = nome;
+      renderNav(); renderCategoria();
+      await salvarFotos(evento);
+      aviso('Categoria renomeada');
+      return;
+    }
+    // Busca a versão mais nova do evento antes de acrescentar (caso outra pessoa tenha mexido)
+    try{ await carregarFotos(evento); }catch(e){}
+    const nova = { id: slug(nome, evento), nome };
+    subsDe(evento).push(nova);
+    await salvarFotos(evento);
+    if(categoriaAtual === evento) escolherSub(nova.id);
+    aviso(`Categoria ${nome} criada. Agora é só adicionar as fotos.`);
+  };
+  window.excluirSub = async function(){
+    const evento = categoriaAtual, sid = subAtual;
+    const subsAntes = subsDe(evento).slice();
+    const sub = subsAntes.find(s => s.id === sid);
+    if(!sub) return;
+    const fotosDaSub = fotosPorCategoria[evento].filter(f => f.sub === sid);
+    subsPorCategoria[evento] = subsAntes.filter(s => s.id !== sid);
+    fotosDaSub.forEach(f => delete f.sub);
+    escolherSub('');
+    await salvarFotos(evento);
+    aviso(fotosDaSub.length
+      ? `Categoria ${sub.nome} excluída. As ${plural(fotosDaSub.length, 'foto continua', 'fotos continuam')} no evento, em "Sem categoria".`
+      : `Categoria ${sub.nome} excluída`, {
+      desfazer: async () => {
+        subsPorCategoria[evento] = subsAntes;
+        fotosDaSub.forEach(f => f.sub = sid);
+        if(categoriaAtual === evento) escolherSub(sid);
+        await salvarFotos(evento);
+        aviso('Pronto, voltou');
+      }
+    });
+  };
+  // Troca a categoria aberta sem recarregar a página
+  window.escolherSub = function(sid){
+    subAtual = sid || '';
+    sairSelecao(true);
+    history.replaceState(null, '', '#' + hashDe(categoriaAtual, subAtual));
+    renderNav(); renderCategoria();
+  };
 
   // ---- Seleção de várias fotos ----
   window.alternarSelecao = () => selecionando ? sairSelecao() : entrarSelecao();
@@ -924,7 +1213,7 @@
   window.fecharFoto = () => { $('ver-foto').classList.remove('on'); $('ver-foto-img').src = ''; };
   document.addEventListener('keydown', e => {
     if(e.key !== 'Escape') return;
-    fecharFoto(); fecharMover(); fecharMensagem(); if(selecionando) sairSelecao();
+    fecharFoto(); fecharMover(); fecharMensagem(); fecharSub(); if(selecionando) sairSelecao();
   });
 
   // ---- Mensagens prontas de WhatsApp com o link da categoria ----
@@ -936,16 +1225,17 @@
     { nome:'Retomar conversa', texto:(cat, link) =>
       `Oi, tudo bem? Passando para te mostrar alguns eventos de ${cat.toLowerCase()} que fizemos recentemente:\n${link}\n\nSe ainda estiver pensando no seu evento, posso ajustar a proposta do jeito que você precisar.` },
   ];
-  let msgCat = null, msgModelo = 0;
-  window.abrirMensagem = function(id){
-    msgCat = id; msgModelo = 0; desenharMensagem();
+  let msgCat = null, msgSub = '', msgModelo = 0;
+  window.abrirMensagem = function(id, sid){
+    msgCat = id; msgSub = sid || ''; msgModelo = 0; desenharMensagem();
     $('janela-msg').classList.add('on');
   };
   function desenharMensagem(){
     $('msg-opcoes').innerHTML = MODELOS_MSG.map((m, i) => `<button class="${i === msgModelo ? 'ativo' : ''}" data-i="${i}">${esc(m.nome)}</button>`).join('');
     $('msg-opcoes').onclick = e => { const b = e.target.closest('[data-i]'); if(b){ msgModelo = Number(b.dataset.i); desenharMensagem(); } };
-    const link = new URL('manaca-portfolio.html#' + msgCat, location.href).href;
-    $('msg-texto').value = MODELOS_MSG[msgModelo].texto(nomeCat(msgCat), link);
+    const link = new URL('manaca-portfolio.html#' + hashDe(msgCat, msgSub), location.href).href;
+    const nome = nomeCat(msgCat) + (msgSub ? ` (${nomeSub(msgCat, msgSub)})` : '');
+    $('msg-texto').value = MODELOS_MSG[msgModelo].texto(nome, link);
   }
   window.fecharMensagem = () => $('janela-msg').classList.remove('on');
   window.copiarMensagem = async function(){
@@ -978,7 +1268,7 @@
   const TIPOS_PDF = [
     ['Casamento'], ['Aniversário'], ['Festa Infantil'], ['Coquetel'], ['Jantar'], ['Almoço'],
     ['Brunch'], ['Coffee Break'], ['Ilha Gastronômica'], ['Carrinho de Salgadinhos', 'Estação'],
-    ['Feijoada'], ['Churrasco'], ['Menu Degustação'], ['Treinamento Corporativo'], ['Evento Corporativo'],
+    ['Feijoada'], ['Churrasco'], ['Menu Degustação'], ['Treinamento Corporativo', 'Treinamento'], ['Evento Corporativo'],
   ];
   let capas = {};
 
@@ -1202,6 +1492,7 @@
     if(enviando){ aviso('Espere terminar o envio atual'); return; }
     enviando = true;
     const id = categoriaAtual;
+    const sidEnvio = subAtual && subAtual !== '_sem' ? subAtual : '';
     const fila = $('fila'), itens = $('fila-itens');
     fila.classList.add('on');
     itens.innerHTML = arquivos.map((f, k) => `<div class="fila-item" id="fi-${k}"><img alt=""><div class="prog"></div><div class="marca">${IC.check}</div></div>`).join('');
@@ -1226,7 +1517,7 @@
         try{
           const arquivo = await prepararArquivo(arquivos[k]);
           const data = await enviarUm(arquivo, p => { progresso[k] = p * 0.98; el.querySelector('.prog').style.width = (p * 100) + '%'; atualizar(); });
-          resultados[k] = { url: data.secure_url, path: data.public_id, capa: false };
+          resultados[k] = { url: data.secure_url, path: data.public_id, capa: false, ...(sidEnvio ? { sub: sidEnvio } : {}) };
           progresso[k] = 1; prontas++;
           el.classList.add('pronto');
         }catch(err){
@@ -1246,12 +1537,12 @@
     const novas = resultados.filter(Boolean);
     if(!lista.some(f => f.capa) && novas[0]) novas[0].capa = true;
     lista.push(...novas);
-    if(categoriaAtual === id) renderFotos();
+    if(categoriaAtual === id){ renderNav(); renderCategoria(); }
     if(novas.length) await salvarFotos(id);
     enviando = false;
 
     if(erros) aviso(`${plural(erros, 'foto não foi enviada', 'fotos não foram enviadas')}. Tente essas de novo.`, { erro:true });
-    if(novas.length) aviso(`${plural(novas.length, 'foto adicionada', 'fotos adicionadas')} em ${nomeCat(id)}`);
+    if(novas.length) aviso(`${plural(novas.length, 'foto adicionada', 'fotos adicionadas')} em ${nomeCat(id)}${sidEnvio ? ' → ' + nomeSub(id, sidEnvio) : ''}`);
     setTimeout(() => { if(!enviando) fila.classList.remove('on'); }, erros ? 8000 : 2200);
   }
 

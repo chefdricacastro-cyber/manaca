@@ -187,6 +187,11 @@
       return snap.exists() ? (snap.data() || {}) : {};
     },
     // Quantas fotos uma categoria do site de fotos tem (para saber se vale mandar o link dela)
+    // Fotos (e categorias) de um evento do site de fotos, para escolher a capa de cada proposta
+    async getPortfolio(cat) {
+      const snap = await getDoc(doc(db, "portfolio_fotos", cat));
+      return snap.exists() ? { fotos: (snap.data().fotos || []).filter(f => f && f.url), subs: snap.data().subs || [] } : { fotos: [], subs: [] };
+    },
     async getQtdFotosPortfolio(cat) {
       const snap = await getDoc(doc(db, "portfolio_fotos", cat));
       return snap.exists() ? ((snap.data().fotos || []).length) : 0;
@@ -1178,6 +1183,39 @@ input:focus,select:focus,textarea:focus,.busca:focus{border-color:#282B1C !impor
 .rl-btn:disabled{opacity:.45;cursor:default}
 @media(max-width:520px){.rl-resumo{grid-template-columns:repeat(2,minmax(0,1fr))}.rl-datas{grid-template-columns:1fr}}
 :root[data-theme="dark"] .rl-chip.on,:root[data-theme="dark"] .rl-btn.pri{background:#EFE5CF;border-color:#EFE5CF;color:#17180F}
+
+/* ===== Foto da capa da proposta (26/10/2026) ===== */
+.fc-campo{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid var(--borda);border-radius:10px;padding:8px;background:var(--creme)}
+.fc-mini{width:130px;height:75px;border-radius:8px;background:var(--verde-claro) center/cover no-repeat;flex-shrink:0}
+.fc-mini.vazia{background-image:none!important;background:var(--verde)}
+.fc-txt{flex:1;min-width:160px}
+.fc-desc{font-size:13px;font-weight:600;color:var(--texto)}
+.fc-sub{font-size:11px;color:var(--leve);margin-top:2px}
+.fc-botoes{display:flex;gap:6px;flex-wrap:wrap}
+.fc-fundo{position:fixed;inset:0;z-index:9999;background:rgba(20,22,14,.55);display:none;align-items:center;justify-content:center;padding:16px}
+.fc-fundo.on{display:flex}
+.fc-caixa{background:var(--creme);color:var(--texto);border-radius:14px;width:100%;max-width:860px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+.fc-topo{display:flex;justify-content:space-between;gap:12px;padding:18px 20px 8px}
+.fc-topo h3{margin:0 0 2px;font-size:17px}
+.fc-topo p{margin:0;font-size:12.5px;color:var(--leve)}
+.fc-x{border:none;background:none;font-size:18px;color:var(--leve);cursor:pointer;height:32px;width:32px;border-radius:8px}
+.fc-x:hover{background:var(--verde-claro)}
+.fc-filtros{padding:4px 20px 10px;font-size:13px}
+.fc-filtros label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.fc-filtros select{width:auto!important;min-width:220px;max-width:100%;margin:0!important;padding:6px 8px;border-radius:8px;border:1px solid var(--borda);font:inherit;background:var(--creme);color:var(--texto)}
+.fc-grade{overflow-y:auto;padding:0 20px 8px;flex:1}
+.fc-grupo{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--leve);margin:12px 0 8px}
+.fc-grupo span{font-weight:500;opacity:.7;margin-left:4px}
+.fc-fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.fc-foto{padding:0;border:3px solid transparent;border-radius:10px;overflow:hidden;cursor:pointer;background:var(--verde-claro);aspect-ratio:7/4}
+.fc-foto img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s}
+.fc-foto:hover img{transform:scale(1.04)}
+.fc-foto.on{border-color:var(--verde)}
+.fc-aviso{padding:40px 10px;text-align:center;color:var(--leve);font-size:13.5px;line-height:1.6}
+.fc-aviso a{color:var(--texto);font-weight:600}
+.fc-dica{font-size:11.5px;color:var(--leve);margin:14px 0 6px}
+.fc-rodape{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px 16px;border-top:1px solid var(--borda)}
+@media (max-width:600px){.fc-fotos{grid-template-columns:repeat(2,1fr)}.fc-mini{width:100%;height:110px}}
 </style>
 <style>
 /* ===== Faixa com foto no topo do Início (foto escolhida no admin de fotos) ===== */
@@ -1578,6 +1616,18 @@ input:focus,select:focus,textarea:focus,.busca:focus{border-color:#282B1C !impor
             <div class="field">
               <label class="fl">Duração</label>
               <input type="text" spellcheck="true" id="ev_duracao" placeholder="calculada automaticamente" readonly style="background:var(--verde-claro);color:var(--verde);font-weight:600;cursor:default">
+            </div>
+          </div>
+          <div class="field" id="fc-bloco">
+            <label class="fl">Foto da capa da proposta <span style="font-weight:300;text-transform:none;font-size:9px">— sai no topo do PDF</span></label>
+            <input type="hidden" id="orc_foto_capa">
+            <div class="fc-campo">
+              <div class="fc-mini" id="fc-mini"></div>
+              <div class="fc-txt"><div class="fc-desc" id="fc-desc">Automática</div><div class="fc-sub" id="fc-sub"></div></div>
+              <div class="fc-botoes">
+                <button type="button" class="btn-sm" onclick="abrirEscolhaFotoCapa()">Escolher foto</button>
+                <button type="button" class="btn-sm" id="fc-limpar" onclick="limparFotoCapa()" style="display:none">Voltar à automática</button>
+              </div>
             </div>
           </div>
           <div class="field"><label class="fl">Observações</label><textarea spellcheck="true" id="ev_obs" rows="2" placeholder="Tema, pedidos, restrições alimentares..." oninput="atualizar()"></textarea></div>
@@ -4118,10 +4168,10 @@ function formatarFoneWhats(fone){
 // Cada tipo de evento aponta para a categoria parecida do site de fotos.
 // Se a categoria ainda não tiver fotos, vai o link do site inteiro.
 const CATEGORIA_FOTOS_DO_TIPO = {
-  'Casamento':'casamento', 'Aniversário':'aniversario', 'Festa Infantil':'festainfantil', 'Casinha da Deca':'festainfantil',
-  'Coquetel':'coquetel', 'Carrinho de Salgadinhos':'coquetel', 'Ilha Gastronômica':'coquetel', 'Evento Corporativo':'coquetel',
-  'Jantar':'jantar', 'Almoço':'jantar', 'Menu Degustação':'jantar',
-  'Coffee Break':'coffeebrunch', 'Brunch':'coffeebrunch',
+  'Casamento':'casamento', 'Aniversário':'aniversario', 'Festa Infantil':'festainfantil', 'Casinha da Deca':'casinhadadeca',
+  'Coquetel':'coquetel', 'Carrinho de Salgadinhos':'estacao', 'Ilha Gastronômica':'ilhagastronomica', 'Evento Corporativo':'eventocorporativo',
+  'Jantar':'jantar', 'Almoço':'almoco', 'Menu Degustação':'menudegustacao',
+  'Coffee Break':'coffeebrunch', 'Brunch':'brunch',
   'Feijoada':'feijoada', 'Churrasco':'churrasco', 'Treinamento Corporativo':'corporativo'
 };
 async function linkFotosDoTipo(tipo){
@@ -4700,11 +4750,13 @@ function limparForm(){
   document.getElementById('ev_pre_reservado').checked=false;
   document.getElementById('pre_reserva_status').textContent='';
   datasExtrasOrc=[];renderDatasExtrasOrc();
+  sv('orc_foto_capa','');atualizarCampoFotoCapa();
 }
 
 function preencherForm(o){
   sv('cli_nome',o.nome);sv('cli_fone',o.fone);sv('cli_email',o.email);sv('cli_tipo',o.pj?'PJ':'PF');
   sv('cli_responsavel',o.responsavel||'');sv('ev_servico',o.servico||'aparador');{const ol=document.getElementById('ev_ocultar_local');if(ol)ol.checked=!!o.ocultar_local;}
+  sv('orc_foto_capa',o.foto_capa||'');atualizarCampoFotoCapa();
   sv('ev_titulo',o.titulo||'');
   sv('ev_data',o.data);sv('ev_hora_inicio',o.hora_inicio);sv('ev_hora_fim',o.hora_fim);sv('ev_local',o.local);sv('ev_obs',o.obs_evento);calcDuracao();
   sv('orc_montagem',o.montagem||'');sv('orc_desmontagem',o.desmontagem||'');
@@ -4783,6 +4835,7 @@ function preencherForm(o){
 
 // ===== TIPO DE EVENTO =====
 function onTipoChange(resetPreco=true){
+  atualizarCampoFotoCapa();
   atualizarDecoracaoFixa();
   atualizarServicoJantar();
   atualizarFiltroCasamento();
@@ -5638,7 +5691,7 @@ function salvarOrc(){
     atualizadoEm:new Date().toISOString(),
     status,num:gv('num_orc'),
     nome:gv('cli_nome'),fone:gv('cli_fone'),email:gv('cli_email'),pj:gv('cli_tipo')==='PJ',
-    responsavel:gv('cli_responsavel'),servico:gv('ev_servico'),ocultar_local:!!document.getElementById('ev_ocultar_local')?.checked,
+    responsavel:gv('cli_responsavel'),servico:gv('ev_servico'),ocultar_local:!!document.getElementById('ev_ocultar_local')?.checked,foto_capa:gv('orc_foto_capa'),
     tipo,titulo:gv('ev_titulo'),data:gv('ev_data'),hora_inicio:gv('ev_hora_inicio'),hora_fim:gv('ev_hora_fim'),duracao:gv('ev_duracao'),local:gv('ev_local'),obs_evento:gv('ev_obs'),
     montagem:gv('orc_montagem'),desmontagem:gv('orc_desmontagem'),
     preco:gv('preco_pp'),preco_c59:gv('preco_c59'),preco_staff:gv('preco_staff'),adultos:parseInt(gv('n_adultos'))||0,c59:parseInt(gv('n_c59'))||0,
@@ -6003,10 +6056,10 @@ if(window._fbReady) aplicarCapaInicio();
 
 // Foto da capa da proposta (PDF): a do tipo de evento; sem ela, a capa padrão. Devolve imagem pronta para o jsPDF.
 const _capaPDFCache = {};
-async function capaPropostaDataURL(tipo){
+async function capaPropostaDataURL(tipo, fotoEscolhida){
   try{
-    const c = await carregarCapas();
-    const f = (c.eventos && c.eventos[tipo] && c.eventos[tipo].url) ? c.eventos[tipo] : (c.padrao && c.padrao.url ? c.padrao : null);
+    // 1º a foto escolhida nesta proposta; 2º a capa do tipo de evento; 3º a capa padrão
+    const f = fotoEscolhida ? { url: fotoEscolhida } : capaAutomatica(await carregarCapas(), tipo);
     if(!f) return null;
     // A foto ocupa de FAIXA_CAPA.fotoIni até o fim do bloco (210 × 75 mm). O corte automático do Cloudinary
     // centraliza na comida (g_auto), já na proporção exata da área onde a foto aparece.
@@ -6023,6 +6076,127 @@ async function capaPropostaDataURL(tipo){
     _capaPDFCache[url] = pronta;
     return pronta;
   }catch(e){ console.warn('Capa da proposta não carregou:', e); return null; }
+}
+
+// ===== FOTO DE CAPA ESCOLHIDA EM CADA PROPOSTA (pedido de 26/10/2026) =====
+// No orçamento, "Foto da capa da proposta" → "Escolher foto" mostra as fotos do evento no site de fotos
+// (separadas pelas categorias de dentro do evento). Sem escolha, vale a automática (capa do tipo de evento).
+const FOTOS_EVENTOS = [
+  ['casamento','Casamento'],['aniversario','Aniversário'],['festainfantil','Festa Infantil'],['casinhadadeca','Casinha da Deca'],
+  ['coquetel','Coquetel'],['ilhagastronomica','Ilha Gastronômica'],['estacao','Estação'],['jantar','Jantar'],['almoco','Almoço'],
+  ['menudegustacao','Menu Degustação'],['brunch','Brunch'],['coffeebrunch','Coffee Break'],['feijoada','Feijoada'],
+  ['churrasco','Churrasco'],['corporativo','Treinamento'],['eventocorporativo','Evento Corporativo'],['mesadefrios','Mesa de Frios'],
+];
+function capaAutomatica(c, tipo){
+  if(c.eventos && c.eventos[tipo] && c.eventos[tipo].url) return c.eventos[tipo];
+  return c.padrao && c.padrao.url ? c.padrao : null;
+}
+const fcMini = (url, w, h) => urlCapa(url, `f_auto,q_auto,c_fill,g_auto,w_${w},h_${h}`);
+const fcEsc = t => String(t ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+let _fcVez = 0;
+async function atualizarCampoFotoCapa(){
+  const bloco = document.getElementById('fc-bloco');
+  if(!bloco) return;
+  const vez = ++_fcVez;
+  const tipo = getTipo();
+  bloco.style.display = tipo === 'Casinha da Deca' ? 'none' : '';   // a Casinha tem visual próprio, sem foto
+  const escolhida = gv('orc_foto_capa');
+  document.getElementById('fc-limpar').style.display = escolhida ? '' : 'none';
+  let url = escolhida, desc, sub;
+  if(escolhida){
+    desc = 'Foto escolhida para esta proposta';
+    sub = 'Só vale para este orçamento.';
+  }else{
+    const c = await carregarCapas();
+    if(vez !== _fcVez) return;
+    const auto = capaAutomatica(c, tipo);
+    url = auto ? auto.url : '';
+    desc = 'Automática';
+    sub = !tipo ? 'Escolha o tipo de evento.'
+      : (c.eventos && c.eventos[tipo] && c.eventos[tipo].url) ? `Capa de ${tipoExibicao(tipo)} (admin de fotos → Fotos de capa).`
+      : url ? 'Capa padrão: este tipo de evento ainda não tem capa própria.' : 'Sem foto: o PDF sai com a faixa verde lisa.';
+  }
+  const mini = document.getElementById('fc-mini');
+  mini.style.backgroundImage = url ? `url("${fcMini(url, 260, 150)}")` : '';
+  mini.classList.toggle('vazia', !url);
+  document.getElementById('fc-desc').textContent = desc;
+  document.getElementById('fc-sub').textContent = sub;
+}
+function limparFotoCapa(){
+  sv('orc_foto_capa', '');
+  atualizarCampoFotoCapa();
+}
+function criarJanelaFotoCapa(){
+  if(document.getElementById('fc-janela')) return;
+  const el = document.createElement('div');
+  el.id = 'fc-janela';
+  el.className = 'fc-fundo';
+  el.innerHTML = `
+    <div class="fc-caixa" role="dialog" aria-modal="true" aria-label="Escolher foto da capa">
+      <div class="fc-topo">
+        <div><h3>Foto da capa da proposta</h3><p>Toque na foto que vai no topo do PDF deste orçamento.</p></div>
+        <button type="button" class="fc-x" onclick="fecharEscolhaFotoCapa()" aria-label="Fechar">✕</button>
+      </div>
+      <div class="fc-filtros">
+        <label>Fotos de <select id="fc-evento" onchange="fcEventoAtual=this.value;desenharEscolhaFotoCapa()"></select></label>
+      </div>
+      <div class="fc-grade" id="fc-grade"></div>
+      <div class="fc-rodape">
+        <button type="button" class="btn-sm" onclick="limparFotoCapa();fecharEscolhaFotoCapa()">Usar a automática</button>
+        <button type="button" class="btn-sm" onclick="fecharEscolhaFotoCapa()">Cancelar</button>
+      </div>
+    </div>`;
+  el.addEventListener('click', e => { if(e.target === el) fecharEscolhaFotoCapa(); });
+  el.querySelector('#fc-grade').addEventListener('click', e => {
+    const b = e.target.closest('[data-url]');
+    if(!b) return;
+    sv('orc_foto_capa', b.dataset.url);
+    fecharEscolhaFotoCapa();
+    atualizarCampoFotoCapa();
+  });
+  document.body.appendChild(el);
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') fecharEscolhaFotoCapa(); });
+}
+let fcEventoAtual = null;
+function abrirEscolhaFotoCapa(){
+  criarJanelaFotoCapa();
+  fcEventoAtual = CATEGORIA_FOTOS_DO_TIPO[getTipo()] || fcEventoAtual || 'casamento';
+  document.getElementById('fc-evento').innerHTML = FOTOS_EVENTOS.map(([id, nome]) => `<option value="${id}" ${id === fcEventoAtual ? 'selected' : ''}>${nome}</option>`).join('');
+  document.getElementById('fc-janela').classList.add('on');
+  desenharEscolhaFotoCapa();
+}
+function fecharEscolhaFotoCapa(){ document.getElementById('fc-janela')?.classList.remove('on'); }
+async function desenharEscolhaFotoCapa(){
+  const grade = document.getElementById('fc-grade');
+  const ev = fcEventoAtual;
+  grade.innerHTML = '<div class="fc-aviso">Carregando as fotos…</div>';
+  let d = { fotos: [], subs: [] };
+  try{
+    if(!window._fbReady) await new Promise(r => { window.addEventListener('fbready', r, { once:true }); setTimeout(r, 8000); });
+    d = await window._fb.getPortfolio(ev);
+  }catch(e){
+    grade.innerHTML = '<div class="fc-aviso">Não consegui carregar as fotos. Confira a internet e tente de novo.</div>';
+    return;
+  }
+  if(ev !== fcEventoAtual) return;
+  const nomeEv = (FOTOS_EVENTOS.find(x => x[0] === ev) || [, ev])[1];
+  if(!d.fotos.length){
+    grade.innerHTML = `<div class="fc-aviso">${fcEsc(nomeEv)} ainda não tem fotos no site de fotos.<br>Suba as fotos no <a href="manaca-admin-fotos.html#${ev}" target="_blank" rel="noopener">admin de fotos</a> ou escolha outro evento acima.</div>`;
+    return;
+  }
+  const escolhida = gv('orc_foto_capa');
+  const subs = d.subs.filter(s => d.fotos.some(f => f.sub === s.id));
+  const grupos = subs.length
+    ? [...subs.map(s => ({ nome: s.nome, lista: d.fotos.filter(f => f.sub === s.id) })),
+       { nome: 'Sem categoria', lista: d.fotos.filter(f => !subs.some(s => s.id === f.sub)) }].filter(g => g.lista.length)
+    : [{ nome: '', lista: d.fotos }];
+  grade.innerHTML = grupos.map(g => `
+    ${g.nome ? `<div class="fc-grupo">${fcEsc(g.nome)} <span>${g.lista.length}</span></div>` : ''}
+    <div class="fc-fotos">${g.lista.map(f => `
+      <button type="button" class="fc-foto ${f.url === escolhida ? 'on' : ''}" data-url="${fcEsc(f.url)}" title="Usar esta foto">
+        <img src="${fcEsc(fcMini(f.url, 420, 240))}" alt="" loading="lazy">
+      </button>`).join('')}</div>`).join('') +
+    '<div class="fc-dica">A foto aparece deitada no topo do PDF. Fotos deitadas, com a mesa inteira, ficam melhores.</div>';
 }
 
 // Faixa do topo da proposta com foto (pedido da Laís, 26/10/2026): o verde-oliva e a foto viram uma
@@ -6082,7 +6256,7 @@ async function gerarPDFOrcamentoModerno(opts){
   const hoje=new Date().toLocaleDateString('pt-BR');
   // Foto de capa do tipo de evento (escolhida no admin de fotos), em degradê com o verde (26/10/2026).
   // Sem foto, o PDF fica como antes (faixa verde lisa).
-  const fotoCapa=await capaPropostaDataURL(getTipo());
+  const fotoCapa=await capaPropostaDataURL(getTipo(), gv('orc_foto_capa'));
   let y=PDFM.cabecalho(doc,{rotulo:'Proposta comercial',data:'Emitida em '+hoje,fundo:fotoCapa}); // sem o nº do orçamento (pedido de 21/10/2026)
 
   const cliente=gv('cli_nome')||'—';

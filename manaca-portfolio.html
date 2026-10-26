@@ -294,6 +294,27 @@
   .aba.ativa{ background: var(--oliva); color: var(--creme); border-color: var(--oliva); }
   .aba small{ opacity:.55; margin-left:6px; font-weight:500; }
 
+  /* Categorias dentro do evento (Welcome, Jantar...) */
+  .subabas{
+    max-width:1500px; margin:0 auto; padding: 26px 5vw 0; display:flex; gap:26px; overflow-x:auto; scrollbar-width:none;
+  }
+  .subabas:empty{ display:none; }
+  .subabas::-webkit-scrollbar{ display:none; }
+  .subaba{
+    flex-shrink:0; background:none; border:none; border-bottom:2px solid transparent; padding: 4px 0 10px;
+    font-size:14px; font-weight:500; color: var(--suave); transition: color .2s, border-color .2s;
+  }
+  .subaba:hover{ color: var(--tinta); }
+  .subaba.ativa{ color: var(--tinta); border-color: var(--oliva); }
+  .subaba small{ opacity:.6; margin-left:5px; font-size:12px; }
+  .galeria-grupos{ padding: 0 0 40px; }
+  .grupo-titulo{
+    max-width:1500px; margin:0 auto; padding: 46px 5vw 0; display:flex; align-items:baseline; gap:16px; flex-wrap:wrap;
+  }
+  .grupo-titulo h2{ margin:0; font-size: clamp(30px, 4.2vw, 48px); font-weight:300; line-height:1.05; }
+  .grupo-titulo .rotulo{ color: var(--ouro); }
+  .grade.grade-grupo{ padding-top:20px; padding-bottom:0; }
+
   .grade{
     padding: 34px 5vw 40px; columns: 4 280px; column-gap: 14px;
     max-width: 1500px; margin: 0 auto;
@@ -505,6 +526,7 @@
       </div>
     </section>
     <div class="abas"><div class="abas-trilho" id="abas"></div></div>
+    <div class="subabas" id="subabas"></div>
     <div class="grade" id="grade"></div>
     <div class="proxima" id="proxima"></div>
   </main>
@@ -592,26 +614,37 @@
 
   // ---- Categorias (mesma lista do admin de fotos) ----
   const categorias = [
-    { id:'casamento',     nome:'Casamentos',              desc:'Cerimônias e recepções, do jardim ao salão.' },
-    { id:'aniversario',   nome:'Aniversários',            desc:'De debutantes a bodas, festas de todas as idades.' },
-    { id:'festainfantil', nome:'Festa Infantil',          desc:'Cardápio e clima pensados para o público mirim.' },
-    { id:'coquetel',      nome:'Coquetel',                desc:'Volante e estações, para eventos em pé.' },
-    { id:'jantar',        nome:'Jantar / Almoço',         desc:'Serviço à mesa, do corporativo ao íntimo.' },
-    { id:'coffeebrunch',  nome:'Coffee Break / Brunch',   desc:'Mesas fartas para encontros de manhã ou meio de tarde.' },
-    { id:'feijoada',      nome:'Feijoada',                desc:'Tradição e fartura para reunir todo mundo à mesa.' },
-    { id:'churrasco',     nome:'Churrasco',               desc:'Na brasa, do jeito que reúne todo mundo.' },
-    { id:'mesadefrios',   nome:'Mesa de Frios',           desc:'Composições frias para complementar qualquer evento.' },
-    { id:'corporativo',   nome:'Treinamento Corporativo', desc:'Workshops e confraternizações de empresa.' },
+    // Mesmos nomes dos tipos de evento do sistema de orçamentos (ids antigos mantidos para os links continuarem valendo)
+    { id:'casamento',         nome:'Casamento',          desc:'Cerimônias e recepções, do jardim ao salão.' },
+    { id:'aniversario',       nome:'Aniversário',        desc:'De debutantes a bodas, festas de todas as idades.' },
+    { id:'festainfantil',     nome:'Festa Infantil',     desc:'Cardápio e clima pensados para o público mirim.' },
+    { id:'casinhadadeca',     nome:'Casinha da Deca',    desc:'A festa infantil com o kit da Casinha da Deca.' },
+    { id:'coquetel',          nome:'Coquetel',           desc:'Entradas servidas pelos garçons, para eventos em pé.' },
+    { id:'ilhagastronomica',  nome:'Ilha Gastronômica',  desc:'Mesa de antepastos, itens servidos pelos garçons e finger food.' },
+    { id:'estacao',           nome:'Estação',            desc:'Estações montadas no evento, de salgadinhos a doces.' },
+    { id:'jantar',            nome:'Jantar',             desc:'Serviço à mesa ou no aparador, do corporativo ao íntimo.' },
+    { id:'almoco',            nome:'Almoço',             desc:'Almoço servido à mesa ou no aparador.' },
+    { id:'menudegustacao',    nome:'Menu Degustação',    desc:'Pratos servidos em sequência, para uma ocasião especial.' },
+    { id:'brunch',            nome:'Brunch',             desc:'Mesas fartas para encontros de manhã ou no fim da manhã.' },
+    { id:'coffeebrunch',      nome:'Coffee Break',       desc:'Pausas caprichadas para reuniões, cursos e eventos de empresa.' },
+    { id:'feijoada',          nome:'Feijoada',           desc:'Tradição e fartura para reunir todo mundo à mesa.' },
+    { id:'churrasco',         nome:'Churrasco',          desc:'Na brasa, do jeito que reúne todo mundo.' },
+    { id:'corporativo',       nome:'Treinamento',        desc:'Coffee e refeições para cursos e dias de treinamento.' },
+    { id:'eventocorporativo', nome:'Evento Corporativo', desc:'Lançamentos, confraternizações e eventos de empresa.' },
+    { id:'mesadefrios',       nome:'Mesa de Frios',      desc:'Composições frias para complementar qualquer evento.' },
   ];
 
   // Tipo de evento do sistema de orçamentos ligado a cada categoria (para usar a "foto de capa" escolhida no admin)
   const TIPO_DA_CATEGORIA = {
     casamento:'Casamento', aniversario:'Aniversário', festainfantil:'Festa Infantil', coquetel:'Coquetel',
-    jantar:'Jantar', coffeebrunch:'Coffee Break', feijoada:'Feijoada', churrasco:'Churrasco',
-    corporativo:'Treinamento Corporativo'
+    jantar:'Jantar', almoco:'Almoço', menudegustacao:'Menu Degustação', coffeebrunch:'Coffee Break', brunch:'Brunch',
+    feijoada:'Feijoada', churrasco:'Churrasco', corporativo:'Treinamento Corporativo', eventocorporativo:'Evento Corporativo',
+    ilhagastronomica:'Ilha Gastronômica', estacao:'Carrinho de Salgadinhos'
   };
 
   const fotosPorCategoria = {};
+  const subsPorCategoria = {};  // categorias dentro do evento (Welcome, Jantar...), criadas no admin de fotos
+  let subAberta = null;         // categoria dentro do evento aberta ({id, nome}) ou null = todas
   let capas = {};             // fotos de capa escolhidas no admin (documento portfolio_fotos/_capas)
   let comFotos = [];          // categorias visíveis: com fotos ou "em breve" (com foto de capa), na ordem acima
   let fotos = [];             // fotos da categoria aberta
@@ -628,7 +661,7 @@
   }
   function linkWhats(texto){ return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(texto || MSG_PADRAO)}`; }
   function atualizarLinksWhats(){
-    const texto = catAberta ? `Olá, Drica! Vi as fotos de ${catAberta.nome} no site do Buffet Manacá e quero um orçamento.` : MSG_PADRAO;
+    const texto = catAberta ? `Olá, Drica! Vi as fotos de ${catAberta.nome}${subAberta ? ` (${subAberta.nome})` : ''} no site do Buffet Manacá e quero um orçamento.` : MSG_PADRAO;
     document.querySelectorAll('.js-wa').forEach(a => a.href = linkWhats(texto));
   }
   function capaDe(lista){ return lista.find(f => f.capa) || lista[0]; }
@@ -673,6 +706,7 @@
     chef: { url: CL+'c_crop,g_north,h_0.8/v1792808094/portfolio-fotos/capas/ynucwgbpyhjkk3gq9cic.jpg' },
     eventos: {
       'Coffee Break': { url: CL+'v1792804328/portfolio-fotos/capas/abwde9ttqspzy6xzehth.jpg' },
+      'Brunch':       { url: CL+'v1792804330/portfolio-fotos/capas/hxnnv36x7fuvnqsnwyro.jpg' },
       'Coquetel':     { url: CL+'v1792804332/portfolio-fotos/capas/ub6phcchljuur8mkgz7e.jpg' },
       'Feijoada':     { url: CL+'v1792804333/portfolio-fotos/capas/gwsayflujfq669jrzzow.jpg' },
     }
@@ -690,9 +724,11 @@
       try{
         const snap = await getDoc(doc(db, 'portfolio_fotos', cat.id));
         fotosPorCategoria[cat.id] = snap.exists() ? (snap.data().fotos || []).filter(f => f && f.url) : [];
+        subsPorCategoria[cat.id] = snap.exists() ? (snap.data().subs || []) : [];
       }catch(err){
         console.error('Erro ao carregar', cat.id, err);
         fotosPorCategoria[cat.id] = [];
+        subsPorCategoria[cat.id] = [];
       }
     })]);
     // Primeiro as que têm fotos; depois as "em breve" que já têm foto de capa
@@ -781,16 +817,28 @@
   }
 
   // ---- PÁGINA DA CATEGORIA ----
-  function renderCategoria(id){
+  function renderCategoria(id, sid){
     const cat = categorias.find(c => c.id === id);
     if(!cat){ irPara(''); return; }
     catAberta = cat;
-    fotos = fotosPorCategoria[id] || [];
+    const todas = fotosPorCategoria[id] || [];
+    // Categorias dentro do evento: só aparecem as que têm foto
+    const subs = (subsPorCategoria[id] || []).filter(s => todas.some(f => f.sub === s.id));
+    subAberta = subs.find(s => s.id === sid) || null;
+    const dentroDeAlguma = f => subs.some(s => s.id === f.sub);
+    const soltas = todas.filter(f => !dentroDeAlguma(f));
+    // Grupos mostrados: uma categoria escolhida, ou todas em sequência (fotos sem categoria no fim)
+    const grupos = subAberta
+      ? [{ sub: subAberta, lista: todas.filter(f => f.sub === subAberta.id) }]
+      : subs.length
+        ? [...subs.map(s => ({ sub: s, lista: todas.filter(f => f.sub === s.id) })), ...(soltas.length ? [{ sub: { nome: 'Mais fotos' }, lista: soltas }] : [])]
+        : [{ sub: null, lista: todas }];
+    fotos = grupos.flatMap(g => g.lista.map(f => ({ ...f, _grupo: g.sub ? g.sub.nome : '' })));
     document.title = `${cat.nome} · Buffet Manacá`;
 
     $('cat-titulo').textContent = cat.nome;
     $('cat-desc').textContent = cat.desc;
-    $('cat-qtd').textContent = fotos.length ? `${fotos.length} foto${fotos.length === 1 ? '' : 's'}` : 'Em breve';
+    $('cat-qtd').textContent = todas.length ? `${todas.length} foto${todas.length === 1 ? '' : 's'}` : 'Em breve';
 
     const bg = $('cat-hero-bg');
     bg.classList.remove('ok');
@@ -811,24 +859,42 @@
     const ativa = $('abas').querySelector('.ativa');
     if(ativa) ativa.scrollIntoView({ inline:'center', block:'nearest' });
 
+    // Abas das categorias dentro do evento
+    $('subabas').innerHTML = subs.length ? (
+      `<button class="subaba ${subAberta ? '' : 'ativa'}" onclick="irPara('${id}')">Tudo<small>${todas.length}</small></button>` +
+      subs.map(s => `<button class="subaba ${subAberta && subAberta.id === s.id ? 'ativa' : ''}" onclick="irPara('${id}/${s.id}')">${esc(s.nome)}<small>${todas.filter(f => f.sub === s.id).length}</small></button>`).join('')
+    ) : '';
+    const subAtiva = $('subabas').querySelector('.ativa');
+    if(subAtiva) subAtiva.scrollIntoView({ inline:'center', block:'nearest' });
+
     // Grade
     const grade = $('grade');
-    if(!fotos.length){
+    const figura = (f, i, k) => `
+        <figure class="revelar" style="transition-delay:${(k % 4) * 60}ms" onclick="abrirLightbox(${i})">
+          <img src="${esc(opt(f.url, 800))}"
+               srcset="${esc(opt(f.url, 500))} 500w, ${esc(opt(f.url, 800))} 800w, ${esc(opt(f.url, 1200))} 1200w"
+               sizes="(max-width:680px) 50vw, (max-width:1100px) 33vw, 25vw"
+               alt="Foto de ${esc(cat.nome)}${f._grupo ? ' — ' + esc(f._grupo) : ''} — Buffet Manacá" loading="${i < 8 ? 'eager' : 'lazy'}" decoding="async"
+               onload="this.classList.add('ok')" onerror="this.closest('figure').remove()">
+          <span class="zoom-icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></span>
+        </figure>`;
+    grade.className = 'grade';
+    if(fotos.length && grupos.length > 1){
+      // Várias categorias: um título para cada uma, com as fotos embaixo
+      grade.className = 'galeria-grupos';
+      let i = 0;
+      grade.innerHTML = grupos.map(g => `
+        <div class="grupo-titulo revelar"><h2 class="serif">${esc(g.sub.nome)}</h2><span class="rotulo">${g.lista.length} foto${g.lista.length === 1 ? '' : 's'}</span></div>
+        <div class="grade grade-grupo">${g.lista.map((f, k) => figura(f, i++, k)).join('')}</div>`).join('');
+      observar(grade);
+    }else if(!fotos.length){
       grade.innerHTML = `<div class="grade-vazia">
           <p class="serif" style="font-size:30px;margin:0 0 8px;color:var(--tinta)">Fotos <em>em breve</em></p>
           <p style="margin:0 0 22px">Estamos organizando as fotos desta categoria. Peça exemplos de eventos parecidos pelo WhatsApp.</p>
           <a class="btn btn-oliva js-wa" href="#" target="_blank" rel="noopener">Pedir fotos e orçamento</a>
         </div>`;
     }else{
-      grade.innerHTML = fotos.map((f, i) => `
-        <figure class="revelar" style="transition-delay:${(i % 4) * 60}ms" onclick="abrirLightbox(${i})">
-          <img src="${esc(opt(f.url, 800))}"
-               srcset="${esc(opt(f.url, 500))} 500w, ${esc(opt(f.url, 800))} 800w, ${esc(opt(f.url, 1200))} 1200w"
-               sizes="(max-width:680px) 50vw, (max-width:1100px) 33vw, 25vw"
-               alt="Foto de ${esc(cat.nome)} — Buffet Manacá" loading="${i < 8 ? 'eager' : 'lazy'}" decoding="async"
-               onload="this.classList.add('ok')" onerror="this.closest('figure').remove()">
-          <span class="zoom-icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></span>
-        </figure>`).join('');
+      grade.innerHTML = fotos.map((f, i) => figura(f, i, i)).join('');
       observar(grade);
     }
 
@@ -852,15 +918,20 @@
     else window.scrollTo({ top:0, behavior:'smooth' });
   };
   function rota(){
-    const id = decodeURIComponent(location.hash.replace('#', ''));
+    const [id, sid] = decodeURIComponent(location.hash.replace('#', '')).split('/');
     fecharLightbox(true);
     if(id && categorias.some(c => c.id === id)){
+      const mesmoEvento = catAberta && catAberta.id === id && $('categoria-view').style.display === 'block';
       $('home-view').style.display = 'none';
       $('categoria-view').style.display = 'block';
-      renderCategoria(id);
-      window.scrollTo(0, 0);
+      renderCategoria(id, sid);
+      if(mesmoEvento){
+        // Trocou só a categoria dentro do evento: fica perto das abas, sem voltar ao topo
+        const y = $('subabas').getBoundingClientRect().top + window.scrollY - 150;
+        if(window.scrollY > y) window.scrollTo(0, y);
+      }else window.scrollTo(0, 0);
     }else{
-      catAberta = null;
+      catAberta = null; subAberta = null;
       document.title = 'Buffet Manacá · Nosso trabalho';
       $('categoria-view').style.display = 'none';
       $('home-view').style.display = 'block';
@@ -880,7 +951,7 @@
     const largura = Math.min(2000, Math.round(Math.max(window.innerWidth, window.innerHeight) * (window.devicePixelRatio || 1)));
     const url = opt(f.url, largura);
     $('lb-contador').textContent = `${indiceAtual + 1} / ${fotos.length}`;
-    $('lb-cat').textContent = catAberta ? catAberta.nome : '';
+    $('lb-cat').textContent = catAberta ? catAberta.nome + (f._grupo && f._grupo !== 'Mais fotos' ? ' · ' + f._grupo : '') : '';
     lbImg.classList.add('saindo');
     const carregando = setTimeout(() => $('lb-carregando').classList.add('on'), 250);
     const pre = new Image();
