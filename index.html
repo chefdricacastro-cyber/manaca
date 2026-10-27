@@ -499,7 +499,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
    informações, seções numeradas, total em faixa e rodapé. Cores do Manacá (verde) ou da Casinha (marrom, classe "cas"). */
 .pvc{--p:#282B1C;--esc:#1C1E14;--tx:#37392E;--mu:#7A7C6F;--ln:#E0E0D8;--bg:#F6F6F1;--ac:#E9ECDE;--cr:#F4EBD8;--crm:#BEBAA4;--num:#969A80;--tit:'Montserrat',sans-serif;--titp:600;--tits:19px;
   font-family:'Montserrat',sans-serif;color:var(--tx);font-size:10.5px;line-height:1.55}
-.pvc.cas{--p:#6F4D34;--esc:#3C281A;--tx:#4A3C32;--mu:#8B796A;--ln:#E9E1D7;--bg:#F8F4EF;--ac:#F1E7DB;--cr:#F5F0EA;--crm:#D6C3B0;--num:#BEA086;--tit:'Pacifico',cursive;--titp:400;--tits:21px}
+.pvc.cas{--p:#6F4D34;--esc:#3C281A;--tx:#4A3C32;--mu:#8B796A;--ln:#E9E1D7;--bg:#F8F4EF;--ac:#F1E7DB;--cr:#F5F0EA;--crm:#D6C3B0;--num:#BEA086;--tit:'Montserrat',sans-serif;--titp:700;--tits:20px} /* 27/10: cursiva só na logo */
 #preview.pvc-on{background:#fff !important;padding:0 !important}
 .pvc-faixa{position:relative;background-color:var(--p);background-size:100% 100%;color:var(--cr);display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:14px 16px;min-height:62px}
 .pvc-faixa.com-foto{aspect-ratio:210/104}
@@ -547,7 +547,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .pvc-capa-topo{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .pvc-capa-topo img{height:44px;width:auto;display:block}
 .pvc-capa-sobre{font-size:7px;letter-spacing:.14em;text-transform:uppercase;color:#D6C3B0;font-weight:600}
-.pvc-capa-tit{font-family:'Pacifico',cursive;font-size:27px;line-height:1.3;color:#F5F0EA;margin:2px 0}
+.pvc-capa-tit{font-family:'Montserrat',sans-serif;font-weight:700;font-size:25px;letter-spacing:-.01em;line-height:1.25;color:#F5F0EA;margin:2px 0}
 .pvc-capa-sub{font-size:10px;color:#F5F0EA}
 .pvc-card{background:#fff;border:1px solid var(--ln);border-radius:10px;margin:-24px 12px 0;position:relative;padding:4px 12px;display:grid;grid-template-columns:1fr 1fr;column-gap:12px}
 .pvc-card .pvc-fato{border-top:0;border-bottom:1px solid var(--ln)}
@@ -6228,7 +6228,7 @@ const PDFM_TEMAS={
     MARCA:'BUFFET MANACÁ', TITULO_FONTE:null },
   casinha:{ V:[111,77,52], ESC:[60,40,26], TX:[74,60,50], MU:[139,121,106], LN:[233,225,215],
     BG:[248,244,239], AC:[241,231,219], CR:[245,240,234], CRM:[214,195,176], NUM:[190,160,134],
-    MARCA:'CASINHA DA DECA', TITULO_FONTE:'Pacifico' }
+    MARCA:'CASINHA DA DECA', TITULO_FONTE:null } // 27/10/2026: a letra cursiva (Pacifico) fica só na logo
 };
 
 // ===== FOTOS DE CAPA =====
@@ -6683,7 +6683,7 @@ function montarCapaCasinha(fotoDataURL, C = CAPA_CASINHA){
 
 // ===== PDF DO ORÇAMENTO — layout moderno (todos os tipos) =====
 // Desde 27/10/2026 a Casinha da Deca também usa este layout, com as cores dela (marrom e creme),
-// a logo da Casinha na faixa do topo e o título em Pacifico.
+// a logo da Casinha na faixa do topo. Títulos em Montserrat (a cursiva fica só na logo, 27/10/2026).
 async function gerarPDFOrcamentoModerno(opts){
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({unit:'mm',format:'a4',compress:true});
@@ -6712,7 +6712,7 @@ async function gerarPDFOrcamentoModerno(opts){
     PDFM.f(doc,'sb',6.8,PDFM.CR); PDFM.esp(doc,'PROPOSTA DE LOCAÇÃO',W-M,16,1,'right');
     PDFM.f(doc,'r',8,PDFM.CR); doc.text('Emitida em '+hoje,W-M,21.5,{align:'right'});
     PDFM.f(doc,'sb',7,PDFM.CRM); PDFM.esp(doc,'CASINHA DA DECA  ·  LOCAÇÃO DE BRINQUEDOS',M,122,1);
-    doc.setFont('Pacifico','normal'); doc.setFontSize(30); doc.setTextColor(...PDFM.CR);
+    PDFM.f(doc,'sb',27,PDFM.CR);
     doc.text('Proposta de locação',M,135.5);
     PDFM.f(doc,'r',10,PDFM.CR);
     doc.text(doc.splitTextToSize('Preparada para '+cliente+(gv('ev_titulo')?'  ·  '+gv('ev_titulo'):''),CW)[0],M,144);
