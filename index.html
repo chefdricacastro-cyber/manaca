@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- versão 21/10/2026 -->
+<!-- versão 27/10/2026 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -2799,7 +2799,12 @@ const SERVICOS = ["Material para uso da cozinha e manuseio de alimentos","Materi
 const SERVICOS_RENOMEADOS = {"Material para execução do menu (taças, bowls, colheres e utensílios)":"Material para execução do menu (bowls, colheres e utensílios)"};
 // Item fixo: entra sempre no orçamento, sem custo, exceto em Casamento
 const SERVICO_DECORACAO = "Decoração da mesa: sob consulta";
-function decoracaoValeParaTipo(){ return getTipo() !== 'Casamento'; }
+function decoracaoValeParaTipo(){ const t=getTipo(); return t !== 'Casamento' && t !== 'Casinha da Deca'; } // 27/10/2026: Casinha não tem mesa
+// 27/10/2026 (Manu): na Casinha com Estação no cardápio, o valor por pessoa é da Estação, não da locação
+function rotuloLinhaCasinhaOrc(){
+  const cats=Object.keys(getCardapioSel()).filter(c=>c!=='Itens Especiais');
+  return cats.length ? 'Estação de comidinhas' : 'Locação das Casinhas da Deca';
+}
 function atualizarDecoracaoFixa(){
   const el=document.getElementById('sv_deco_fixo');
   if(el) el.style.display = decoracaoValeParaTipo() ? '' : 'none';
@@ -5812,7 +5817,7 @@ function previewOrcModerna(){
   const fPJ=gv('cli_tipo')==='PJ'?1.1:1, ppE=pp*fPJ;
   const pc59E=(gv('preco_c59')?parseP(gv('preco_c59')):pp*0.5)*fPJ, pstfE=(gv('preco_staff')?parseP(gv('preco_staff')):pp*0.5)*fPJ;
   const linhas=[];
-  if(pp>0 && ehCas){ const q=a||1; linhas.push(['Locação das Casinhas da Deca',q>1?`${q} × R$ ${fmtN(ppE)}`:'1',`R$ ${fmtN(q*ppE)}`]); }
+  if(pp>0 && ehCas){ const q=a||1; linhas.push([rotuloLinhaCasinhaOrc(),q>1?`${q} × R$ ${fmtN(ppE)}`:'1',`R$ ${fmtN(q*ppE)}`]); }
   else if(pp>0){
     if(a>0) linhas.push(['Adultos (acima de 10 anos)',`${a} × R$ ${fmtN(ppE)}`,`R$ ${fmtN(a*ppE)}`]);
     else linhas.push(['Valor por pessoa adulta (acima de 10 anos)','—',`R$ ${fmtN(ppE)}`]);
@@ -6822,7 +6827,7 @@ async function gerarPDFOrcamentoModerno(opts){
   if(pp>0 && ehCas){
     // Casinha: cobrança pelo evento inteiro (1 "adulto" = 1 locação)
     const q=a||1;
-    linhas.push(['Locação das Casinhas da Deca',q>1?`${q} × R$ ${fmtN(ppE)}`:'1',`R$ ${fmtN(q*ppE)}`]);
+    linhas.push([rotuloLinhaCasinhaOrc(),q>1?`${q} × R$ ${fmtN(ppE)}`:'1',`R$ ${fmtN(q*ppE)}`]);
   } else if(pp>0){
     if(a>0) linhas.push(['Adultos (acima de 10 anos)',`${a} × R$ ${fmtN(ppE)}`,`R$ ${fmtN(a*ppE)}`]);
     else linhas.push(['Valor por pessoa adulta (acima de 10 anos)','—',`R$ ${fmtN(ppE)}`]);
@@ -7061,7 +7066,7 @@ async function gerarWordOrcamento(){
   const pp=parseP(gv('preco_pp')), fPJ=gv('cli_tipo')==='PJ'?1.1:1, ppE=pp*fPJ;
   const pc59E=(gv('preco_c59')?parseP(gv('preco_c59')):pp*0.5)*fPJ, pstfE=(gv('preco_staff')?parseP(gv('preco_staff')):pp*0.5)*fPJ;
   const linhas=[];
-  if(pp>0 && ehCas){ const q=a||1; linhas.push(['Locação das Casinhas da Deca',q>1?`${q} × R$ ${fmtN(ppE)}`:'1',`R$ ${fmtN(q*ppE)}`]); }
+  if(pp>0 && ehCas){ const q=a||1; linhas.push([rotuloLinhaCasinhaOrc(),q>1?`${q} × R$ ${fmtN(ppE)}`:'1',`R$ ${fmtN(q*ppE)}`]); }
   else if(pp>0){
     if(a>0) linhas.push(['Adultos (acima de 10 anos)',`${a} × R$ ${fmtN(ppE)}`,`R$ ${fmtN(a*ppE)}`]);
     else linhas.push(['Valor por pessoa adulta (acima de 10 anos)','—',`R$ ${fmtN(ppE)}`]);
