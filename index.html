@@ -512,6 +512,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .pvc-tit{font-family:var(--tit);font-weight:var(--titp);font-size:var(--tits);color:var(--esc);line-height:1.3;margin:3px 0 2px;letter-spacing:-.01em}
 .pvc.cas .pvc-tit{color:var(--p)}
 .pvc-sub{color:var(--mu);font-size:10px;margin-bottom:10px}
+.pvc-sub.forte{color:var(--esc);font-size:11.5px;font-weight:600}
 .pvc-fatos{background:var(--bg);border-radius:8px;padding:6px 12px;margin-bottom:6px}
 .pvc-fato{padding:5px 0;border-top:1px solid var(--ln)}
 .pvc-fato:first-child{border-top:0}
@@ -1614,7 +1615,7 @@ div.prev-card{cursor:default}
             <div class="field"><label class="fl">Nome</label><input type="text" spellcheck="true" id="cli_nome" placeholder="Nome completo" oninput="atualizar();mostrarHistoricoCliente()"></div>
             <div class="field"><label class="fl">WhatsApp</label><input type="tel" id="cli_fone" placeholder="(43) 99999-0000" oninput="atualizar()"></div>
           </div>
-          <div class="field"><label class="fl">Responsável (aparece no topo do PDF)</label><input type="text" spellcheck="true" id="cli_responsavel" placeholder="ex: quem atende pelo WhatsApp informado" oninput="atualizar()"></div>
+          <div class="field"><label class="fl">Nome do contato (sai junto do telefone no PDF)</label><input type="text" spellcheck="true" id="cli_responsavel" placeholder="ex: Júlia — quem atende pelo WhatsApp informado" oninput="atualizar()"></div>
           <div id="historico-cliente"></div>
           <div class="row2">
             <div class="field"><label class="fl">E-mail</label><input type="text" spellcheck="true" id="cli_email" placeholder="opcional" oninput="atualizar()"></div>
@@ -1734,7 +1735,7 @@ div.prev-card{cursor:default}
             </div>
           </div>
           <div class="row2">
-            <div class="field"><label class="fl">Local</label><input type="text" spellcheck="true" id="ev_local" placeholder="Salão, residência..." oninput="atualizar()"><label style="display:flex;align-items:center;gap:6px;font-size:11px;margin-top:4px;cursor:pointer"><input type="checkbox" id="ev_ocultar_local" onchange="atualizar()" style="width:auto">Não mostrar o local no PDF</label></div>
+            <div class="field"><label class="fl">Local</label><input type="text" spellcheck="true" id="ev_local" placeholder="ex: Unimed · 5º andar, salão, residência..." oninput="atualizar()"><label style="display:flex;align-items:center;gap:6px;font-size:11px;margin-top:4px;cursor:pointer"><input type="checkbox" id="ev_ocultar_local" onchange="atualizar()" style="width:auto">Não mostrar o local no PDF</label></div>
             <div class="field">
               <label class="fl">Duração</label>
               <input type="text" spellcheck="true" id="ev_duracao" placeholder="calculada automaticamente" readonly style="background:var(--verde-claro);color:var(--verde);font-weight:600;cursor:default">
@@ -2887,6 +2888,10 @@ function paragrafosNaoIncluso(tipo, onde){
   if(t==='casamento'){ ps.push(TEXTO_LOUCA_CASAMENTO.toUpperCase()); ps.push(TEXTO_APARADOR_CASAMENTO.toUpperCase()); }
   return ps;
 }
+// Contato com o nome do responsável na mesma linha: "Júlia · 43 9102-8123" (pedido de 28/10/2026)
+function contatoComResponsavel(sep){ return [gv('cli_responsavel'),gv('cli_fone'),gv('cli_email')].filter(Boolean).join(sep||' · '); }
+// Título da proposta de buffet: o nome do cliente/empresa em destaque; o tipo de evento logo abaixo (pedido de 28/10/2026)
+function subPropostaBuffet(){ return [tipoExibicao(getTipo())||'Evento', gv('ev_titulo')].filter(Boolean).join('  ·  '); }
 function mostrarLocalNoPDF(){ return !document.getElementById('ev_ocultar_local')?.checked; }
 // Aparador ou empratado — só para casamento, jantar e almoço
 function atualizarServicoJantar(){
@@ -5815,7 +5820,7 @@ function previewOrcModerna(){
   const hIni=gv('ev_hora_inicio'), hFim=gv('ev_hora_fim');
   const hora=(hIni?(hIni+(hFim?' às '+hFim:'')):'A definir')+(gv('ev_duracao')?' · '+gv('ev_duracao'):'');
   const mont=gv('orc_montagem'), desm=gv('orc_desmontagem');
-  const contato=[gv('cli_fone'),gv('cli_email')].filter(Boolean).join(' · ');
+  const contato=contatoComResponsavel(' · ');
   const a=parseInt(gv('n_adultos'))||0, c59=parseInt(gv('n_c59'))||0, c04=parseInt(gv('n_c04'))||0, stf=parseInt(gv('n_staff'))||0;
   let h=`<div class="pvc${ehCas?' cas':''}">`;
   if(ehCas){
@@ -5828,19 +5833,17 @@ function previewOrcModerna(){
     h+=`<div class="pvc-card">`+fatoC('Data',fmtD(gv('ev_data'))+textoDatasExtras(datasExtrasOrc))+fatoC('Horário',hora)
       +fatoC('Montagem',(mont||'A combinar')+(desm?' · desm. '+desm:''),true)
       +(mostrarLocalNoPDF()?fatoC('Local',gv('ev_local')||'A definir',true):'')
-      +(contato?fatoC('Contato',contato,true):'')
-      +(gv('cli_responsavel')?fatoC('Responsável',gv('cli_responsavel'),true):'')+`</div>`;
+      +(contato?fatoC('Contato',contato,true):'')+`</div>`;
     h+=`<div class="pvc-corpo">`;
   } else {
     // Faixa verde (com a foto de capa em degradê, quando houver), título e cartão de informações
     const temFoto=_pvcCapa.chave===pvcChaveCapa()&&_pvcCapa.url;
     h+=pvcFaixa('Proposta comercial','Emitida em '+hoje,false,'pvc-faixa-orc');
     if(temFoto) h=h.replace('<div class="pvc-faixa" id="pvc-faixa-orc">',`<div class="pvc-faixa com-foto" id="pvc-faixa-orc" style="background-image:url('${_pvcCapa.url}')">`);
-    h+=`<div class="pvc-corpo"><div class="pvc-sobre">${pvcEsc(tipoExibicao(getTipo())||'Evento')}</div><div class="pvc-tit">Proposta de buffet</div>`;
-    h+=`<div class="pvc-sub">Preparada para ${pvcEsc(cliente)}${gv('ev_titulo')?' · '+pvcEsc(gv('ev_titulo')):''}</div>`;
+    h+=`<div class="pvc-corpo"><div class="pvc-sobre">Proposta de buffet</div><div class="pvc-tit">${pvcEsc(cliente)}</div>`;
+    h+=`<div class="pvc-sub forte">${pvcEsc(subPropostaBuffet())}</div>`;
     const convTxt=[a?a+(a===1?' adulto':' adultos'):'', (c59+c04)?(c59+c04)+((c59+c04)===1?' criança':' crianças'):'', stf?stf+' staff':''].filter(Boolean).join(' · ')||'A definir';
     h+=pvcFatos([
-      gv('cli_responsavel')?{l:'Responsável',v:gv('cli_responsavel')}:null,
       {l:'Data',v:fmtD(gv('ev_data'))+textoDatasExtras(datasExtrasOrc)},
       {l:'Horário',v:hora},
       {l:'Convidados',v:convTxt},
@@ -6134,14 +6137,14 @@ const PDFM={
     return comFoto ? FAIXA_CAPA.alt+14 : 54;
   },
   // Sobretítulo + título grande + linha de apoio
-  hero(doc,y,{sobre,titulo,sub}){
+  hero(doc,y,{sobre,titulo,sub,subForte}){
     const {M,W}=PDFM;
     if(sobre){ PDFM.f(doc,'sb',7.5,PDFM.V); PDFM.esp(doc,String(sobre).toUpperCase(),M,y,1); y+=9.5; }
     if(PDFM.TITULO_FONTE){ doc.setFont(PDFM.TITULO_FONTE,'normal'); doc.setFontSize(titulo.length>34?17:21); doc.setTextColor(...PDFM.V); }
     else PDFM.f(doc,'sb',titulo.length>34?17:21,PDFM.ESC);
     const ls=doc.splitTextToSize(titulo,W-2*M);
     ls.forEach((l,i)=>doc.text(l,M,y+i*8)); y+=(ls.length-1)*8+6.5;
-    if(sub){ PDFM.f(doc,'r',9.5,PDFM.MU); const s=doc.splitTextToSize(sub,W-2*M); s.forEach((l,i)=>doc.text(l,M,y+i*4.6)); y+=s.length*4.6; }
+    if(sub){ if(subForte) PDFM.f(doc,'sb',11.5,PDFM.ESC); else PDFM.f(doc,'r',9.5,PDFM.MU); const lh=subForte?5.4:4.6; const s=doc.splitTextToSize(sub,W-2*M); s.forEach((l,i)=>doc.text(l,M,y+i*lh)); y+=s.length*lh; }
     return y+5;
   },
   // Cartão cinza-claro com rótulos e valores em colunas.
@@ -6786,9 +6789,10 @@ async function gerarPDFOrcamentoModerno(opts){
   } else {
   y=PDFM.cabecalho(doc,{rotulo:'Proposta comercial',data:'Emitida em '+hoje,fundo:fotoCapa}); // sem o nº do orçamento (pedido de 21/10/2026)
   y=PDFM.hero(doc,y,{
-    sobre:ehCas?'Casinha da Deca':(tipoExibicao(getTipo())||'Evento'),
-    titulo:ehCas?'Proposta de locação':'Proposta de buffet',
-    sub:'Preparada para '+cliente+(gv('ev_titulo')?'  ·  '+gv('ev_titulo'):'')
+    sobre:'Proposta de buffet',
+    titulo:cliente,
+    sub:subPropostaBuffet(),
+    subForte:true
   });
   }
 
@@ -6796,19 +6800,18 @@ async function gerarPDFOrcamentoModerno(opts){
   const horaTxt=horaIni?(horaIni+(horaFim?' às '+horaFim:'')):'A definir';
   const a=parseInt(gv('n_adultos'))||0, c59=parseInt(gv('n_c59'))||0, c04=parseInt(gv('n_c04'))||0, stf=parseInt(gv('n_staff'))||0;
   const convTxt=[a?a+(a===1?' adulto':' adultos'):'', (c59+c04)?(c59+c04)+((c59+c04)===1?' criança':' crianças'):'', stf?stf+' staff':''].filter(Boolean).join(' · ')||'A definir';
-  const contato=[gv('cli_fone'),gv('cli_email')].filter(Boolean).join('  ·  ');
+  const contato=contatoComResponsavel('  ·  ');
   // Uma informação embaixo da outra (pedido da Drica, 21/10/2026)
   const montOrc=gv('orc_montagem'), desmOrc=gv('orc_desmontagem');
   if(ehCas){
     // Cartão branco "flutuando" sobre a borda da capa, com as informações lado a lado
     y=PDFM.fatos(doc,y,[
       [{l:'Data',v:fmtD(gv('ev_data'))+textoDatasExtras(datasExtrasOrc),w:1},{l:'Horário',v:horaTxt+(gv('ev_duracao')?' · '+gv('ev_duracao'):''),w:1},{l:'Montagem',v:(montOrc||'A combinar')+(desmOrc?' · desm. '+desmOrc:''),w:1.15}],
-      [mostrarLocalNoPDF()?{l:'Local',v:gv('ev_local')||'A definir',w:1.6}:null,contato?{l:'Contato',v:contato,w:1.4}:(gv('cli_responsavel')?{l:'Responsável',v:gv('cli_responsavel'),w:1.4}:null)]
+      [mostrarLocalNoPDF()?{l:'Local',v:gv('ev_local')||'A definir',w:1.6}:null,contato?{l:'Contato',v:contato,w:1.4}:null]
     ],{bg:[255,255,255],borda:PDFM.LN});
     y+=1;
   } else
   y=PDFM.fatos(doc,y,[
-    [gv('cli_responsavel')?{l:'Responsável',v:gv('cli_responsavel')}:null],
     [{l:'Data',v:fmtD(gv('ev_data'))+textoDatasExtras(datasExtrasOrc)}],
     [{l:'Horário',v:horaTxt+(gv('ev_duracao')?' · '+gv('ev_duracao'):'')}],
     [ehCas&&(montOrc||desmOrc)?{l:'Montagem e desmontagem',v:'Montagem '+(montOrc||'a combinar')+(desmOrc?'  ·  desmontagem '+desmOrc:'')}:null],
@@ -6986,10 +6989,10 @@ function wordKit(casinha){
         new Paragraph({children:[run(sub,{size:19,color:C.cr})]})
       ],{fill:C.p,mt:120,mb:300,ml:320,mr:320})]})]);
     },
-    hero(sobre,titulo,sub){ return [
+    hero(sobre,titulo,sub,subForte){ return [
       new Paragraph({spacing:{before:320,after:60},children:[run(String(sobre).toUpperCase(),{size:14,bold:true,color:C.p,esp:40})]}),
-      new Paragraph({spacing:{after:60},children:[run(titulo,{size:40,bold:true,color:casinha?C.p:C.esc})]}),
-      new Paragraph({spacing:{after:240},children:[run(sub,{size:19,color:C.mu})]})
+      new Paragraph({spacing:{after:60},children:[run(titulo,{size:titulo.length>34?34:40,bold:true,color:casinha?C.p:C.esc})]}),
+      new Paragraph({spacing:{after:240},children:[run(sub,subForte?{size:23,bold:true,color:C.esc}:{size:19,color:C.mu})]})
     ]; },
     // Cartão com as informações do evento (rótulo pequeno em cima, valor embaixo)
     fatos(lista,branco){
@@ -7080,17 +7083,16 @@ async function gerarWordOrcamento(){
   } else {
     let capa=null; try{ capa=await capaPropostaDataURL(getTipo(), gv('orc_foto_capa'), lerAjusteOrc()); }catch(e){}
     if(capa){ const sem=await recortarTopoImagem(capa,26,FAIXA_CAPA.alt); if(sem) children.push(K.foto(sem,FAIXA_CAPA.alt-26)); }
-    children.push(...K.hero(tipoExibicao(getTipo())||'Evento','Proposta de buffet',subCli));
+    children.push(...K.hero('Proposta de buffet',cliente,subPropostaBuffet(),true));
   }
 
   const horaIni=gv('ev_hora_inicio'), horaFim=gv('ev_hora_fim');
   const horaTxt=(horaIni?(horaIni+(horaFim?' às '+horaFim:'')):'A definir')+(gv('ev_duracao')?' · '+gv('ev_duracao'):'');
   const a=parseInt(gv('n_adultos'))||0, c59=parseInt(gv('n_c59'))||0, c04=parseInt(gv('n_c04'))||0, stf=parseInt(gv('n_staff'))||0;
   const convTxt=[a?a+(a===1?' adulto':' adultos'):'', (c59+c04)?(c59+c04)+((c59+c04)===1?' criança':' crianças'):'', stf?stf+' staff':''].filter(Boolean).join(' · ')||'A definir';
-  const contato=[gv('cli_fone'),gv('cli_email')].filter(Boolean).join('  ·  ');
+  const contato=contatoComResponsavel('  ·  ');
   const mont=gv('orc_montagem'), desm=gv('orc_desmontagem');
   children.push(K.fatos([
-    gv('cli_responsavel')?{l:'Responsável',v:gv('cli_responsavel')}:null,
     {l:'Data',v:fmtD(gv('ev_data'))+textoDatasExtras(datasExtrasOrc)},
     {l:'Horário',v:horaTxt},
     ehCas&&(mont||desm)?{l:'Montagem e desmontagem',v:'Montagem '+(mont||'a combinar')+(desm?'  ·  desmontagem '+desm:'')}:null,
