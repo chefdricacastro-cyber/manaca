@@ -2891,6 +2891,7 @@ function paragrafosNaoIncluso(tipo, onde){
 // Contato com o nome do responsável na mesma linha: "Júlia · 43 9102-8123" (pedido de 28/10/2026)
 function contatoComResponsavel(sep){ return [gv('cli_responsavel'),gv('cli_fone'),gv('cli_email')].filter(Boolean).join(sep||' · '); }
 // Título da proposta de buffet: o nome do cliente/empresa em destaque; o tipo de evento logo abaixo (pedido de 28/10/2026)
+function rotuloContato(){ return gv('cli_responsavel')?'Contato / Responsável':'Contato'; }
 function subPropostaBuffet(){ return [tipoExibicao(getTipo())||'Evento', gv('ev_titulo')].filter(Boolean).join('  ·  '); }
 function mostrarLocalNoPDF(){ return !document.getElementById('ev_ocultar_local')?.checked; }
 // Aparador ou empratado — só para casamento, jantar e almoço
@@ -5833,7 +5834,7 @@ function previewOrcModerna(){
     h+=`<div class="pvc-card">`+fatoC('Data',fmtD(gv('ev_data'))+textoDatasExtras(datasExtrasOrc))+fatoC('Horário',hora)
       +fatoC('Montagem',(mont||'A combinar')+(desm?' · desm. '+desm:''),true)
       +(mostrarLocalNoPDF()?fatoC('Local',gv('ev_local')||'A definir',true):'')
-      +(contato?fatoC('Contato',contato,true):'')+`</div>`;
+      +(contato?fatoC(rotuloContato(),contato,true):'')+`</div>`;
     h+=`<div class="pvc-corpo">`;
   } else {
     // Faixa verde (com a foto de capa em degradê, quando houver), título e cartão de informações
@@ -5848,7 +5849,7 @@ function previewOrcModerna(){
       {l:'Horário',v:hora},
       {l:'Convidados',v:convTxt},
       mostrarLocalNoPDF()?{l:'Local',v:gv('ev_local')||'A definir'}:null,
-      contato?{l:'Contato',v:contato}:null
+      contato?{l:rotuloContato(),v:contato}:null
     ]);
   }
   if(gv('ev_obs')) h+=`<div class="pvc-obs">Observação: ${pvcEsc(gv('ev_obs'))}</div>`;
@@ -6807,7 +6808,7 @@ async function gerarPDFOrcamentoModerno(opts){
     // Cartão branco "flutuando" sobre a borda da capa, com as informações lado a lado
     y=PDFM.fatos(doc,y,[
       [{l:'Data',v:fmtD(gv('ev_data'))+textoDatasExtras(datasExtrasOrc),w:1},{l:'Horário',v:horaTxt+(gv('ev_duracao')?' · '+gv('ev_duracao'):''),w:1},{l:'Montagem',v:(montOrc||'A combinar')+(desmOrc?' · desm. '+desmOrc:''),w:1.15}],
-      [mostrarLocalNoPDF()?{l:'Local',v:gv('ev_local')||'A definir',w:1.6}:null,contato?{l:'Contato',v:contato,w:1.4}:null]
+      [mostrarLocalNoPDF()?{l:'Local',v:gv('ev_local')||'A definir',w:1.6}:null,contato?{l:rotuloContato(),v:contato,w:1.4}:null]
     ],{bg:[255,255,255],borda:PDFM.LN});
     y+=1;
   } else
@@ -6817,7 +6818,7 @@ async function gerarPDFOrcamentoModerno(opts){
     [ehCas&&(montOrc||desmOrc)?{l:'Montagem e desmontagem',v:'Montagem '+(montOrc||'a combinar')+(desmOrc?'  ·  desmontagem '+desmOrc:'')}:null],
     [ehCas?null:{l:'Convidados',v:convTxt}],
     [mostrarLocalNoPDF()?{l:'Local',v:gv('ev_local')||'A definir'}:null],
-    [contato?{l:'Contato',v:contato}:null]
+    [contato?{l:rotuloContato(),v:contato}:null]
   ]);
   if(gv('ev_obs')){ y=PDFM.paragrafo(doc,y-4,'Observação: '+gv('ev_obs'),{tam:8.5,cor:PDFM.MU,quebra}); y+=6; }
 
@@ -7098,7 +7099,7 @@ async function gerarWordOrcamento(){
     ehCas&&(mont||desm)?{l:'Montagem e desmontagem',v:'Montagem '+(mont||'a combinar')+(desm?'  ·  desmontagem '+desm:'')}:null,
     ehCas?null:{l:'Convidados',v:convTxt},
     mostrarLocalNoPDF()?{l:'Local',v:gv('ev_local')||'A definir'}:null,
-    contato?{l:'Contato',v:contato}:null
+    contato?{l:rotuloContato(),v:contato}:null
   ],ehCas));
   if(gv('ev_obs')) children.push(K.par('Observação: '+gv('ev_obs'),{size:16,color:K.C.mu,after:0}));
 
