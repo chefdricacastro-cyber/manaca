@@ -1339,6 +1339,21 @@ input:focus,select:focus,textarea:focus,.busca:focus{border-color:#282B1C !impor
 .cli-card{background:var(--creme);border:1px solid var(--borda);border-radius:12px;padding:16px 18px}
 .cli-card h3{margin:0 0 12px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--leve)}
 .cli-dados{display:grid;grid-template-columns:1fr 1fr;gap:12px 18px}
+.cli-card h3 .cli-editar{float:right;text-transform:none;letter-spacing:0;font-size:12.5px;font-weight:600;color:var(--verde);background:none;border:1px solid var(--borda);border-radius:8px;padding:3px 10px;cursor:pointer;margin-top:-4px}
+.cli-card h3 .cli-editar:hover{border-color:var(--verde)}
+.cli-ed-fundo{position:fixed;inset:0;z-index:3000;background:rgba(20,21,15,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.cli-ed{background:var(--creme);color:var(--texto);border-radius:14px;width:100%;max-width:560px;max-height:92vh;overflow:auto;padding:20px 22px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.cli-ed h3{margin:0 0 4px;font-size:18px;font-weight:700}
+.cli-ed .cli-ed-sub{font-size:12.5px;color:var(--leve);margin-bottom:12px}
+.cli-ed label{display:block;font-size:11.5px;color:var(--leve);margin:12px 0 4px}
+.cli-ed input,.cli-ed select{width:100%;border:1px solid var(--borda);border-radius:8px;padding:9px 10px;font-size:14px;background:var(--creme);color:var(--texto);box-sizing:border-box}
+.cli-ed .cli-ed-2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.cli-ed .cli-ed-check{display:flex;gap:10px;align-items:flex-start;margin-top:16px;padding:12px;border:1px solid var(--borda);border-radius:10px;font-size:13px;line-height:1.45;cursor:pointer}
+.cli-ed .cli-ed-check input{width:auto;margin-top:3px}
+.cli-ed .cli-ed-nota{font-size:12px;color:var(--leve);margin-top:10px;line-height:1.5}
+.cli-ed .cli-ed-erro{color:#B4432F;font-size:12.5px;margin-top:10px;min-height:16px}
+.cli-ed .cli-ed-botoes{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;flex-wrap:wrap}
+@media (max-width:600px){.cli-ed .cli-ed-2{grid-template-columns:1fr}}
 .cli-dados div span{display:block;font-size:11px;color:var(--leve);margin-bottom:2px}
 .cli-dados div strong{font-size:13.5px;font-weight:600;word-break:break-word}
 .cli-card textarea,.cli-card select,.cli-card input{width:100%;border:1px solid var(--borda);border-radius:8px;padding:9px 10px;font-size:13.5px;background:var(--creme);color:var(--texto);box-sizing:border-box}
@@ -3733,7 +3748,15 @@ function _cliFmtDoc(n){ if(!n) return ''; return n.length===11 ? `${n.slice(0,3)
 const _cliEsc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function _cliIniciais(nome){ const p=String(nome||'?').trim().split(/\s+/); return ((p[0]||'?')[0]+(p.length>1?p[p.length-1][0]:'')).toUpperCase(); }
 
+// Lê as fichas já guardadas neste computador sem esperar o Firebase
+// (montarClientes precisa delas para aplicar o cadastro editado à mão).
+function _cliFichasSync(){
+  if(_cliFichas) return _cliFichas;
+  try{ return JSON.parse(localStorage.getItem('manaca_clientes_fichas')||'{}')||{}; }catch(e){ return {}; }
+}
+
 function montarClientes(){
+  const fichasCad=_cliFichasSync();
   const regs=[];
   getOrcs().forEach(o=>{ if(!(o.nome||'').trim() && !o.fone) return; regs.push({tipo:'orc', d:o, nome:o.nome, fone:_cliFone(o.fone), doc:'', email:(o.email||'').trim(), quando:o.data||'', criado:o.criadoEm||''}); });
   getContrs().forEach(c=>{ if(!(c.nome||'').trim() && !c.fone) return; regs.push({tipo:'ct', d:c, nome:c.nome, fone:_cliFone(c.fone), doc:_cliDoc(c.doc), email:'', quando:c.ev_data||'', criado:c.criadoEm||''}); });
@@ -3770,8 +3793,16 @@ function montarClientes(){
     const pj=docs.some(d=>d.length===14) || orcs.some(o=>o.pj);
     const datas=rs.map(r=>r.criado).filter(Boolean).sort();
     const chave=fones[0]?'t:'+fones[0]:docs[0]?'d:'+docs[0]:'n:'+_cliNorm(nome);
-    const busca=_cliNorm([nome,...nomes,...fones,...docs,...emails].join(' '))+' '+fones.join(' ')+' '+docs.join(' ');
-    return {chave, nome, fones, docs, emails, end:(ctMaisNovo?.end||'').trim(), pj, orcs, cts, ativos,
+    // Cadastro editado à mão na ficha ("Editar dados") vale por cima do que veio dos documentos
+    const cad=(fichasCad[chave]||{}).cad;
+    const nomeF=(cad&&cad.nome)||nome;
+    const fonesF=(cad&&cad.fones&&cad.fones.length)?cad.fones:fones;
+    const docsF=(cad&&cad.doc)?[cad.doc]:docs;
+    const emailsF=(cad&&cad.email)?[cad.email]:emails;
+    const endF=(cad&&cad.end)||(ctMaisNovo?.end||'').trim();
+    const pjF=(cad&&typeof cad.pj==='boolean')?cad.pj:pj;
+    const busca=_cliNorm([nomeF,nome,...nomes,...fonesF,...fones,...docs,...emailsF,...emails].join(' '))+' '+[...fonesF,...fones].join(' ')+' '+[...docsF,...docs].join(' ');
+    return {chave, nome:nomeF, fones:fonesF, docs:docsF, emails:emailsF, end:endF, pj:pjF, editado:!!cad, orcs, cts, ativos,
       eventos:ativos.length, contratado, pago, aberto, desde:datas[0]||'', ultimo:datas[datas.length-1]||'', busca};
   }).sort((a,b)=>(b.ultimo||'').localeCompare(a.ultimo||''));
 }
@@ -3808,6 +3839,7 @@ async function irClientes(){
   if(_cliAberto && _cliCache.some(c=>c.chave===_cliAberto)) abrirFichaCliente(_cliAberto);
   else fecharFichaCliente();
   await carregarFichasClientes();
+  _cliCache=montarClientes(); // de novo, agora com os cadastros editados que vieram do Firebase
   if(_cliAberto) abrirFichaCliente(_cliAberto); else renderClientes();
 }
 
@@ -3909,7 +3941,7 @@ function abrirFichaCliente(chave){
 
       <div style="display:flex;flex-direction:column;gap:16px">
         <div class="cli-card">
-          <h3>Dados</h3>
+          <h3>Dados<button class="cli-editar" onclick="abrirEdicaoCliente('${_cliEsc(chave)}')">Editar dados</button></h3>
           <div class="cli-dados">
             <div><span>WhatsApp</span><strong>${c.fones.map(_cliFmtFone).join('<br>')||'—'}</strong></div>
             <div><span>${c.pj?'CNPJ':'CPF / CNPJ'}</span><strong>${c.docs.map(_cliFmtDoc).join('<br>')||'—'}</strong></div>
@@ -3936,6 +3968,132 @@ function abrirFichaCliente(chave){
       </div>
     </div>`;
   window.scrollTo(0,0);
+}
+
+// ===== EDITAR O CADASTRO DO CLIENTE =====
+// A correção fica guardada na ficha (clientesFichas → cad) e vale na tela
+// Clientes e no preenchimento automático. Se pedido, também corrige nome,
+// WhatsApp e e-mail dos orçamentos em aberto (Rascunho / Enviado ao Cliente).
+// Contratos não são alterados. PF/PJ não muda nos orçamentos (mexeria no preço).
+function abrirEdicaoCliente(chave){
+  const c=(_cliCache||montarClientes()).find(x=>x.chave===chave); if(!c) return;
+  const abertos=c.orcs.filter(o=>['Rascunho','Enviado ao Cliente'].includes(o.status||'Rascunho'));
+  const nomeSugerido=c.nome.replace(/\s*\(c[óo]pia\)\s*/gi,' ').trim();
+  document.getElementById('cli-ed-fundo')?.remove();
+  const d=document.createElement('div');
+  d.id='cli-ed-fundo'; d.className='cli-ed-fundo';
+  d.onclick=e=>{ if(e.target===d) d.remove(); };
+  d.innerHTML=`
+    <div class="cli-ed" role="dialog" aria-label="Editar dados do cliente">
+      <h3>Editar dados do cliente</h3>
+      <div class="cli-ed-sub">Vale para a ficha do cliente e para preencher os próximos orçamentos e contratos.</div>
+      <label>Nome / Razão social</label>
+      <input id="cli-ed-nome" value="${_cliEsc(nomeSugerido)}">
+      ${nomeSugerido!==c.nome?'<div class="cli-ed-nota" style="margin-top:4px">O "(cópia)" já foi tirado do nome. Confira e salve.</div>':''}
+      <div class="cli-ed-2">
+        <div><label>WhatsApp principal</label><input id="cli-ed-fone1" inputmode="tel" value="${_cliEsc(c.fones[0]?_cliFmtFone(c.fones[0]):'')}" placeholder="(43) 99999-9999"></div>
+        <div><label>Outro telefone (opcional)</label><input id="cli-ed-fone2" inputmode="tel" value="${_cliEsc(c.fones[1]?_cliFmtFone(c.fones[1]):'')}"></div>
+      </div>
+      <div class="cli-ed-2">
+        <div><label>CPF / CNPJ</label><input id="cli-ed-doc" inputmode="numeric" value="${_cliEsc(c.docs[0]?_cliFmtDoc(c.docs[0]):'')}"></div>
+        <div><label>Tipo</label><select id="cli-ed-tipo"><option value="PF" ${!c.pj?'selected':''}>Pessoa física</option><option value="PJ" ${c.pj?'selected':''}>Empresa (PJ)</option></select></div>
+      </div>
+      <label>E-mail</label>
+      <input id="cli-ed-email" type="email" value="${_cliEsc(c.emails[0]||'')}">
+      <label>Endereço</label>
+      <input id="cli-ed-end" value="${_cliEsc(c.end||'')}" placeholder="Rua, número, bairro, cidade">
+      ${abertos.length?`<label class="cli-ed-check"><input type="checkbox" id="cli-ed-orcs" checked>
+        <span>Atualizar também <strong>${abertos.length} orçamento${abertos.length===1?'':'s'} em aberto</strong> (rascunho ou enviado ao cliente): nome, WhatsApp e e-mail.</span></label>`:''}
+      <div class="cli-ed-nota">Contratos já feitos não mudam. O tipo PF/PJ não é trocado nos orçamentos, porque muda o preço (PJ tem +10%); se precisar, troque dentro do orçamento.</div>
+      <div class="cli-ed-erro" id="cli-ed-erro"></div>
+      <div class="cli-ed-botoes">
+        ${c.editado?`<button class="cli-btn" style="margin-right:auto" onclick="desfazerEdicaoCliente('${_cliEsc(chave)}')">Voltar aos dados dos documentos</button>`:''}
+        <button class="cli-btn" onclick="document.getElementById('cli-ed-fundo').remove()">Cancelar</button>
+        <button class="cli-btn principal" id="cli-ed-salvar" onclick="salvarEdicaoCliente('${_cliEsc(chave)}')">Salvar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(d);
+  setTimeout(()=>document.getElementById('cli-ed-nome')?.focus(),30);
+}
+
+async function _cliGravarFichas(){
+  localStorage.setItem('manaca_clientes_fichas',JSON.stringify(_cliFichas));
+  if(window._fbReady && window._fb?.saveConfig) await window._fb.saveConfig('clientesFichas', _cliFichas);
+}
+
+// Depois de mudar os documentos, a "chave" do cliente pode mudar (ela vem do
+// WhatsApp). Acha o cliente de novo pelos documentos e leva a ficha junto.
+function _cliMigrarFicha(chaveAntiga, idsDocs){
+  _cliFichas=_cliFichas||{};
+  let lista=montarClientes();
+  const novo=lista.find(x=>[...x.orcs,...x.cts].some(dd=>idsDocs.includes(dd.id)));
+  if(novo && novo.chave!==chaveAntiga && _cliFichas[chaveAntiga]){
+    _cliFichas[novo.chave]={...(_cliFichas[novo.chave]||{}), ..._cliFichas[chaveAntiga]};
+    delete _cliFichas[chaveAntiga];
+    lista=montarClientes();
+  }
+  return {lista, chave:novo?novo.chave:chaveAntiga};
+}
+
+async function salvarEdicaoCliente(chave){
+  const c=(_cliCache||montarClientes()).find(x=>x.chave===chave); if(!c) return;
+  const erro=t=>{ document.getElementById('cli-ed-erro').textContent=t; };
+  const nome=gv('cli-ed-nome').trim().replace(/\s+/g,' ');
+  const f1raw=gv('cli-ed-fone1').trim(), f2raw=gv('cli-ed-fone2').trim();
+  const f1=_cliFone(f1raw), f2=_cliFone(f2raw);
+  const docRaw=gv('cli-ed-doc').trim(), docN=_cliDoc(docRaw);
+  const email=gv('cli-ed-email').trim(), end=gv('cli-ed-end').trim();
+  const pj=gv('cli-ed-tipo')==='PJ';
+  if(!nome){ erro('Preencha o nome.'); return; }
+  if(f1raw && !f1){ erro('O WhatsApp principal parece incompleto. Use DDD + número, ex.: (43) 99999-9999.'); return; }
+  if(f2raw && !f2){ erro('O outro telefone parece incompleto. Use DDD + número.'); return; }
+  if(docRaw && !docN){ erro('O CPF precisa ter 11 números e o CNPJ, 14.'); return; }
+  if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ erro('Confira o e-mail.'); return; }
+  const btn=document.getElementById('cli-ed-salvar'); if(btn){ btn.disabled=true; btn.textContent='Salvando…'; }
+
+  const fones=[...new Set([f1,f2].filter(Boolean))];
+  await carregarFichasClientes();
+  _cliFichas[chave]={...(_cliFichas[chave]||{}),
+    cad:{nome, fones, doc:docN, email, end, pj},
+    atualizadoEm:new Date().toISOString(), por:(typeof getUsuarioAtual==='function'?getUsuarioAtual():'')||''};
+
+  // Orçamentos em aberto
+  let nOrcs=0;
+  if(document.getElementById('cli-ed-orcs')?.checked){
+    const ids=c.orcs.filter(o=>['Rascunho','Enviado ao Cliente'].includes(o.status||'Rascunho')).map(o=>o.id);
+    const todos=getOrcsTodos(); const agora=new Date().toISOString();
+    todos.forEach(o=>{
+      if(!ids.includes(o.id)) return;
+      o.nome=nome;
+      if(fones[0]) o.fone=_cliFmtFone(fones[0]);
+      if(email) o.email=email;
+      o.atualizadoEm=agora; nOrcs++;
+      if(window._fbReady) window._fb?.saveOrc(o).catch(e=>console.warn('Firebase sync:',e));
+    });
+    _orcsCache=todos;
+    localStorage.setItem('manaca_v2',JSON.stringify(todos));
+  }
+
+  const idsDocs=[...c.orcs,...c.cts].map(x=>x.id);
+  const r=_cliMigrarFicha(chave, idsDocs);
+  let aviso='';
+  try{ await _cliGravarFichas(); }catch(e){ console.warn(e); aviso=' (salvo só neste computador; sem internet?)'; }
+  _cliCache=r.lista;
+  document.getElementById('cli-ed-fundo')?.remove();
+  abrirFichaCliente(r.chave);
+  const el=document.getElementById('cli-salvo');
+  if(el) el.textContent='Dados do cliente atualizados'+(nOrcs?` e ${nOrcs} orçamento${nOrcs===1?'':'s'} corrigido${nOrcs===1?'':'s'}`:'')+aviso+'.';
+  try{ if(typeof renderLista==='function') renderLista(); if(typeof renderInicio==='function') renderInicio(); }catch(e){}
+}
+
+async function desfazerEdicaoCliente(chave){
+  if(!confirm('Tirar a correção e voltar a mostrar os dados como estão nos orçamentos e contratos?')) return;
+  await carregarFichasClientes();
+  if(_cliFichas[chave]) delete _cliFichas[chave].cad;
+  try{ await _cliGravarFichas(); }catch(e){ console.warn(e); }
+  _cliCache=montarClientes();
+  document.getElementById('cli-ed-fundo')?.remove();
+  abrirFichaCliente(chave);
 }
 
 // Novo orçamento já preenchido com os dados do cliente
