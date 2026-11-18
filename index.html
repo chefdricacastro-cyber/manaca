@@ -1771,6 +1771,94 @@ div.cx-kpi{cursor:default}
 .cx-rel:hover{border-color:var(--k-gold-borda);transform:translateY(-1px)}
 .cx-rel b{font-size:13.5px;color:var(--texto)}
 .cx-rel span{font-size:11.5px;color:var(--leve)}
+
+/* ===================== LISTAS E DEMAIS TELAS (18/11/2026) ===================== */
+.lst-topo{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.lst-topo .pg-sub{margin-bottom:0}
+/* resumo clicável */
+.lst-resumo{gap:10px !important;margin-bottom:14px !important}
+@media(max-width:700px){.lst-resumo{grid-template-columns:repeat(2,minmax(0,1fr)) !important}}
+.lst-kpi{all:unset;box-sizing:border-box;cursor:pointer;display:flex !important;flex-direction:column;gap:4px;padding:12px 16px !important;font-family:var(--k-txt);text-align:left;position:relative}
+.lst-kpi .rn{font-size:24px !important;line-height:1.1}
+.lst-kpi:hover{transform:translateY(-1px)}
+.lst-kpi.ativo{box-shadow:0 0 0 2px var(--k-gold-l),var(--k-sombra) !important}
+.lst-kpi.ativo::after{content:"filtrando";position:absolute;top:10px;right:12px;font-family:var(--k-rot);font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--k-gold)}
+:root:not([data-theme="dark"]) body .lst-kpi.lst-kpi-nf{background:radial-gradient(120% 90% at 0% 0%,rgba(205,160,76,.24),transparent 70%),var(--k-surface) !important}
+/* caixa de ferramentas (busca + filtros + ordenar) */
+.lst-ferramentas{border:1px solid var(--borda);border-radius:var(--k-r-lg);padding:12px 14px;margin-bottom:10px;background:var(--creme);display:flex;flex-direction:column;gap:10px}
+:root:not([data-theme="dark"]) body .lst-ferramentas{background:var(--k-surface);border-color:var(--k-borda);box-shadow:var(--k-brilho),var(--k-sombra)}
+.lst-ferramentas .busca{margin:0 !important;box-shadow:none !important}
+.lst-ferramentas .filtros,.lst-ferramentas .filtros-selects{margin:0 !important}
+.lst-ferramentas > div[style*="display:flex"]{margin:0 !important}
+.lst-ferramentas select{border-radius:9999px !important;padding:6px 12px !important;font-size:11.5px !important}
+.lst-contagem{font-family:var(--k-rot);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--leve);margin:6px 4px 8px}
+/* lista */
+.lst-lista{border:1px solid var(--borda);border-radius:var(--k-r-lg);overflow:hidden;background:var(--creme)}
+:root:not([data-theme="dark"]) body .lst-lista{background:var(--k-surface);border-color:var(--k-borda);box-shadow:var(--k-brilho),var(--k-sombra)}
+:root body .lst-lista .lst-row{display:grid !important;grid-template-columns:52px minmax(0,1fr) 128px 118px 262px;align-items:center;gap:14px;margin:0 !important;border:0 !important;border-bottom:1px solid var(--borda) !important;border-radius:0 !important;background:transparent !important;box-shadow:none !important;padding:10px 14px !important;transform:none !important}
+:root:not([data-theme="dark"]) body .lst-lista .lst-row{border-bottom-color:rgba(40,43,28,.07) !important}
+.lst-lista .lst-row:last-child{border-bottom:0 !important}
+:root body .lst-lista .lst-row:hover{background:var(--k-gold-wash) !important;box-shadow:inset 3px 0 0 var(--k-gold-l) !important}
+.lst-row .orc-nome{font-size:13.5px}
+.lst-row .orc-valor{font-family:var(--k-num);font-weight:700;white-space:nowrap;text-align:right;min-width:0 !important}
+.lst-row > div:nth-child(4){text-align:center}
+.lst-row .orc-acoes .btn-sm{white-space:nowrap}
+@media(min-width:761px){:root body #lista-contratos .lst-lista .lst-row{grid-template-columns:52px minmax(0,1fr) 128px 110px 318px}}
+.lst-ferramentas select{width:auto !important;min-width:170px;flex:0 0 auto}
+.lst-kpi[data-st="todos"].ativo::after{content:none}
+.lst-row .orc-acoes{display:flex;gap:4px;flex-wrap:nowrap;justify-content:flex-end}
+.lst-titulo{font-weight:500;color:var(--leve);font-size:12px}
+.lst-num{font-family:var(--k-rot);font-size:10px;color:var(--leve)}
+.lst-data{display:flex;flex-direction:column;align-items:center;justify-content:center;width:50px;height:50px;border-radius:12px;background:var(--ini-cedo-bg)}
+.lst-data .d{font-family:var(--k-num);font-weight:700;font-size:17px;line-height:1;color:var(--texto)}
+.lst-data .m{font-family:var(--k-rot);font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--leve);margin-top:3px;white-space:nowrap}
+.lst-data.perto{background:var(--ini-falta-bg)}
+.lst-data.perto .d,.lst-data.perto .m{color:var(--ini-falta-t)}
+.lst-data.passou{opacity:.55}
+.lst-data.sem .d{color:var(--leve)}
+.lst-pagto{font-size:10.5px;font-weight:700;color:var(--cor);margin-top:3px;display:flex;align-items:center;gap:8px}
+.lst-barra{display:inline-block;width:70px;height:5px;border-radius:9999px;background:var(--ini-cedo-bg);overflow:hidden}
+.lst-barra span{display:block;height:100%;background:var(--cor);border-radius:9999px}
+@media(max-width:760px){
+  :root body .lst-lista .lst-row{grid-template-columns:46px minmax(0,1fr) auto;row-gap:6px}
+  .lst-row > div:nth-child(4){grid-column:3;grid-row:1;justify-self:end}
+  .lst-row .orc-valor{grid-column:2;grid-row:2}
+  .lst-row .orc-acoes{grid-column:3;grid-row:2}
+}
+.lst-mais{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;padding:14px;font-size:12px;color:var(--leve)}
+.lst-discreto{background:transparent !important;border-style:dashed !important}
+/* painéis recolhíveis (Contratos) */
+.lst-painel{border:1px solid var(--borda);border-radius:var(--k-r-lg);margin-bottom:10px;background:var(--creme)}
+:root:not([data-theme="dark"]) body .lst-painel{background:var(--k-surface);border-color:var(--k-borda);box-shadow:var(--k-brilho),var(--k-sombra)}
+.lst-painel > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px}
+.lst-painel > summary::-webkit-details-marker{display:none}
+.lst-painel-tit{font-size:14px;font-weight:700;color:var(--texto)}
+.lst-painel-resumo{font-size:12px;color:var(--leve)}
+.lst-painel-resumo b{color:var(--texto);font-family:var(--k-num)}
+.lst-painel-receber .lst-painel-resumo b{color:var(--vermelho-t)}
+.lst-painel-seta{margin-left:auto;font-size:11px;font-weight:600;color:var(--k-gold)}
+.lst-painel-seta::after{content:" ▾"}
+.lst-painel[open] .lst-painel-seta::after{content:" ▴"}
+.lst-painel[open] .lst-painel-seta{font-size:0}
+.lst-painel[open] .lst-painel-seta::after{font-size:11px;content:"fechar ▴"}
+.lst-painel-corpo{padding:0 16px 16px}
+/* cardápio: categorias em botões */
+.card-cats{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+.card-cat{all:unset;cursor:pointer;font-family:var(--k-txt);font-size:12px;font-weight:600;padding:6px 12px;border-radius:9999px;border:1px solid var(--borda);color:var(--texto);background:var(--creme);display:inline-flex;align-items:center;gap:6px}
+:root:not([data-theme="dark"]) body .card-cat{background:rgba(255,255,255,.7);border-color:var(--k-borda-forte)}
+.card-cat small{font-size:10px;font-weight:700;color:var(--leve)}
+.card-cat:hover{border-color:var(--k-gold-borda)}
+.card-cat.ativa{background:#282B1C !important;color:#EBCB86;border-color:#282B1C !important}
+.card-cat.ativa small{color:rgba(235,203,134,.75)}
+:root[data-theme="dark"] .card-cat.ativa{background:var(--verde) !important;color:#1D1F15}
+.card-cat-pend{font-size:9.5px;font-weight:800;background:var(--vermelho);color:var(--vermelho-t);border-radius:9999px;padding:0 6px}
+.card-cats-busca{width:100%;font-size:11.5px;color:var(--leve);margin-bottom:2px}
+:root:not([data-theme="dark"]) body #itensperso-body{background:var(--k-surface) !important;border-color:var(--k-borda) !important;border-radius:var(--k-r-lg) !important;box-shadow:var(--k-brilho),var(--k-sombra)}
+/* agenda */
+#prox-lista{max-height:620px;overflow-y:auto;padding-right:4px}
+/* lixeira: cada seção vira um cartão */
+#tela-lixeira .pg-wrap > div[style*="margin-top:20px"]{border:1px solid var(--borda);border-radius:var(--k-r-lg);padding:14px 16px;background:var(--creme)}
+:root:not([data-theme="dark"]) body #tela-lixeira .pg-wrap > div[style*="margin-top"]{background:var(--k-surface) !important;border:1px solid var(--k-borda) !important;border-radius:var(--k-r-lg) !important;box-shadow:var(--k-brilho),var(--k-sombra)}
 </style>
 </head>
 <body>
@@ -1897,14 +1985,23 @@ div.cx-kpi{cursor:default}
 <!-- ===== LISTA ===== -->
 <div class="tela" id="tela-lista">
   <div class="pg-wrap larga">
-    <div class="pg-title">Orçamentos</div>
-    <div class="pg-sub">Propostas enviadas e em elaboração</div>
-    <div class="resumo-cards">
-      <div class="resumo-card"><div class="rn" id="r-tot">0</div><div class="rl">Total</div></div>
-      <div class="resumo-card"><div class="rn" id="r-aprov">0</div><div class="rl">Aprovados</div></div>
-      <div class="resumo-card"><div class="rn" id="r-env">0</div><div class="rl">Enviados</div></div>
+    <div class="lst-topo">
+      <div>
+        <div class="pg-title">Orçamentos</div>
+        <div class="pg-sub">Propostas enviadas e em elaboração</div>
+      </div>
+      <button class="btn-novo" onclick="novoOrc()">+ Novo orçamento</button>
     </div>
-    <input class="busca" placeholder="Buscar cliente, título, evento, local..." oninput="renderLista(this.value)">
+    <!-- Resumo clicável (18/11/2026): cada cartão filtra a lista -->
+    <div class="resumo-cards lst-resumo" style="grid-template-columns:repeat(5,minmax(0,1fr))">
+      <button type="button" class="resumo-card lst-kpi" data-st="todos" onclick="lstFiltroOrc('todos')"><div class="rl">Todos</div><div class="rn" id="r-tot">0</div></button>
+      <button type="button" class="resumo-card lst-kpi" data-st="Rascunho" onclick="lstFiltroOrc('Rascunho')"><div class="rl">Rascunhos</div><div class="rn" id="r-rasc">0</div></button>
+      <button type="button" class="resumo-card lst-kpi" data-st="Enviado ao Cliente" onclick="lstFiltroOrc('Enviado ao Cliente')"><div class="rl">Enviados ao cliente</div><div class="rn" id="r-env">0</div></button>
+      <button type="button" class="resumo-card lst-kpi" data-st="Aprovado" onclick="lstFiltroOrc('Aprovado')"><div class="rl">Aprovados</div><div class="rn" id="r-aprov">0</div></button>
+      <button type="button" class="resumo-card lst-kpi" data-st="Cancelado" onclick="lstFiltroOrc('Cancelado')"><div class="rl">Cancelados</div><div class="rn" id="r-canc">0</div></button>
+    </div>
+    <div class="lst-ferramentas">
+    <input class="busca" id="busca-orcs" placeholder="Buscar cliente, título, evento, local..." oninput="renderLista(this.value)">
     <div class="filtros">
       <button class="fb active" onclick="setFiltro('todos',this)">Todos</button>
       <button class="fb" onclick="setFiltro('Rascunho',this)">Rascunho</button>
@@ -1931,6 +2028,8 @@ div.cx-kpi{cursor:default}
         <option value="nome">Nome A–Z</option>
       </select>
     </div>
+    </div>
+    <div class="lst-contagem" id="lista-orcs-contagem"></div>
     <div id="lista-orcs"></div>
   </div>
 </div>
@@ -2301,10 +2400,12 @@ div.cx-kpi{cursor:default}
     <div class="pg-sub">Itens do cardápio por categoria, custos e rendimento</div>
     <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
       <input class="busca" id="busca-cardapio-admin" placeholder="Buscar item..." oninput="renderCardapioAdmin()" style="flex:2;min-width:200px;margin-top:0">
-      <select id="cardapio-admin-filtro-cat" onchange="renderCardapioAdmin()" title="Filtrar por categoria" style="flex:1;min-width:160px;padding:8px 10px;font-size:12px">
+      <select id="cardapio-admin-filtro-cat" onchange="renderCardapioAdmin()" title="Filtrar por categoria" style="display:none">
         <option value="">Todas as categorias</option>
       </select>
     </div>
+    <!-- Categorias em botões (18/11/2026): mostra uma categoria por vez -->
+    <div id="cardapio-cats" class="card-cats"></div>
     <div id="itensperso-body" style="background:#fff;border:1px solid var(--borda);border-radius:8px;padding:16px;margin-top:12px"></div>
   </div>
 </div>
@@ -2312,28 +2413,29 @@ div.cx-kpi{cursor:default}
 <!-- ===== TELA: CONTRATOS ===== -->
 <div class="tela" id="tela-contratos">
   <div class="pg-wrap larga">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+    <div class="lst-topo">
       <div>
         <div class="pg-title">Contratos</div>
         <div class="pg-sub">Contratos, pagamentos e documentos</div>
       </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn-novo" style="background:#fff;color:var(--verde);border:1.5px solid var(--verde)" onclick="limparContratosDuplicados()">Limpar duplicados</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn-sm lst-discreto" onclick="limparContratosDuplicados()" title="Procura contratos repetidos do mesmo orçamento">Limpar duplicados</button>
         <button class="btn-novo" onclick="novoContrato()">+ Novo contrato</button>
       </div>
     </div>
 
     <!-- RESUMO -->
-    <div class="resumo-cards" style="grid-template-columns:repeat(4,1fr)">
-      <div class="resumo-card"><div class="rn" id="rc-tot">0</div><div class="rl">Total</div></div>
-      <div class="resumo-card"><div class="rn" id="rc-ativo">0</div><div class="rl">Ativos</div></div>
-      <div class="resumo-card"><div class="rn" id="rc-enc">0</div><div class="rl">Encerrados</div></div>
-      <div class="resumo-card" style="background:var(--amarelo)"><div class="rn" id="rc-nf" style="color:var(--amarelo-t)">0</div><div class="rl">NF a emitir</div></div>
+    <div class="resumo-cards lst-resumo" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+      <button type="button" class="resumo-card lst-kpi" data-st="todos" onclick="lstFiltroContr('todos')"><div class="rl">Todos</div><div class="rn" id="rc-tot">0</div></button>
+      <button type="button" class="resumo-card lst-kpi" data-st="Ativo" onclick="lstFiltroContr('Ativo')"><div class="rl">Ativos</div><div class="rn" id="rc-ativo">0</div></button>
+      <button type="button" class="resumo-card lst-kpi" data-st="Encerrado" onclick="lstFiltroContr('Encerrado')"><div class="rl">Encerrados</div><div class="rn" id="rc-enc">0</div></button>
+      <button type="button" class="resumo-card lst-kpi lst-kpi-nf" data-st="nf" onclick="lstFiltroContr('nf')"><div class="rl">NF a emitir</div><div class="rn" id="rc-nf">0</div></button>
     </div>
 
-    <!-- PAINEL FINANCEIRO -->
-    <div style="margin-top:12px;background:#fff;border:1px solid var(--borda);border-radius:10px;padding:14px 16px;box-shadow:var(--shadow-sm)">
-      <div style="font-size:11px;font-weight:700;color:var(--verde);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Financeiro</div>
+    <!-- PAINEL FINANCEIRO (recolhível, 18/11/2026) -->
+    <details class="lst-painel" id="lst-painel-fin">
+      <summary><span class="lst-painel-tit">Faturamento</span><span class="lst-painel-resumo" id="lst-resumo-fin"></span><span class="lst-painel-seta">ver detalhes</span></summary>
+      <div class="lst-painel-corpo">
       <div class="resumo-cards" style="grid-template-columns:repeat(4,1fr)">
         <div class="resumo-card" style="background:var(--verde-claro)"><div class="rn" id="fin-mes" style="color:var(--verde)">R$ 0</div><div class="rl">Faturamento este mês</div></div>
         <div class="resumo-card" style="background:var(--verde-claro)"><div class="rn" id="fin-30d" style="color:var(--verde)">R$ 0</div><div class="rl">Próximos 30 dias</div></div>
@@ -2344,22 +2446,24 @@ div.cx-kpi{cursor:default}
         <div style="font-size:10px;color:var(--leve);margin-bottom:6px">Faturamento contratado por mês (últimos 6 meses)</div>
         <div id="fin-grafico" style="display:flex;align-items:flex-end;gap:8px;height:90px;padding:4px 2px"></div>
       </div>
-    </div>
-
-    <!-- PAINEL A RECEBER -->
-    <div style="margin-top:12px;background:#fff;border:1px solid var(--borda);border-radius:10px;padding:14px 16px;box-shadow:var(--shadow-sm)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px">
-        <div style="font-size:11px;font-weight:700;color:#C62828;text-transform:uppercase;letter-spacing:.5px">A Receber — quem ainda deve</div>
-        <div style="font-size:10px;color:var(--leve)">Ordenado por urgência: atrasados primeiro, depois evento mais próximo</div>
       </div>
+    </details>
+
+    <!-- PAINEL A RECEBER (recolhível) -->
+    <details class="lst-painel lst-painel-receber" id="lst-painel-receber">
+      <summary><span class="lst-painel-tit">A receber — quem ainda deve</span><span class="lst-painel-resumo" id="lst-resumo-receber"></span><span class="lst-painel-seta">ver lista</span></summary>
+      <div class="lst-painel-corpo">
+      <div style="font-size:10.5px;color:var(--leve);margin-bottom:10px">Ordenado por urgência: atrasados primeiro, depois evento mais próximo</div>
       <div class="resumo-cards" style="grid-template-columns:repeat(1,1fr);margin-bottom:10px">
         <div class="resumo-card" style="background:#FDECEA"><div class="rn" id="fin-a-receber" style="color:#C62828">R$ 0</div><div class="rl">A receber (contratos)</div></div>
       </div>
       <div id="lista-saldo-pendente"></div>
-    </div>
+      </div>
+    </details>
 
     <!-- FILTROS -->
-    <div class="filtros" style="margin-top:14px">
+    <div class="lst-ferramentas">
+    <div class="filtros">
       <button class="fb active" onclick="setFiltroContr('todos',this)">Todos</button>
       <button class="fb" onclick="setFiltroContr('Ativo',this)">Ativos</button>
       <button class="fb" onclick="setFiltroContr('Encerrado',this)">Encerrados</button>
@@ -2367,7 +2471,7 @@ div.cx-kpi{cursor:default}
       <button class="fb" id="fb-nf-pendente" style="border-color:#F57C00" onclick="toggleFiltroNF(this)">Só NF Pendente</button>
       <button class="fb" id="fb-saldo-pendente" style="border-color:#C62828" onclick="toggleFiltroSaldoPendente(this)">Só Saldo Pendente</button>
     </div>
-    <input class="busca" placeholder="Buscar contratante, evento..." oninput="renderContratos(this.value)" style="margin-top:10px">
+    <input class="busca" id="busca-contratos" placeholder="Buscar contratante, evento..." oninput="renderContratos(this.value)" style="margin-top:10px">
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
       <select id="contr-filtro-periodo" onchange="renderContratos()" style="font-size:11px;padding:5px 8px;border:1px solid var(--borda);border-radius:6px">
         <option value="todos">Todo período</option>
@@ -2387,6 +2491,8 @@ div.cx-kpi{cursor:default}
         <option value="nome">Nome A–Z</option>
       </select>
     </div>
+    </div>
+    <div class="lst-contagem" id="lista-contratos-contagem"></div>
     <div id="lista-contratos"></div>
   </div>
 </div>
@@ -4221,7 +4327,8 @@ function renderClientes(){
 
   const el=document.getElementById('cli-lista');
   if(!vis.length){ el.innerHTML=`<div class="cli-vazio">${termo?'Nenhum cliente encontrado para essa busca.':'Nenhum cliente nesse filtro.'}</div>`; return; }
-  el.innerHTML=vis.slice(0,300).map(c=>`
+  const pgC = lstPaginar('clientes', vis, [_cliFiltro,termo].join('|'), 'renderClientes');
+  el.innerHTML=pgC.vis.map(c=>`
     <div class="cli-row" onclick="abrirFichaCliente('${_cliEsc(c.chave)}')">
       <div class="cli-av">${_cliEsc(_cliIniciais(c.nome))}</div>
       <div class="cli-info">
@@ -4229,7 +4336,7 @@ function renderClientes(){
         <div class="cli-sub">${[c.fones[0]?_cliFmtFone(c.fones[0]):'',`${c.orcs.length} orçamento${c.orcs.length===1?'':'s'}`,`${c.cts.length} contrato${c.cts.length===1?'':'s'}`].filter(Boolean).join(' · ')}</div>
       </div>
       <div class="cli-nums">${c.contratado?`<strong>R$ ${fmtN(c.contratado)}</strong>`:''}${c.aberto>0.009?`<span class="aberto">R$ ${fmtN(c.aberto)} em aberto</span>`:(c.contratado?'Tudo pago':'')}</div>
-    </div>`).join('');
+    </div>`).join('')+pgC.rodape;
 }
 
 function fecharFichaCliente(){
@@ -4665,9 +4772,43 @@ function irForm(){
 }
 
 // ===== LISTA =====
+
+// ===== LISTAS ORGANIZADAS (18/11/2026) — mostra 30 itens por vez + data em destaque =====
+const LST_POR_VEZ = 30;
+const _lstPag = {};
+function lstPaginar(chave, lista, assinatura, fnRender){
+  const st = _lstPag[chave] || (_lstPag[chave] = {n:LST_POR_VEZ, sig:null});
+  if(st.sig!==assinatura){ st.n = LST_POR_VEZ; st.sig = assinatura; }
+  const vis = lista.slice(0, st.n);
+  const faltam = lista.length - vis.length;
+  const rodape = faltam>0
+    ? `<div class="lst-mais"><span>Mostrando ${vis.length} de ${lista.length}</span><button class="btn-sm" onclick="lstMostrarMais('${chave}','${fnRender}')">Mostrar mais ${Math.min(LST_POR_VEZ,faltam)}</button><button class="btn-sm lst-discreto" onclick="lstMostrarMais('${chave}','${fnRender}',true)">Mostrar todos</button></div>`
+    : (lista.length>LST_POR_VEZ ? `<div class="lst-mais"><span>Mostrando todos os ${lista.length}</span><button class="btn-sm lst-discreto" onclick="lstMostrarMenos('${chave}','${fnRender}')">Mostrar só ${LST_POR_VEZ}</button></div>` : '');
+  return {vis, rodape};
+}
+function lstMostrarMais(chave, fn, todos){ const st=_lstPag[chave]; if(!st) return; st.n = todos ? 1e9 : st.n + LST_POR_VEZ; window[fn](); }
+function lstMostrarMenos(chave, fn){ const st=_lstPag[chave]; if(!st) return; st.n = LST_POR_VEZ; window[fn](); }
+function lstDataHtml(iso){
+  if(!iso) return `<div class="lst-data sem"><span class="d">—</span><span class="m">sem data</span></div>`;
+  const d = new Date(iso+'T12:00:00'); const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const dias = Math.round((new Date(iso+'T00:00:00') - hoje)/86400000);
+  const MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const cls = dias<0 ? 'passou' : dias<=7 ? 'perto' : '';
+  return `<div class="lst-data ${cls}" title="${fmtD(iso)}${dias<0?' (já passou)':dias===0?' (hoje)':' (em '+dias+' dias)'}"><span class="d">${String(d.getDate()).padStart(2,'0')}</span><span class="m">${MES[d.getMonth()]}${d.getFullYear()!==hoje.getFullYear()?' '+String(d.getFullYear()).slice(2):''}</span></div>`;
+}
+function lstFiltroOrc(st){
+  const btn = [...document.querySelectorAll('#tela-lista .filtros .fb')].find(b=>(b.getAttribute('onclick')||'').includes(`'${st}'`));
+  if(btn) setFiltro(st, btn); else { filtroAtual = st; renderLista(); }
+}
+function lstFiltroContr(st){
+  if(st==='nf'){ const b=document.getElementById('fb-nf-pendente'); if(b) toggleFiltroNF(b); return; }
+  const btn = [...document.querySelectorAll('#tela-contratos .filtros .fb')].find(b=>(b.getAttribute('onclick')||'').includes(`setFiltroContr('${st}'`));
+  if(btn) setFiltroContr(st, btn);
+}
+
 function setFiltro(f,btn){
   filtroAtual=f;
-  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#tela-lista .filtros .fb').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   renderLista();
 }
@@ -4746,15 +4887,19 @@ function renderBuscaGlobal(q){
   el.style.display = 'block';
 }
 
-function renderLista(busca=''){
+function renderLista(busca){
+  if(busca===undefined) busca = document.getElementById('busca-orcs')?.value || '';
   popularFiltroTipoSelect('orc-filtro-tipo');
   const orcs=getOrcs();
   document.getElementById('r-tot').textContent=orcs.length;
   document.getElementById('r-aprov').textContent=orcs.filter(o=>o.status==='Aprovado').length;
   document.getElementById('r-env').textContent=orcs.filter(o=>o.status==='Enviado ao Cliente').length;
+  { const e=document.getElementById('r-rasc'); if(e) e.textContent=orcs.filter(o=>(o.status||'Rascunho')==='Rascunho').length; }
+  { const e=document.getElementById('r-canc'); if(e) e.textContent=orcs.filter(o=>o.status==='Cancelado').length; }
+  document.querySelectorAll('#tela-lista .lst-kpi').forEach(k=>k.classList.toggle('ativo', k.getAttribute('data-st')===filtroAtual));
 
   let lista=orcs.slice().reverse();
-  if(filtroAtual!=='todos') lista=lista.filter(o=>o.status===filtroAtual);
+  if(filtroAtual!=='todos') lista=lista.filter(o=>(o.status||'Rascunho')===filtroAtual);
   if(busca){const q=busca.toLowerCase();lista=lista.filter(o=>(o.nome||'').toLowerCase().includes(q)||(o.tipo||'').toLowerCase().includes(q)||(o.local||'').toLowerCase().includes(q)||(o.titulo||'').toLowerCase().includes(q));}
 
   const periodoOrc = document.getElementById('orc-filtro-periodo')?.value || 'todos';
@@ -4771,27 +4916,32 @@ function renderLista(busca=''){
   // 'recente' já é a ordem padrão (orcs.slice().reverse())
 
   const c=document.getElementById('lista-orcs');
+  const cont=document.getElementById('lista-orcs-contagem');
   if(!lista.length){
+    if(cont) cont.textContent='';
     c.innerHTML=`<div class="empty"><div class="ei">🌿</div><h3>${!orcs.length?'Nenhum orçamento ainda':'Nenhum resultado'}</h3><p>${!orcs.length?'Clique em "+ Novo" para começar.':'Tente outro filtro.'}</p></div>`;
     return;
   }
-  c.innerHTML=lista.map(o=>`
-    <div class="orc-card" onclick="abrirOrc('${o.id}')">
-      <div class="orc-num">#${o.num||o.id.slice(-4)}</div>
+  const pg = lstPaginar('orcs', lista, [filtroAtual,busca,document.getElementById('orc-filtro-periodo')?.value,document.getElementById('orc-filtro-tipo')?.value,document.getElementById('orc-ordenar')?.value].join('|'), 'renderLista');
+  if(cont) cont.textContent = `${lista.length} orçamento${lista.length>1?'s':''}${filtroAtual!=='todos'||busca?' neste filtro':''}`;
+  c.innerHTML='<div class="lst-lista">'+pg.vis.map(o=>{
+    const valorO = o.total?'R$ '+fmtN(parseFloat(String(o.total).replace(/[^0-9,]/g,'').replace(',','.'))||o.total):'—';
+    return `
+    <div class="orc-card lst-row" onclick="abrirOrc('${o.id}')">
+      ${lstDataHtml(o.data)}
       <div class="orc-info">
-        <div class="orc-nome">${o.nome||'Sem nome'}${o.titulo?` <span style="font-weight:400;color:var(--verde);font-size:12px">· ${o.titulo}</span>`:''}</div>
-        <div class="orc-det">${tipoExibicao(o.tipo)||'—'} · ${o.data?fmtD(o.data):'Data a definir'} · ${o.local||'—'}</div>
+        <div class="orc-nome">${o.nome||'Sem nome'}${o.titulo?` <span class="lst-titulo">· ${o.titulo}</span>`:''}</div>
+        <div class="orc-det">${tipoExibicao(o.tipo)||'—'}${o.local?' · '+o.local:''} · <span class="lst-num">nº ${o.num||o.id.slice(-4)}</span></div>
       </div>
-      <div class="orc-valor">${o.total?'R$ '+fmtN(parseFloat(String(o.total).replace(/[^0-9,]/g,'').replace(',','.'))||o.total):'—'}</div>
+      <div class="orc-valor">${valorO}</div>
       <div><span class="badge ${bCls(o.status)}">${o.status||'Rascunho'}</span></div>
       <div class="orc-acoes" onclick="event.stopPropagation()">
         ${o.status==='Aprovado'?`<button class="btn-sm btn-acao" onclick="abrirOrc('${o.id}');setTimeout(()=>gerarContratoDoOrc(),300)">Gerar contrato</button>`:''}
         ${o.fone?`<button class="btn-sm btn-icone" onclick="enviarWhatsApp('${o.id}')" title="Enviar mensagem no WhatsApp" aria-label="Enviar mensagem no WhatsApp"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"></path></svg></button>`:''}
         <button class="btn-sm" onclick="duplicarOrc('${o.id}')" title="Duplicar este orçamento">⧉</button>
-        <button class="btn-sm" onclick="abrirOrc('${o.id}')">Editar</button>
-        <button class="btn-sm del" onclick="excluirOrc('${o.id}')">×</button>
+        <button class="btn-sm del" onclick="excluirOrc('${o.id}')" title="Excluir">×</button>
       </div>
-    </div>`).join('');
+    </div>`;}).join('')+'</div>'+pg.rodape;
 }
 
 // ===== ABRIR/EXCLUIR =====
@@ -7707,6 +7857,13 @@ let ultimaListaPromocaoAdmin = [];
 let catAdminFormAberto = {};
 
 // ===== TELA ÚNICA: itens do catálogo original + extras + pendentes, juntos, por categoria =====
+function escolherCatCardapio(cat){
+  const sel = document.getElementById('cardapio-admin-filtro-cat'); if(!sel) return;
+  sel.value = cat;
+  const b = document.getElementById('busca-cardapio-admin'); if(b) b.value = '';
+  renderCardapioAdmin();
+  document.getElementById('cardapio-cats')?.scrollIntoView({block:'nearest'});
+}
 function renderCardapioAdmin(){
   const el = document.getElementById('itensperso-body');
   if(!el) return;
@@ -7724,7 +7881,11 @@ function renderCardapioAdmin(){
     filtroCatAdminSel.innerHTML = optsHtmlAdmin;
     filtroCatAdminSel.value = valorAtualAdmin;
     catFiltroAdmin = filtroCatAdminSel.value;
+    // Na primeira vez, abre só a primeira categoria (antes mostrava o cardápio inteiro de uma vez)
+    if(!window._cardCatIniciado){ window._cardCatIniciado = true; if(!catFiltroAdmin && categoriasDestino[0]){ filtroCatAdminSel.value = categoriasDestino[0]; catFiltroAdmin = categoriasDestino[0]; } }
   }
+  const catEscolhida = catFiltroAdmin;
+  if(busca) catFiltroAdmin = ''; // buscando: procura em todas as categorias
 
   // Agrega itens personalizados usados nos orçamentos (candidatos a "pendente")
   const orcs = getOrcs();
@@ -7773,6 +7934,16 @@ function renderCardapioAdmin(){
   });
   ultimosPendentesAdmin = pendentesVisiveis;
 
+  // Botões de categoria com a quantidade de itens
+  { const box = document.getElementById('cardapio-cats');
+    if(box){
+      const nPend = cat => (porCategoria[cat]||[]).filter(l=>l.status==='pendente').length;
+      box.innerHTML = (busca?`<div class="card-cats-busca">Buscando "<b>${_esc(busca)}</b>" em todas as categorias</div>`:'') +
+        `<button type="button" class="card-cat${!catEscolhida?' ativa':''}" onclick="escolherCatCardapio('')">Todas</button>` +
+        categoriasDestino.map(cat=>{ const n=(porCategoria[cat]||[]).length, p=nPend(cat);
+          return `<button type="button" class="card-cat${catEscolhida===cat?' ativa':''}" onclick="escolherCatCardapio('${String(cat).replace(/'/g,"\\'")}')">${_esc(nomeCat(cat))} <small>${n}</small>${p?`<span class="card-cat-pend" title="${p} item(ns) novo(s) para revisar">${p}</span>`:''}</button>`; }).join('');
+    }
+  }
   // Sempre mostra TODAS as categorias (mesmo vazias), pra sempre dar pra adicionar item novo
   let categoriasComItens = categoriasDestino.slice();
   if(catFiltroAdmin){
@@ -8091,7 +8262,7 @@ function renderAgenda(){
   // Resumo mês
   const orcsMes=orcs.filter(o=>{if(!o.data)return false;const d=new Date(o.data+'T12:00:00');return d.getFullYear()===calAno&&d.getMonth()===calMes;});
   const cont={};orcsMes.forEach(o=>{cont[o.status]=(cont[o.status]||0)+1;});
-  const totMes=orcsMes.reduce((s,o)=>s+(o.total||0),0);
+  const totMes=orcsMes.reduce((s,o)=>s+(typeof o.total==='number'?o.total:(parseMoedaBR(o.total)||0)),0); // aceita valor salvo como texto
   let rsHtml='';
   if(!orcsMes.length){rsHtml='<div style="font-size:11px;color:var(--leve);font-style:italic;text-align:center;padding:8px 0">Nenhum evento este mês</div>';}
   else{Object.entries(cont).forEach(([st,n])=>{rsHtml+=`<div class="rs-linha"><span><span class="badge ${badgeCls(st)}">${st}</span></span><span style="font-weight:600">${n}</span></div>`;});rsHtml+=`<div class="rs-linha" style="margin-top:4px"><span style="font-weight:600;color:var(--verde)">Total em aberto</span><span style="font-weight:700;color:var(--verde)">R$ ${fmtN(totMes)}</span></div>`;}
@@ -8267,7 +8438,8 @@ function toggleFiltroSaldoPendente(btn){
   renderContratos();
 }
 
-function renderContratos(busca=''){
+function renderContratos(busca){
+  if(busca===undefined) busca = document.getElementById('busca-contratos')?.value || '';
   popularFiltroTipoSelect('contr-filtro-tipo');
   const contrs=getContrs();
   document.getElementById('rc-tot').textContent=contrs.length;
@@ -8275,6 +8447,11 @@ function renderContratos(busca=''){
   document.getElementById('rc-enc').textContent=contrs.filter(c=>c.status==='Encerrado').length;
   document.getElementById('rc-nf').textContent=contrs.filter(nfPendente).length;
   atualizarPainelFinanceiro(contrs);
+  // resumos dos painéis recolhidos + cartão ativo
+  { const t=id=>document.getElementById(id)?.textContent||'';
+    const rf=document.getElementById('lst-resumo-fin'); if(rf) rf.innerHTML=`este mês <b>${t('fin-mes')}</b> · próximos 30 dias <b>${t('fin-30d')}</b> · no ano <b>${t('fin-ano')}</b>`;
+    const rr=document.getElementById('lst-resumo-receber'); if(rr) rr.innerHTML=`<b>${t('fin-a-receber')}</b> em contratos`;
+    document.querySelectorAll('#tela-contratos .lst-kpi').forEach(k=>{ const st=k.getAttribute('data-st'); k.classList.toggle('ativo', st==='nf' ? !!filtroNFPendente : (!filtroNFPendente && st===filtroCont)); }); }
 
   let lista=contrs.slice().reverse();
   if(filtroCont!=='todos')lista=lista.filter(c=>c.status===filtroCont);
@@ -8295,11 +8472,14 @@ function renderContratos(busca=''){
   else if(ordenarContr==='nome') lista = lista.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||'', 'pt-BR'));
 
   const el=document.getElementById('lista-contratos');
+  const contEl=document.getElementById('lista-contratos-contagem');
+  if(contEl) contEl.textContent = lista.length ? `${lista.length} contrato${lista.length>1?'s':''}${filtroCont!=='todos'||busca||filtroNFPendente||filtroSaldoPendente?' neste filtro':''}` : '';
   if(!lista.length){
     el.innerHTML=`<div class="empty"><div class="ei">📄</div><h3>${!contrs.length?'Nenhum contrato ainda':'Nenhum resultado'}</h3><p>${!contrs.length?'Clique em "+ Novo contrato" ou gere a partir de um orçamento aprovado.':'Tente outro filtro.'}</p></div>`;
     return;
   }
-  el.innerHTML=lista.map(ct=>{
+  const pg = lstPaginar('contratos', lista, [filtroCont,filtroNFPendente,filtroSaldoPendente,busca,document.getElementById('contr-filtro-periodo')?.value,document.getElementById('contr-filtro-tipo')?.value,document.getElementById('contr-ordenar')?.value].join('|'), 'renderContratos');
+  el.innerHTML='<div class="lst-lista">'+pg.vis.map(ct=>{
     const diasParaEvento = ct.ev_data ? Math.ceil((new Date(ct.ev_data+'T00:00:00') - new Date(new Date().toDateString())) / 86400000) : null;
     const totalContratoCt = parseMoedaBR(ct.valor_total);
     const totalPagoCt = totalPagoContrato(ct.pagamentos, ct);
@@ -8314,12 +8494,12 @@ function renderContratos(busca=''){
       ? `<div style="font-size:10px;font-weight:700;color:#E65100;margin-top:2px">NF pendente</div>`
       : (ct.nf_emitida ? `<div style="font-size:10px;font-weight:700;color:#2E7D32;margin-top:2px">NF emitida${ct.nf_numero?' nº '+ct.nf_numero:''}</div>` : '');
     return `
-    <div class="contr-card" onclick="abrirContrato('${ct.id}')">
-      <div class="orc-num">#${ct.num||ct.id.slice(-4)}</div>
+    <div class="contr-card lst-row" onclick="abrirContrato('${ct.id}')">
+      ${lstDataHtml(ct.ev_data)}
       <div class="orc-info">
-        <div class="orc-nome">${ct.nome||'Sem nome'}${ct.orc_id?`<span class="orc-link-badge">Orç. vinculado</span>`:''}</div>
-        <div class="orc-det">${tipoExibicao(ct.tipo)||'—'} · ${ct.ev_data?fmtD(ct.ev_data):'—'} · ${ct.local||'—'}</div>
-        <div style="font-size:10px;font-weight:700;color:${pagtoCor};margin-top:2px">${pagtoLabel}</div>
+        <div class="orc-nome">${ct.nome||'Sem nome'}</div>
+        <div class="orc-det">${tipoExibicao(ct.tipo)||'—'}${ct.local?' · '+ct.local:''} · <span class="lst-num">nº ${ct.num||ct.id.slice(-4)}</span></div>
+        <div class="lst-pagto" style="--cor:${pagtoCor}">${pagtoLabel}${totalContratoCt>0&&!pagoIntegralCt&&totalPagoCt>0?`<span class="lst-barra"><span style="width:${Math.min(100,Math.round(totalPagoCt/totalContratoCt*100))}%"></span></span>`:''}</div>
         ${alertaSaldo}
         ${nfTag}
       </div>
@@ -8330,10 +8510,9 @@ function renderContratos(busca=''){
         <button class="btn-sm" style="background:#EDE7F6;color:#4527A0;border-color:#4527A0" onclick="imprimirContratoRapido('${ct.id}')" title="Baixa 2 arquivos separados: o PDF do contrato (pro cliente) e o Menu Interno (uso interno) — sem precisar abrir">Imprimir</button>
         ${ct.fone?`<button class="btn-sm btn-icone" onclick="enviarWhatsAppContrato('${ct.id}')" title="Enviar mensagem no WhatsApp" aria-label="Enviar mensagem no WhatsApp"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"></path></svg></button>`:''}
         <button class="btn-sm" onclick="duplicarContrato('${ct.id}')" title="Duplicar este contrato (não copia pagamentos nem NF)">⧉</button>
-        <button class="btn-sm" onclick="abrirContrato('${ct.id}')">Editar</button>
-        <button class="btn-sm del" onclick="excluirContrato('${ct.id}')">×</button>
+        <button class="btn-sm del" onclick="excluirContrato('${ct.id}')" title="Excluir">×</button>
       </div>
-    </div>`;}).join('');
+    </div>`;}).join('')+'</div>'+pg.rodape;
 }
 
 // Marca a NF como emitida direto da lista, sem precisar abrir o contrato.
