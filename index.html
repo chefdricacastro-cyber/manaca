@@ -1889,6 +1889,55 @@ div.cx-kpi{cursor:default}
 #btn-gerar-contrato-wrap button{background:linear-gradient(135deg,#D9AE5C,#B8893A) !important;color:#20231A !important;border:0 !important;font-weight:700 !important}
 #tela-form .form-left > .btn-voltar,#tela-contr-form .pg-wrap > .btn-voltar{display:none}
 @media(max-width:700px){.ed-total{display:none}.ed-tit{min-width:120px}.ed-nome{font-size:14px}.ed-todas{display:none}}
+
+/* ===================== CELULAR (18/11/2026) ===================== */
+@media(max-width:700px){
+  /* barra de sincronização numa linha só, que rola de lado */
+  .util-bar{display:flex !important;flex-wrap:nowrap !important;overflow-x:auto !important;white-space:nowrap !important;gap:10px !important;padding:6px 12px !important;font-size:10px !important;scrollbar-width:none}
+  .util-bar::-webkit-scrollbar{display:none}
+  .util-bar > *{flex:0 0 auto !important}
+  .util-usuario select{font-size:10.5px !important;padding:2px 6px !important}
+  /* alerta vermelho: não gruda no topo e fica mais baixo */
+  #alerta-pre-evento-global{position:static !important;padding:8px 12px !important;font-size:12px !important}
+  #alerta-pre-evento-global .ape-titulo{font-size:9.5px !important;margin-bottom:4px}
+  #alerta-pre-evento-global .ape-linha{gap:6px !important}
+  #alerta-pre-evento-global button{padding:3px 9px !important;font-size:11px !important}
+  /* espaços das páginas */
+  .pg-wrap{padding:16px 12px 50px !important}
+  .pg-title{font-size:24px !important}
+  /* cartões de resumo (Orçamentos/Contratos) numa fileira que rola de lado */
+  .lst-resumo{display:flex !important;overflow-x:auto;gap:8px !important;padding:2px 2px 6px;scrollbar-width:none}
+  .lst-resumo::-webkit-scrollbar{display:none}
+  .lst-resumo > .lst-kpi{flex:0 0 auto;min-width:112px;padding:10px 12px !important}
+  .lst-kpi .rn{font-size:20px !important}
+  .lst-kpi.ativo::after{content:none}
+  .lst-topo .btn-novo{padding:7px 14px !important}
+  .lst-painel .resumo-cards{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+  .lst-ferramentas{padding:10px !important}
+  .lst-ferramentas select{min-width:0 !important;flex:1 1 140px}
+  /* Livro-Caixa */
+  .cx-barra{position:static !important;flex-direction:column;align-items:stretch}
+  .cx-abas{flex-wrap:nowrap !important;overflow-x:auto;border-radius:14px !important;scrollbar-width:none;min-width:0;max-width:100%}
+  .cx-barra,.cx-barra > *{min-width:0;max-width:100%}
+  #tela-financeiro .pg-wrap{overflow-x:hidden}
+  .cx-abas::-webkit-scrollbar{display:none}
+  .cx-aba{padding:7px 12px !important;font-size:12px !important}
+  .cx-setor{justify-content:flex-start}
+  .cx-acoes{gap:6px !important}
+  .cx-btn-add span{display:none}
+  .cx-filtro-nf{font-size:11px !important}
+  .cx-kpi .rn{font-size:18px !important}
+  .cx-valor input{width:78px !important}
+  .cx-sec{padding:4px 6px 6px !important}
+  /* Início */
+  .ini-kpi .rn{font-size:22px !important}
+  .ini-hoje{padding:10px 12px !important}
+  /* telas de edição */
+  .ed-barra{padding:8px 12px 6px !important}
+  .ed-linha1{gap:8px !important}
+  .ed-voltar{padding:5px 9px !important;font-size:11px !important}
+  #tela-form .section,#tela-contr-form .section{scroll-margin-top:150px}
+}
 </style>
 </head>
 <body>
@@ -13603,6 +13652,7 @@ function gcalCarregarToken(){
             if(!gcalId){ alert('Conectou, mas não consegui abrir o calendário "Buffet Manacá". Tire um print e mande para o Claude.'); return; }
             try{ sincronizarTodosEventosGcal(); }catch(e){}
             try{ sincronizarTodosLembretesGcal(); }catch(e){}
+            try{ setTimeout(()=>backupMensalSeFaltar(), 8000); }catch(e){}
             alert('✓ Google Agenda conectado!');
           }, 4000);
         }
@@ -15705,7 +15755,7 @@ function renderRecontato(){
 }
 
 // ---------- 2) CÓPIA DE SEGURANÇA ----------
-var BACKUP_CHAVES_FORA = ['manaca_gcal_token','manaca_gcal_id','manaca_gcal_ja_conectou','manaca_tema','manaca_usuario','manaca_secoes_estado','manaca_ultimo_backup_drive','manaca_fin_cardapio_ranking_filtro'];
+var BACKUP_CHAVES_FORA = ['manaca_gcal_token','manaca_gcal_id','manaca_gcal_ja_conectou','manaca_tema','manaca_usuario','manaca_secoes_estado','manaca_ultimo_backup_drive','manaca_ultimo_backup_mensal','manaca_fin_cardapio_ranking_filtro'];
 function montarBackup(){
   const dados = {};
   for(let i=0;i<localStorage.length;i++){
@@ -15763,15 +15813,63 @@ async function backupNoDrive(manual){
 // Automática: uma vez por semana, depois de sincronizar, se o Google estiver conectado.
 function backupAutomaticoSemanal(){
   try{
+    backupMensalSeFaltar(); // 18/11/2026: cópia do mês, guardada para sempre
     const ult = localStorage.getItem('manaca_ultimo_backup_drive');
     if(ult && (Date.now() - new Date(ult).getTime()) < 7*86400000) return;
     if(gcalToken) backupNoDrive(false);
   }catch(e){}
 }
+
+// ===== CÓPIA MENSAL NO DRIVE (18/11/2026) =====
+// Uma cópia por mês, na pasta "Buffet Manacá / Cópias de segurança do sistema /
+// Cópias mensais", com o nome Backup_Manaca_MENSAL_AAAA-MM.json. É feita na
+// primeira vez que alguém abre o sistema com o Google conectado em cada mês.
+// Antes de enviar, procura no Drive se a cópia do mês já existe (assim dois
+// computadores/celulares não duplicam). Sistema sem servidor: se ninguém abrir
+// o sistema conectado ao Google no mês, a cópia é feita na próxima abertura.
+let _backupMensalRodando = false;
+async function backupMensalSeFaltar(forcar){
+  if(!gcalToken || _backupMensalRodando) return false;
+  const d = new Date();
+  const mesId = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  if(!forcar && localStorage.getItem('manaca_ultimo_backup_mensal')===mesId) return false;
+  _backupMensalRodando = true;
+  try{
+    const raiz = await driveBuscarOuCriarPasta(DRIVE_PASTA_RAIZ);
+    const pastaBk = await driveBuscarOuCriarPasta('Cópias de segurança do sistema', raiz);
+    const pasta = await driveBuscarOuCriarPasta('Cópias mensais', pastaBk);
+    if(!pasta) throw new Error('pasta do Drive');
+    const nome = `Backup_Manaca_MENSAL_${mesId}.json`;
+    const headers = {'Authorization':'Bearer '+gcalToken.access_token};
+    const q = `name='${nome}' and '${pasta}' in parents and trashed=false`;
+    const busca = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id)`, {headers});
+    if(busca.status===401){ gcalTokenExpirou(); throw new Error('Google desconectado'); }
+    const jaTem = busca.ok ? ((await busca.json()).files||[]).length>0 : false;
+    if(!jaTem){
+      const conteudo = JSON.stringify(montarBackup());
+      const boundary = '-------manacamensal'+Date.now();
+      const meta = JSON.stringify({name:nome, parents:[pasta], mimeType:'application/json', description:'Cópia de segurança mensal do Sistema Manacá (não apagar).'});
+      const body = `\r\n--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${conteudo}\r\n--${boundary}--`;
+      const resp = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',{
+        method:'POST', headers:{...headers,'Content-Type':'multipart/related; boundary='+boundary}, body
+      });
+      if(!resp.ok) throw new Error('Drive '+resp.status);
+    }
+    localStorage.setItem('manaca_ultimo_backup_mensal', mesId);
+    atualizarInfoBackup();
+    return true;
+  }catch(e){
+    console.warn('Cópia mensal no Drive falhou (tenta de novo na próxima abertura):', e);
+    return false;
+  }finally{ _backupMensalRodando = false; }
+}
 function atualizarInfoBackup(){
   const el = document.getElementById('info-backup'); if(!el) return;
   const ult = localStorage.getItem('manaca_ultimo_backup_drive');
-  el.textContent = ult ? 'última no Drive: '+new Date(ult).toLocaleDateString('pt-BR') : 'nenhuma no Drive ainda';
+  const mens = localStorage.getItem('manaca_ultimo_backup_mensal');
+  const MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const mensTxt = mens ? ` · mensal de ${MES[parseInt(mens.slice(5,7))-1]}/${mens.slice(2,4)} ✓` : '';
+  el.textContent = (ult ? 'última no Drive: '+new Date(ult).toLocaleDateString('pt-BR') : 'nenhuma no Drive ainda') + mensTxt;
 }
 
 // ---------- 3 e 4) CUSTO E RENDIMENTO POR ITEM ----------
