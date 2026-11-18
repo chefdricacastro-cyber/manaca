@@ -1652,6 +1652,125 @@ input[type=text],input[type=date],input[type=number],input[type=tel],textarea,se
 @media(max-width:560px){.ini-ev{grid-template-columns:auto minmax(0,1fr)}.ini-ev-status{grid-column:2;justify-self:start}}
 .ini-legenda{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px dashed var(--borda)}
 .ini-legenda .ichip{font-size:9.5px}
+
+/* ===================== LIVRO-CAIXA NOVO (18/11/2026) ===================== */
+#fin-totais.cx-resumo{display:grid !important;grid-template-columns:repeat(5,minmax(0,1fr)) !important;gap:10px !important;margin:16px 0 14px !important}
+@media(max-width:1100px){#fin-totais.cx-resumo{grid-template-columns:repeat(3,minmax(0,1fr)) !important}}
+@media(max-width:560px){#fin-totais.cx-resumo{grid-template-columns:repeat(2,minmax(0,1fr)) !important}}
+.cx-kpi{all:unset;box-sizing:border-box;display:flex !important;flex-direction:column;gap:2px;text-align:left;padding:14px 16px !important;min-height:104px;font-family:var(--k-txt);cursor:pointer}
+div.cx-kpi{cursor:default}
+.cx-kpi .rn{font-size:21px !important;line-height:1.2;margin:4px 0 2px}
+.cx-kpi-sub{font-size:11px;color:var(--leve);margin-top:auto}
+.cx-kpi.kpi-saldo .cx-kpi-sub{color:rgba(244,235,216,.75) !important}
+.cx-prog{height:6px;border-radius:9999px;background:var(--ini-cedo-bg);overflow:hidden;margin:4px 0 2px}
+.cx-prog>div{height:100%;border-radius:9999px;background:linear-gradient(90deg,#7FA35C,#4F7A34)}
+:root:not([data-theme="dark"]) body #fin-totais .cx-kpi.ok{background:radial-gradient(120% 90% at 0% 0%,rgba(110,150,105,.22),transparent 70%),var(--k-surface) !important}
+:root:not([data-theme="dark"]) body #fin-totais .cx-kpi.ok .rn{color:#3F5B2C !important}
+:root:not([data-theme="dark"]) body #fin-totais .cx-kpi.alerta{background:radial-gradient(120% 90% at 0% 0%,rgba(198,40,40,.16),transparent 70%),var(--k-surface) !important;border-color:rgba(198,40,40,.35) !important}
+:root:not([data-theme="dark"]) body #fin-totais .cx-kpi.alerta .rn,:root:not([data-theme="dark"]) body #fin-totais .cx-kpi.alerta .cx-kpi-sub b{color:#B3261E !important}
+:root:not([data-theme="dark"]) body #fin-totais .cx-kpi.falta{background:radial-gradient(120% 90% at 0% 0%,rgba(205,160,76,.24),transparent 70%),var(--k-surface) !important;border-color:var(--k-gold-borda) !important}
+:root:not([data-theme="dark"]) body #fin-totais .cx-kpi.falta .rn{color:#7A5512 !important}
+:root[data-theme="dark"] #fin-totais .cx-kpi.alerta .rn{color:var(--vermelho-t) !important}
+/* abas */
+.cx-barra{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px;position:sticky;top:0;z-index:20;padding:8px 0;background:transparent}
+.cx-abas{display:flex;gap:4px;flex-wrap:wrap;padding:4px;border-radius:9999px;border:1px solid var(--borda);background:var(--creme)}
+:root:not([data-theme="dark"]) body .cx-abas{background:rgba(255,253,247,.85);backdrop-filter:blur(12px);border-color:var(--k-borda);box-shadow:var(--k-sombra)}
+.cx-aba{all:unset;cursor:pointer;font-family:var(--k-txt);font-size:12.5px;font-weight:600;color:var(--leve);padding:7px 14px;border-radius:9999px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.cx-aba:hover{color:var(--texto);background:var(--ini-cedo-bg)}
+.cx-aba.ativa{background:#282B1C;color:#EBCB86}
+:root[data-theme="dark"] .cx-aba.ativa{background:var(--verde);color:#1D1F15}
+.cx-aba-n{font-size:10px;font-weight:700;padding:1px 7px;border-radius:9999px;background:var(--ini-falta-bg);color:var(--ini-falta-t)}
+.cx-aba-n:empty{display:none}
+.cx-aba-n.alerta{background:var(--vermelho);color:var(--vermelho-t)}
+.cx-setor{margin:0 !important}
+/* contas */
+.cx-acoes{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.cx-btn-add{font-weight:700 !important}
+.cx-btn-add span{font-weight:400;color:var(--leve);font-size:10.5px}
+.cx-filtro-nf.active{background:#AD1457 !important;color:#fff !important;border-color:#AD1457 !important}
+.cx-form{border:1px solid var(--k-gold-borda);border-radius:var(--k-r-lg);padding:14px 16px;margin-bottom:14px;background:var(--creme)}
+:root:not([data-theme="dark"]) body .cx-form{background:var(--k-surface);box-shadow:var(--k-sombra)}
+.cx-form-topo{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;font-size:14px}
+.cx-form-setor{display:flex;gap:6px}
+.cx-form-grid{display:grid;grid-template-columns:90px minmax(0,1fr) 150px 170px;gap:10px}
+.cx-form-grid label{display:flex;flex-direction:column;gap:4px;font-family:var(--k-rot);font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--leve)}
+.cx-form-grid label.toda{grid-column:1/-1}
+.cx-form-grid input,.cx-form-grid select{font-family:var(--k-txt);font-size:13px;text-transform:none;letter-spacing:0;padding:8px 10px}
+@media(max-width:700px){.cx-form-grid{grid-template-columns:80px minmax(0,1fr)}.cx-form-grid label.larga{grid-column:2}}
+.cx-form-botoes{display:flex;gap:8px;margin-top:12px}
+.cx-btn-salvar{background:#282B1C !important;color:#EBCB86 !important;border-color:#282B1C !important;font-weight:700 !important}
+.cx-sec{border:1px solid var(--borda);border-radius:var(--k-r-lg);padding:6px 10px 8px;margin-bottom:12px;background:var(--creme)}
+:root:not([data-theme="dark"]) body .cx-sec{background:var(--k-surface);border-color:var(--k-borda);box-shadow:var(--k-brilho),var(--k-sombra)}
+.cx-sec.vencida{border-color:rgba(198,40,40,.4) !important;box-shadow:inset 4px 0 0 var(--vermelho-t),var(--k-sombra) !important}
+.cx-sec.semana{border-color:var(--k-gold-borda) !important;box-shadow:inset 4px 0 0 #C9993F,var(--k-sombra) !important}
+.cx-sec.pagas{opacity:.92}
+.cx-sec-topo{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:8px 6px 6px}
+.cx-sec-tit{font-size:14px;font-weight:700;color:var(--texto)}
+.cx-sec.vencida .cx-sec-tit{color:var(--vermelho-t)}
+.cx-sec-n{font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:9999px;background:var(--ini-cedo-bg);color:var(--leve);margin-left:4px}
+.cx-sec-sub{font-size:11px;color:var(--leve)}
+.cx-sec-tot{font-family:var(--k-num);font-weight:700;font-size:14px;color:var(--texto);white-space:nowrap}
+.cx-sec-seta{font-family:var(--k-txt);font-size:11px;font-weight:600;color:var(--k-gold);margin-left:6px}
+.cx-linha{display:grid;grid-template-columns:40px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:8px 6px;border-top:1px solid var(--borda)}
+:root:not([data-theme="dark"]) body .cx-linha{border-top-color:rgba(40,43,28,.07)}
+.cx-linha:hover{background:var(--ini-cedo-bg);border-radius:10px}
+.cx-dia span{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-family:var(--k-num);font-weight:700;font-size:12.5px;border:1.5px solid var(--borda);color:var(--texto)}
+.cx-linha.vencida .cx-dia span,.cx-linha.hoje .cx-dia span{background:var(--vermelho);border-color:var(--vermelho-t);color:var(--vermelho-t)}
+.cx-linha.breve .cx-dia span{background:var(--ini-falta-bg);border-color:#C9993F;color:var(--ini-falta-t)}
+.cx-linha.pago{opacity:.6}
+.cx-linha.pago .cx-nome{text-decoration:line-through;text-decoration-color:rgba(0,0,0,.25)}
+.cx-linha.pago .cx-dia span{background:var(--ini-ok-bg);border-color:var(--ini-ok-t);color:var(--ini-ok-t)}
+.cx-nome{font-size:13px;font-weight:600;color:var(--texto);display:flex;flex-wrap:wrap;align-items:center;gap:5px}
+.cx-det{font-size:11px;color:var(--leve);margin-top:2px}
+.cx-tag{font-size:9.5px;font-weight:700;padding:1px 7px;border-radius:9999px;background:var(--ini-cedo-bg);color:var(--leve);text-decoration:none;display:inline-block}
+.cx-tag.setor.PJ{background:var(--roxo);color:var(--roxo-t)}
+.cx-tag.setor.PF{background:var(--azul);color:var(--azul-t)}
+.cx-tag.roxo{background:#EDE7F6;color:#5E35B1}
+:root[data-theme="dark"] .cx-tag.roxo{background:#2A1E30;color:#D9A5F0}
+.cx-tag.alerta{background:var(--vermelho);color:var(--vermelho-t)}
+.cx-tag.falta{background:var(--ini-falta-bg);color:var(--ini-falta-t)}
+.cx-tag.nf{background:#FCE4EC;color:#AD1457}
+:root[data-theme="dark"] .cx-tag.nf{background:#3A1E2A;color:#F48FB1}
+.cx-valor{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--leve);cursor:text}
+.cx-b-nf,.cx-b-espaco{width:36px;display:inline-block}
+:root body .cx-linha .cx-valor input{border:1px solid transparent !important;background:transparent !important;box-shadow:none !important}
+:root body .cx-linha .cx-valor input:hover{border-color:var(--borda) !important}
+:root body .cx-linha .cx-valor input:focus{border-color:var(--k-gold-l) !important;background:#fff !important;box-shadow:0 0 0 3px rgba(205,160,76,.18) !important}
+:root[data-theme="dark"] body .cx-linha .cx-valor input:focus{background:var(--creme2) !important}
+#fin-totais .cx-kpi.kpi-saldo{background:radial-gradient(120% 90% at 0% 0%,rgba(205,160,76,.28),transparent 70%),linear-gradient(135deg,#34372A,#22251A) !important;border-color:rgba(205,160,76,.30) !important}
+#fin-totais .cx-kpi.kpi-saldo .rn,#fin-totais .cx-kpi.kpi-saldo .rl{color:#F4EBD8 !important}
+#fin-totais .cx-kpi.kpi-saldo.kpi-negativo .rn{color:#F5A3A3 !important}
+:root[data-theme="dark"] #fin-totais .cx-kpi.kpi-saldo{background:#EFE5CF !important}
+:root[data-theme="dark"] #fin-totais .cx-kpi.kpi-saldo .rn,:root[data-theme="dark"] #fin-totais .cx-kpi.kpi-saldo .rl,:root[data-theme="dark"] #fin-totais .cx-kpi.kpi-saldo .cx-kpi-sub{color:#1D1F15 !important}
+.cx-valor input{width:92px;text-align:right;border:1px solid transparent !important;background:transparent !important;box-shadow:none !important;font-family:var(--k-num);font-weight:700;font-size:13.5px;color:var(--texto);padding:5px 6px !important}
+.cx-valor input:hover{border-color:var(--borda) !important}
+.cx-valor input:focus{border-color:var(--k-gold-l) !important;background:#fff !important}
+.cx-botoes{display:flex;gap:4px;align-items:center}
+.cx-b-pago{min-width:66px;font-weight:700 !important}
+.cx-b-pago.ativo{background:var(--ini-ok-bg) !important;color:var(--ini-ok-t) !important;border-color:var(--ini-ok-t) !important}
+.cx-b-nf.ativo{background:#AD1457 !important;border-color:#AD1457 !important}
+.cx-b-mini{padding-left:8px !important;padding-right:8px !important;opacity:.7}
+.cx-b-mini:hover{opacity:1}
+@media(max-width:620px){.cx-linha{grid-template-columns:36px minmax(0,1fr) auto}.cx-botoes{grid-column:2 / -1;justify-content:flex-start}}
+.cx-vazio{font-size:13px;color:var(--leve);padding:22px;text-align:center}
+/* receitas */
+.cx-duas{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:900px){.cx-duas{grid-template-columns:minmax(0,1fr)}}
+.cx-card{border:1px solid var(--borda);border-radius:var(--k-r-lg);padding:16px;background:var(--creme)}
+:root:not([data-theme="dark"]) body .cx-card{background:var(--k-surface);border-color:var(--k-borda);box-shadow:var(--k-brilho),var(--k-sombra)}
+.cx-card-topo{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.cx-card-tit{font-size:16px;font-weight:700;color:var(--texto);letter-spacing:-.01em}
+.cx-card-sub{font-size:11.5px;color:var(--leve);margin-top:2px}
+.cx-card-tot{font-family:var(--k-num);font-weight:700;font-size:20px;white-space:nowrap}
+.cx-card-tot.ok{color:var(--ini-ok-t)}
+.cx-card-tot.falta{color:var(--ini-falta-t)}
+/* relatórios */
+.cx-rel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.cx-rel{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:var(--k-r-md);border:1px solid var(--borda);background:var(--creme);font-family:var(--k-txt)}
+:root:not([data-theme="dark"]) body .cx-rel{background:var(--k-surface);border-color:var(--k-borda);box-shadow:var(--k-sombra)}
+.cx-rel:hover{border-color:var(--k-gold-borda);transform:translateY(-1px)}
+.cx-rel b{font-size:13.5px;color:var(--texto)}
+.cx-rel span{font-size:11.5px;color:var(--leve)}
 </style>
 </head>
 <body>
@@ -2584,26 +2703,104 @@ Chegamos com antecedência para montagem e preparação dos pratos</textarea>
       </div>
     </div>
 
-    <div class="fin-toolbar">
-      <button class="btn-sm" onclick="finExportarPDF()">Baixar PDF do mês</button>
-      <button class="btn-sm" onclick="finExportarExcel()">Baixar Excel do mês</button>
-      <button class="btn-sm" onclick="finExportarListaSemana()">Lista da Semana</button>
-      <button class="btn-sm" id="btn-visao-anual" onclick="finToggleVisaoAnual()">Visão anual</button>
-      <button class="btn-sm" id="btn-lucro-eventos" onclick="finToggleLucroEventos()">Lucro por evento</button>
-      <button class="btn-sm" id="btn-lucro-tipo" onclick="finToggleLucroTipo()">Lucro por tipo de evento</button>
-      <button class="btn-sm" onclick="abrirRelatorioLucro()">Imprimir relatório de lucro</button>
-      <button class="btn-sm" id="btn-cardapio-ranking" onclick="finToggleCardapioRanking()">Itens mais pedidos</button>
-      <details class="fin-manut"><summary>Manutenção e Google Agenda</summary><div class="fin-manut-botoes">
-      <button class="btn-sm" onclick="finRestaurarContasPadrao()" title="Recoloca qualquer conta fixa padrão que estiver faltando, sem duplicar nem apagar o que já existe">Restaurar contas padrão</button>
-      <button class="btn-sm" onclick="finForcarSyncGcal()" title="Reenvia pro Google Agenda só as contas que você já tem — não adiciona nem restaura nada, só garante que o que existe hoje está sincronizado lá">Ressincronizar com Google Agenda</button>
-      <button class="btn-sm" onclick="finLimparEventosOrfaosGcal()" title="Remove do Google Agenda lembretes de contas/lembretes que já foram excluídos do sistema, mas cujos eventos ficaram para trás">Limpar eventos órfãos do Google Agenda</button>
-      <button class="btn-sm" onclick="finLimparEventosDuplicadosGcal()" title="Varre o Google Agenda procurando eventos com o mesmo título e a mesma data (ex: criados de mais de um computador/celular) e apaga as cópias extras, mantendo só uma">Limpar eventos duplicados do Google Agenda</button>
-      <button class="btn-sm" onclick="finCorrigirEventosDivergentesGcal()" title="Compara o Google Agenda com as contas e lembretes de hoje e corrige eventos que ficaram numa data errada (ex: o dia no Livro-Caixa é um, mas o lembrete no Google Agenda está marcado em outro)">Corrigir datas divergentes do Google Agenda</button>
-      </div></details>
+    <!-- ===== LIVRO-CAIXA NOVO (18/11/2026): resumo do mês + abas ===== -->
+    <div class="resumo-cards cx-resumo" id="fin-totais"></div>
+
+    <div class="cx-barra">
+      <div class="cx-abas" role="tablist">
+        <button type="button" class="cx-aba" data-cx-aba="contas" onclick="finSetAba('contas')">Contas a pagar <span class="cx-aba-n" id="cx-n-contas"></span></button>
+        <button type="button" class="cx-aba" data-cx-aba="receitas" onclick="finSetAba('receitas')">Receitas <span class="cx-aba-n" id="cx-n-receitas"></span></button>
+        <button type="button" class="cx-aba" data-cx-aba="previsao" onclick="finSetAba('previsao')">Previsão por semana</button>
+        <button type="button" class="cx-aba" data-cx-aba="rotinas" onclick="finSetAba('rotinas')">Rotinas do mês <span class="cx-aba-n" id="cx-n-rotinas"></span></button>
+        <button type="button" class="cx-aba" data-cx-aba="relatorios" onclick="finSetAba('relatorios')">Relatórios</button>
+      </div>
+      <div class="filtros cx-setor">
+        <button class="fb active" data-fin-filtro="todos" onclick="finSetFiltro('todos',this)">PJ + PF</button>
+        <button class="fb" data-fin-filtro="PJ" onclick="finSetFiltro('PJ',this)">Só PJ</button>
+        <button class="fb" data-fin-filtro="PF" onclick="finSetFiltro('PF',this)">Só PF</button>
+      </div>
     </div>
 
-    <div id="prev-caixa" class="prev-caixa"></div>
+    <!-- ABA: CONTAS A PAGAR (fixas, avulsas e parcelas juntas, por situação) -->
+    <div class="cx-pane" data-cx-pane="contas">
+      <div class="cx-acoes">
+        <button class="btn-sm cx-btn-add" onclick="finNovaConta('fixa')">+ Conta fixa <span>(todo mês)</span></button>
+        <button class="btn-sm cx-btn-add" onclick="finNovaConta('avulsa')">+ Conta avulsa <span>(só um mês)</span></button>
+        <button class="btn-sm cx-btn-add" onclick="finNovaConta('parcelada')">+ Conta parcelada <span>(em x vezes)</span></button>
+        <span style="flex:1"></span>
+        <button class="fb cx-filtro-nf" id="cx-filtro-nf" onclick="finToggleSoNF()">🧾 Aguardando nota do fornecedor <b id="cx-n-nf"></b></button>
+      </div>
+      <div id="fin-novo-form"></div>
+      <div id="fin-lista-contas"></div>
+    </div>
 
+    <!-- ABA: RECEITAS -->
+    <div class="cx-pane" data-cx-pane="receitas">
+      <div class="cx-duas">
+        <div class="cx-card">
+          <div class="cx-card-topo">
+            <div><div class="cx-card-tit">Recebido no mês</div><div class="cx-card-sub">Tudo o que entrou neste mês (pagamentos dos contratos e lançamentos manuais).</div></div>
+            <div class="cx-card-tot ok" id="fin-total-recebido">R$ 0,00</div>
+          </div>
+          <button class="btn-sm cx-btn-add" style="margin-bottom:10px" onclick="finToggleForm('receita')">+ Lançar receita</button>
+      <div class="row3" id="fin-form-receita" style="display:none;margin-top:10px;background:var(--creme);border:1px solid var(--borda);border-radius:6px;padding:10px">
+        <div class="field" style="margin-bottom:0">
+          <label class="fl">Setor</label>
+          <select id="fin-r-setor"><option value="PJ">PJ</option><option value="PF">PF</option></select>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label class="fl">Dia</label>
+          <input type="number" id="fin-r-dia" min="1" max="31">
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label class="fl">Valor (R$)</label>
+          <input type="number" id="fin-r-valor" min="0" step="0.01">
+        </div>
+        <div class="field" style="grid-column:1/-1;margin-bottom:0">
+          <label class="fl">Descrição</label>
+          <input type="text" spellcheck="true" id="fin-r-desc" placeholder="Ex: Festa 15 anos - sinal">
+        </div>
+        <div style="grid-column:1/-1">
+          <button class="btn-novo" style="background:var(--verde);color:#fff" onclick="finSalvarReceita()">Salvar receita</button>
+        </div>
+      </div>
+          <div id="fin-lista-receitas"></div>
+        </div>
+        <div class="cx-card">
+          <div class="cx-card-topo">
+            <div><div class="cx-card-tit">A receber dos contratos</div><div class="cx-card-sub">Valor dos contratos ativos menos o que já foi lançado como receita (qualquer mês).</div></div>
+            <div class="cx-card-tot falta" id="fin-total-pendente">R$ 0,00</div>
+          </div>
+          <div id="fin-receitas-pendentes"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABA: PREVISÃO -->
+    <div class="cx-pane" data-cx-pane="previsao">
+      <div id="prev-caixa" class="prev-caixa"></div>
+    </div>
+
+    <!-- ABA: ROTINAS -->
+    <div class="cx-pane" data-cx-pane="rotinas">
+      <div class="cx-card">
+        <div class="cx-card-sub" style="margin-bottom:10px">Tarefas que se repetem todo mês, sem cliente envolvido (ex.: pedir a alíquota, fechar o mês). Marque ✓ quando fizer.</div>
+        <div id="fin-col-lembretes-admin"></div>
+      </div>
+    </div>
+
+    <!-- ABA: RELATÓRIOS -->
+    <div class="cx-pane" data-cx-pane="relatorios">
+      <div class="cx-rel-grid">
+        <button class="cx-rel" onclick="finExportarPDF()"><b>PDF do mês</b><span>Contas e receitas do mês para imprimir ou mandar</span></button>
+        <button class="cx-rel" onclick="finExportarExcel()"><b>Excel do mês</b><span>Planilha com tudo do mês</span></button>
+        <button class="cx-rel" onclick="finExportarListaSemana()"><b>Lista da semana</b><span>O que pagar nesta semana</span></button>
+        <button class="cx-rel" id="btn-visao-anual" onclick="finToggleVisaoAnual()"><b>Visão anual</b><span>Receitas × despesas dos últimos 12 meses</span></button>
+        <button class="cx-rel" id="btn-lucro-eventos" onclick="finToggleLucroEventos()"><b>Lucro por evento</b><span>Quanto sobrou de cada evento</span></button>
+        <button class="cx-rel" id="btn-lucro-tipo" onclick="finToggleLucroTipo()"><b>Lucro por tipo de evento</b><span>Qual tipo de evento dá mais lucro</span></button>
+        <button class="cx-rel" onclick="abrirRelatorioLucro()"><b>Imprimir relatório de lucro</b><span>Relatório completo para imprimir</span></button>
+        <button class="cx-rel" id="btn-cardapio-ranking" onclick="finToggleCardapioRanking()"><b>Itens mais pedidos</b><span>Ranking do cardápio</span></button>
+      </div>
     <div id="fin-visao-anual" style="display:none;margin-top:14px;background:#fff;border:1px solid var(--borda);border-radius:10px;padding:14px 16px;box-shadow:var(--shadow-sm)">
       <div style="font-size:11px;font-weight:700;color:var(--verde);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Receitas × Despesas — últimos 12 meses</div>
       <div style="font-size:10px;color:var(--leve);margin-bottom:10px">As despesas fixas usam os valores cadastrados hoje, aplicados retroativamente — se uma conta mudou de valor ao longo do tempo, os meses passados não refletem o valor antigo.</div>
@@ -2635,78 +2832,15 @@ Chegamos com antecedência para montagem e preparação dos pratos</textarea>
       <div id="fin-cardapio-ranking-lista"></div>
     </div>
 
-    <div class="resumo-cards" id="fin-totais" style="grid-template-columns:repeat(5,1fr);margin-top:16px"></div>
-
-    <div class="filtros" style="margin-top:14px">
-      <button class="fb active" data-fin-filtro="todos" onclick="finSetFiltro('todos',this)">Todas</button>
-      <button class="fb" data-fin-filtro="PJ" onclick="finSetFiltro('PJ',this)">Pessoa Jurídica</button>
-      <button class="fb" data-fin-filtro="PF" onclick="finSetFiltro('PF',this)">Pessoa Física</button>
-    </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:16px" id="fin-spread">
-      <div id="fin-col-pj"></div>
-      <div id="fin-col-pf"></div>
-    </div>
-    <style>@media(max-width:820px){#fin-spread{grid-template-columns:1fr}}</style>
-
-    <div style="margin-top:24px;border-top:2px solid #7B5EA7;padding-top:14px">
-      <div style="font-size:11px;font-weight:700;color:#7B5EA7;text-transform:uppercase;letter-spacing:.5px">Contas Parceladas</div>
-      <div style="font-size:10px;color:var(--leve);margin-top:2px">Pra compras divididas em várias vezes (ex: 12x) — cada parcela aparece automaticamente só no mês certo, com o número dela (ex: "Parcela 3 de 12").</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:12px" id="fin-spread-parc">
-        <div id="fin-col-parc-pj"></div>
-        <div id="fin-col-parc-pf"></div>
+      <div class="fin-toolbar" style="margin-top:16px">
+      <details class="fin-manut"><summary>Manutenção e Google Agenda</summary><div class="fin-manut-botoes">
+      <button class="btn-sm" onclick="finRestaurarContasPadrao()" title="Recoloca qualquer conta fixa padrão que estiver faltando, sem duplicar nem apagar o que já existe">Restaurar contas padrão</button>
+      <button class="btn-sm" onclick="finForcarSyncGcal()" title="Reenvia pro Google Agenda só as contas que você já tem — não adiciona nem restaura nada, só garante que o que existe hoje está sincronizado lá">Ressincronizar com Google Agenda</button>
+      <button class="btn-sm" onclick="finLimparEventosOrfaosGcal()" title="Remove do Google Agenda lembretes de contas/lembretes que já foram excluídos do sistema, mas cujos eventos ficaram para trás">Limpar eventos órfãos do Google Agenda</button>
+      <button class="btn-sm" onclick="finLimparEventosDuplicadosGcal()" title="Varre o Google Agenda procurando eventos com o mesmo título e a mesma data (ex: criados de mais de um computador/celular) e apaga as cópias extras, mantendo só uma">Limpar eventos duplicados do Google Agenda</button>
+      <button class="btn-sm" onclick="finCorrigirEventosDivergentesGcal()" title="Compara o Google Agenda com as contas e lembretes de hoje e corrige eventos que ficaram numa data errada (ex: o dia no Livro-Caixa é um, mas o lembrete no Google Agenda está marcado em outro)">Corrigir datas divergentes do Google Agenda</button>
+      </div></details>
       </div>
-      <style>@media(max-width:820px){#fin-spread-parc{grid-template-columns:1fr}}</style>
-    </div>
-
-    <div style="margin-top:24px;border-top:2px solid #00838F;padding-top:14px">
-      <div style="font-size:11px;font-weight:700;color:#00838F;text-transform:uppercase;letter-spacing:.5px">Lembretes Administrativos</div>
-      <div style="font-size:10px;color:var(--leve);margin-top:2px">Tarefas que se repetem todo mês, sem cliente nenhum envolvido (ex: pedir a alíquota, fechar o mês) — já vêm com as duas combinadas na reunião de rotina.</div>
-      <div id="fin-col-lembretes-admin" style="margin-top:12px"></div>
-    </div>
-
-    <div style="margin-top:24px;border-top:2px solid #AD1457;padding-top:14px">
-      <div style="font-size:11px;font-weight:700;color:#AD1457;text-transform:uppercase;letter-spacing:.5px">Aguardando Nota Fiscal do Fornecedor</div>
-      <div style="font-size:10px;color:var(--leve);margin-top:2px">Despesas PJ deste mês em que o fornecedor ainda não emitiu nota — clique no 🧾 de qualquer conta (fixa ou parcelada) pra marcar/desmarcar. Só PJ precisa de nota.</div>
-      <div id="fin-col-nf-fornecedor" style="margin-top:12px"></div>
-    </div>
-
-    <div style="margin-top:24px;border-top:2px solid #F57C00;padding-top:14px">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div style="font-size:11px;font-weight:700;color:#E65100;text-transform:uppercase;letter-spacing:.5px">Receitas pendentes a entrar</div>
-        <div style="font-size:13px;font-weight:700;color:#E65100" id="fin-total-pendente">R$ 0,00</div>
-      </div>
-      <div style="font-size:10px;color:var(--leve);margin-top:2px">Calculado automaticamente: valor total dos contratos assinados menos o que já foi lançado como receita.</div>
-      <div id="fin-receitas-pendentes" style="margin-top:10px"></div>
-    </div>
-
-    <div style="margin-top:24px;border-top:2px solid var(--verde);padding-top:14px">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div style="font-size:11px;font-weight:700;color:var(--verde);text-transform:uppercase;letter-spacing:.5px">Receitas do mês</div>
-        <button class="btn-sm" style="background:var(--verde);color:#fff;border-color:var(--verde);font-weight:700" onclick="finToggleForm('receita')">+ Lançar receita</button>
-      </div>
-      <div class="row3" id="fin-form-receita" style="display:none;margin-top:10px;background:var(--creme);border:1px solid var(--borda);border-radius:6px;padding:10px">
-        <div class="field" style="margin-bottom:0">
-          <label class="fl">Setor</label>
-          <select id="fin-r-setor"><option value="PJ">PJ</option><option value="PF">PF</option></select>
-        </div>
-        <div class="field" style="margin-bottom:0">
-          <label class="fl">Dia</label>
-          <input type="number" id="fin-r-dia" min="1" max="31">
-        </div>
-        <div class="field" style="margin-bottom:0">
-          <label class="fl">Valor (R$)</label>
-          <input type="number" id="fin-r-valor" min="0" step="0.01">
-        </div>
-        <div class="field" style="grid-column:1/-1;margin-bottom:0">
-          <label class="fl">Descrição</label>
-          <input type="text" spellcheck="true" id="fin-r-desc" placeholder="Ex: Festa 15 anos - sinal">
-        </div>
-        <div style="grid-column:1/-1">
-          <button class="btn-novo" style="background:var(--verde);color:#fff" onclick="finSalvarReceita()">Salvar receita</button>
-        </div>
-      </div>
-      <div id="fin-lista-receitas" style="margin-top:10px"></div>
     </div>
   </div>
 </div>
@@ -8358,20 +8492,30 @@ function finToggleForm(qual){
 }
 
 function finRenderTotais(contas, mes){
+  // Resumo do mês (Livro-Caixa novo, 18/11/2026)
   const listaFiltrada = finFiltro==='todos' ? contas : contas.filter(c=>c.setor===finFiltro);
   const receitasFiltradas = finFiltro==='todos' ? mes.receitas : mes.receitas.filter(r=>(r.setor||'PJ')===finFiltro);
   const despesas = listaFiltrada.reduce((s,c)=>s+(Number(c.valor)||0),0);
-  const pago = listaFiltrada.reduce((s,c)=> s + (mes.pagamentos[c.id] ? (Number(c.valor)||0) : 0), 0);
+  const pagas = listaFiltrada.filter(c=>mes.pagamentos[c.id]);
+  const pago = pagas.reduce((s,c)=>s+(Number(c.valor)||0),0);
   const pendente = despesas - pago;
   const receitas = receitasFiltradas.reduce((s,r)=>s+(Number(r.valor)||0),0);
   const saldo = receitas - despesas;
+  const mesId = finMesId(finDataAtual), mesHoje = finMesId(new Date()), diaHoje = new Date().getDate();
+  const vencidas = listaFiltrada.filter(c=>!mes.pagamentos[c.id] && (mesId<mesHoje || (mesId===mesHoje && (c.dia||0)<diaHoje)));
+  const pct = despesas>0 ? Math.round(pago/despesas*100) : 0;
+  let aReceber = 0; try{ aReceber = receitasPendentesLista().reduce((s,x)=>s+x.pendente,0); }catch(e){}
   document.getElementById('fin-totais').innerHTML = `
-    <div class="resumo-card"><div class="rn" style="font-size:16px">R$ ${finFmt(receitas)}</div><div class="rl">Receitas</div></div>
-    <div class="resumo-card"><div class="rn" style="font-size:16px">R$ ${finFmt(despesas)}</div><div class="rl">Despesas fixas</div></div>
-    <div class="resumo-card"><div class="rn" style="font-size:16px;color:#2E7D32">R$ ${finFmt(pago)}</div><div class="rl">Pago</div></div>
-    <div class="resumo-card"><div class="rn" style="font-size:16px;color:#C62828">R$ ${finFmt(pendente)}</div><div class="rl">Pendente</div></div>
-    <div class="resumo-card" style="background:${saldo>=0?'var(--verde-claro)':'var(--vermelho)'}"><div class="rn" style="font-size:16px;color:${saldo>=0?'var(--verde)':'var(--vermelho-t)'}">R$ ${finFmt(saldo)}</div><div class="rl">Saldo do mês</div></div>
+    <button type="button" class="resumo-card cx-kpi ok" onclick="finSetAba('receitas')"><div class="rl">Entrou no mês</div><div class="rn">R$ ${finFmt(receitas)}</div><div class="cx-kpi-sub">${receitasFiltradas.length} receita${receitasFiltradas.length!==1?'s':''} · ver ▸</div></button>
+    <button type="button" class="resumo-card cx-kpi" onclick="finSetAba('contas')"><div class="rl">Contas do mês</div><div class="rn">R$ ${finFmt(despesas)}</div>
+      <div class="cx-prog" title="${pct}% pago"><div style="width:${pct}%"></div></div>
+      <div class="cx-kpi-sub">pago R$ ${finFmt(pago)} · ${pagas.length} de ${listaFiltrada.length} contas</div></button>
+    <button type="button" class="resumo-card cx-kpi ${vencidas.length?'alerta':(pendente>0.009?'falta':'zero')}" onclick="finSetAba('contas')"><div class="rl">Falta pagar</div><div class="rn">R$ ${finFmt(pendente)}</div><div class="cx-kpi-sub">${vencidas.length?`<b>${vencidas.length} vencida${vencidas.length>1?'s':''}</b> · `:''}${listaFiltrada.length-pagas.length} em aberto</div></button>
+    <button type="button" class="resumo-card cx-kpi falta" onclick="finSetAba('receitas')"><div class="rl">A receber dos contratos</div><div class="rn">R$ ${finFmt(aReceber)}</div><div class="cx-kpi-sub">todos os contratos ativos · ver ▸</div></button>
+    <div class="resumo-card cx-kpi kpi-saldo${saldo<0?' kpi-negativo':''}"><div class="rl">Resultado do mês</div><div class="rn">R$ ${finFmt(saldo)}</div><div class="cx-kpi-sub">entrou − contas do mês</div></div>
   `;
+  const nC = document.getElementById('cx-n-contas'); if(nC) nC.textContent = vencidas.length ? vencidas.length+' vencida'+(vencidas.length>1?'s':'') : '';
+  nC?.classList.toggle('alerta', !!vencidas.length);
 }
 
 // ===== UI — CONTAS PARCELADAS =====
@@ -8782,6 +8926,169 @@ async function lancarReceitaPendente(contratoId){
   if(typeof renderInicio==='function') renderInicio();
 }
 
+// =====================================================================
+// LIVRO-CAIXA NOVO (18/11/2026) — pedido da Manu: "muito bagunçado, um pouco
+// de cada conta em um canto". Agora: resumo do mês no topo e abas. Na aba
+// "Contas a pagar", fixas, avulsas e parcelas ficam numa lista só, separada
+// por situação (vencidas, próximos 7 dias, resto do mês, pagas).
+// =====================================================================
+let finAba = 'contas';
+let finSoNF = false;
+let finNovoTipo = null;       // 'fixa' | 'avulsa' | 'parcelada' | null
+let finNovoSetor = 'PJ';
+let finPagasAberto = false;
+
+function finSetAba(aba){
+  finAba = aba;
+  document.querySelectorAll('#tela-financeiro .cx-aba').forEach(b=>b.classList.toggle('ativa', b.getAttribute('data-cx-aba')===aba));
+  document.querySelectorAll('#tela-financeiro .cx-pane').forEach(p=>p.style.display = p.getAttribute('data-cx-pane')===aba ? 'block' : 'none');
+}
+function finToggleSoNF(){ finSoNF = !finSoNF; renderFinanceiro(); }
+function finTogglePagas(){ finPagasAberto = !finPagasAberto; renderFinanceiro(); }
+
+// Abre o formulário de nova conta (usa as mesmas funções de salvar de antes)
+function finNovaConta(tipo){
+  if(finNovoTipo===tipo){ finFecharNovaConta(); return; }
+  finFecharNovaConta(true);
+  finNovoTipo = tipo;
+  finNovoSetor = finFiltro==='PF' ? 'PF' : 'PJ';
+  finAbrirFormNovaConta();
+}
+function finNovaContaSetor(setor){
+  if(finNovoSetor===setor) return;
+  const tipo = finNovoTipo;
+  finFecharNovaConta(true);
+  finNovoTipo = tipo; finNovoSetor = setor;
+  finAbrirFormNovaConta();
+}
+function finAbrirFormNovaConta(){
+  const st = finNovoSetor;
+  if(finNovoTipo==='fixa'){ finFormAberto[st] = true; renderFinanceiro(); }
+  else if(finNovoTipo==='avulsa'){ finFormAvulsaAberto[st] = false; finToggleContaAvulsaForm(st); }
+  else if(finNovoTipo==='parcelada'){ finFormParceladaAberto[st] = false; finToggleContaParceladaForm(st); }
+  setTimeout(()=>document.querySelector('#fin-novo-form input[type=number]')?.focus(), 50);
+}
+function finFecharNovaConta(semRender){
+  ['PJ','PF'].forEach(st=>{ finFormAberto[st]=false; finFormAvulsaAberto[st]=false; finFormParceladaAberto[st]=false; });
+  finNovoTipo = null;
+  if(!semRender) renderFinanceiro();
+}
+
+function finNovoFormHtml(){
+  const st = finNovoSetor;
+  const aberto = (finNovoTipo==='fixa' && finFormAberto[st]) || (finNovoTipo==='avulsa' && finFormAvulsaAberto[st]) || (finNovoTipo==='parcelada' && finFormParceladaAberto[st]);
+  if(!aberto){ finNovoTipo = null; return ''; }
+  const tit = {fixa:'Nova conta fixa (repete todo mês)', avulsa:'Nova conta avulsa (só em um mês)', parcelada:'Nova conta parcelada'}[finNovoTipo];
+  const setorBtns = ['PJ','PF'].map(x=>`<button type="button" class="fb${x===st?' active':''}" onclick="finNovaContaSetor('${x}')">${x==='PJ'?'PJ (empresa)':'PF (pessoal)'}</button>`).join('');
+  let campos = '', salvar = '';
+  if(finNovoTipo==='fixa'){
+    campos = `<div class="cx-form-grid">
+      <label>Dia<input type="number" id="fin-c-dia-${st}" placeholder="dia" min="1" max="31"></label>
+      <label class="larga">Nome da conta<input type="text" spellcheck="true" id="fin-c-nome-${st}" placeholder="ex.: Energia"></label>
+      <label>Valor (R$)<input type="number" id="fin-c-valor-${st}" placeholder="0,00" min="0" step="0.01"></label>
+      <label class="toda">Observação<input type="text" spellcheck="true" id="fin-c-obs-${st}" placeholder="opcional"></label></div>`;
+    salvar = `finSalvarConta('${st}')`;
+  } else if(finNovoTipo==='avulsa'){
+    campos = `<div class="cx-form-grid">
+      <label>Dia<input type="number" id="fin-a-dia-${st}" placeholder="dia" min="1" max="31"></label>
+      <label class="larga">Nome da conta<input type="text" spellcheck="true" id="fin-a-nome-${st}" placeholder="ex.: Conserto do forno"></label>
+      <label>Valor (R$)<input type="number" id="fin-a-valor-${st}" placeholder="0,00" min="0" step="0.01"></label>
+      <label>Mês<select id="fin-a-mes-${st}"></select></label>
+      <label class="toda">Observação<input type="text" spellcheck="true" id="fin-a-obs-${st}" placeholder="opcional"></label></div>`;
+    salvar = `finSalvarContaAvulsa('${st}')`;
+  } else {
+    campos = `<div class="cx-form-grid">
+      <label>Dia<input type="number" id="fin-p-dia-${st}" placeholder="dia" min="1" max="31"></label>
+      <label class="larga">Nome da conta<input type="text" spellcheck="true" id="fin-p-nome-${st}" placeholder="ex.: Geladeira"></label>
+      <label>Nº de parcelas<input type="number" id="fin-p-qtd-${st}" placeholder="ex.: 12" min="1"></label>
+      <label>Valor TOTAL (R$)<input type="number" id="fin-p-valor-${st}" placeholder="0,00" min="0" step="0.01"></label>
+      <label>Mês da 1ª parcela<select id="fin-p-mesinicio-${st}"></select></label>
+      <label class="toda">Observação<input type="text" spellcheck="true" id="fin-p-obs-${st}" placeholder="opcional"></label></div>`;
+    salvar = `finSalvarContaParcelada('${st}')`;
+  }
+  return `<div class="cx-form">
+    <div class="cx-form-topo"><b>${tit}</b><div class="cx-form-setor">${setorBtns}</div></div>
+    ${campos}
+    <div class="cx-form-botoes"><button class="btn-sm cx-btn-salvar" onclick="${salvar}">Salvar conta</button><button class="btn-sm" onclick="finFecharNovaConta()">Cancelar</button></div>
+  </div>`;
+}
+
+// Uma linha da lista de contas (serve para conta fixa, avulsa ou parcela)
+function finContaUnifRowHtml(c, mes, situacao){
+  const pagoInfo = mes.pagamentos[c.id];
+  const pago = !!pagoInfo;
+  const por = (pagoInfo && typeof pagoInfo==='object') ? pagoInfo.por : null;
+  const nfPend = c.setor==='PJ' && !!mes.nf_fornecedor[c.id];
+  const ehParc = c._tipo!=='fixa';
+  const tagTipo = c._tipo==='avulsa' ? '<span class="cx-tag">avulsa</span>'
+    : c._tipo==='parcela' ? `<span class="cx-tag roxo">parcela ${c._parcAtual}/${c._parcQtd}</span>` : '';
+  const tagSit = situacao==='vencida' ? '<span class="cx-tag alerta">vencida</span>'
+    : situacao==='hoje' ? '<span class="cx-tag alerta">vence hoje</span>'
+    : situacao==='breve' ? `<span class="cx-tag falta">em ${c._dias} dia${c._dias>1?'s':''}</span>` : '';
+  const valorFn = ehParc ? `finAtualizarValorParcela('${c.id}', this.value)` : `finAtualizarValorConta('${c.id}', this.value)`;
+  const renomear = ehParc ? `finRenomearContaParcelada('${c.id}')` : `finRenomearConta('${c.id}')`;
+  const excluir = ehParc ? `finExcluirContaParcelada('${c.id}')` : `finExcluirConta('${c.id}')`;
+  return `<div class="cx-linha ${situacao}${pago?' pago':''}">
+    <div class="cx-dia"><span>${c.dia||'—'}</span></div>
+    <div class="cx-info">
+      <div class="cx-nome">${_esc(c._nomeBase||c.nome)} <span class="cx-tag setor ${c.setor}">${c.setor}</span>${tagTipo}${tagSit}${nfPend?'<span class="cx-tag nf">🧾 aguardando NF</span>':''}</div>
+      ${(c.obs||por||c._detalhe)?`<div class="cx-det">${[c._detalhe, c.obs?_esc(c.obs):'', por?'pago por '+_esc(por):''].filter(Boolean).join(' · ')}</div>`:''}
+    </div>
+    <label class="cx-valor" title="Clique para alterar o valor"><span>R$</span><input type="number" step="0.01" min="0" value="${Number(c.valor)||0}" onchange="${valorFn}"></label>
+    <div class="cx-botoes">
+      ${c.setor==='PJ'?`<button class="btn-sm cx-b-nf${nfPend?' ativo':''}" onclick="finToggleNfFornecedor('${c.id}')" title="${nfPend?'A nota já chegou? Clique para tirar o aviso':'Marcar: aguardando nota fiscal do fornecedor'}">🧾</button>`:'<span class="cx-b-espaco"></span>'}
+      <button class="btn-sm cx-b-pago${pago?' ativo':''}" onclick="finTogglePago('${c.id}')" title="${pago?'Desmarcar pagamento':'Marcar como paga'}">${pago?'✓ Paga':'Pagar'}</button>
+      <button class="btn-sm cx-b-mini" onclick="${renomear}" title="Editar nome">✎</button>
+      <button class="btn-sm cx-b-mini del" onclick="${excluir}" title="${c._tipo==='parcela'?'Excluir (remove TODAS as parcelas)':'Excluir conta'}">×</button>
+    </div>
+  </div>`;
+}
+
+function finListaContasHtml(contas, parceladas, mes, mesId){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const mesHoje = finMesId(hoje);
+  const ehAtual = mesId===mesHoje, ehPassado = mesId<mesHoje;
+  const diaHoje = hoje.getDate();
+  let todas = [
+    ...contas.map(c=>({...c, _tipo:'fixa'})),
+    ...parceladas.map(cp=>({id:cp.id, nome:cp.nome, _nomeBase:cp.nome, setor:cp.setor, dia:cp.dia, valor:cp.valor_parcela, obs:cp.obs,
+      _tipo: cp.qtd_parcelas===1?'avulsa':'parcela', _parcAtual:cp.parcelaAtual, _parcQtd:cp.qtd_parcelas,
+      _detalhe: cp.qtd_parcelas>1 ? `${cp.qtd_parcelas-cp.parcelaAtual>0?(cp.qtd_parcelas-cp.parcelaAtual)+' parcela(s) depois desta':'última parcela'} · total R$ ${finFmt(cp.valor_parcela*cp.qtd_parcelas)}` : ''}))
+  ];
+  if(finFiltro!=='todos') todas = todas.filter(c=>c.setor===finFiltro);
+  const nNF = todas.filter(c=>c.setor==='PJ' && mes.nf_fornecedor[c.id]).length;
+  const nfEl = document.getElementById('cx-n-nf'); if(nfEl) nfEl.textContent = nNF ? `(${nNF})` : '';
+  document.getElementById('cx-filtro-nf')?.classList.toggle('active', finSoNF);
+  if(finSoNF) todas = todas.filter(c=>c.setor==='PJ' && mes.nf_fornecedor[c.id]);
+  todas.sort((a,b)=>(a.dia||0)-(b.dia||0) || String(a.nome).localeCompare(String(b.nome)));
+
+  const grupos = {vencida:[], semana:[], resto:[], pagas:[]};
+  todas.forEach(c=>{
+    if(mes.pagamentos[c.id]){ grupos.pagas.push(c); return; }
+    if(ehPassado){ grupos.vencida.push(c); return; }
+    if(!ehAtual){ grupos.resto.push(c); return; }
+    const dias = (c.dia||0) - diaHoje; c._dias = dias;
+    if(dias<0) grupos.vencida.push(c);
+    else if(dias<=7) grupos.semana.push(c);
+    else grupos.resto.push(c);
+  });
+  const soma = l => l.reduce((s,c)=>s+(Number(c.valor)||0),0);
+  const sec = (cls, tit, sub, lista, sitFn, fechado) => !lista.length ? '' : `
+    <div class="cx-sec ${cls}">
+      <div class="cx-sec-topo"${fechado!==undefined?` onclick="finTogglePagas()" style="cursor:pointer"`:''}>
+        <div><span class="cx-sec-tit">${tit}</span> <span class="cx-sec-n">${lista.length}</span>${sub?`<span class="cx-sec-sub"> · ${sub}</span>`:''}</div>
+        <div class="cx-sec-tot">R$ ${finFmt(soma(lista))}${fechado!==undefined?` <span class="cx-sec-seta">${fechado?'mostrar ▾':'esconder ▴'}</span>`:''}</div>
+      </div>
+      ${fechado ? '' : lista.map(c=>finContaUnifRowHtml(c, mes, sitFn(c))).join('')}
+    </div>`;
+  const html =
+    sec('vencida', ehPassado?'Não pagas':'Vencidas', ehPassado?'mês já passou':'passaram do dia', grupos.vencida, ()=> 'vencida') +
+    sec('semana', 'Vencem nos próximos 7 dias', '', grupos.semana, c=> c._dias===0?'hoje':(c._dias<=3?'breve':'')) +
+    sec('resto', ehAtual?'Resto do mês':'A pagar', '', grupos.resto, ()=> '') +
+    sec('pagas', 'Pagas', '', grupos.pagas, ()=> '', !finPagasAberto);
+  return html || `<div class="cx-vazio">${finSoNF?'Nenhuma conta aguardando nota do fornecedor.':'Nenhuma conta neste mês.'}</div>`;
+}
+
 async function renderFinanceiro(){
   if(!document.getElementById('tela-financeiro')) return;
   const contas = getFinContas();
@@ -8798,28 +9105,16 @@ async function renderFinanceiro(){
   }))];
   document.getElementById('fin-mes-label').textContent = `${FIN_MESES_NOMES[finDataAtual.getMonth()]} de ${finDataAtual.getFullYear()}`;
   finRenderTotais(contasComParceladas, mes);
-  document.getElementById('fin-col-pj').innerHTML = finColunaHtml('PJ','Pessoa Jurídica', contas, mes, isMesAtual, hoje.getDate());
-  document.getElementById('fin-col-pf').innerHTML = finColunaHtml('PF','Pessoa Física', contas, mes, isMesAtual, hoje.getDate());
-  document.getElementById('fin-col-parc-pj').innerHTML = finColunaParceladasHtml('PJ', parceladasDoMes, mes, isMesAtual, hoje.getDate());
-  document.getElementById('fin-col-parc-pf').innerHTML = finColunaParceladasHtml('PF', parceladasDoMes, mes, isMesAtual, hoje.getDate());
+  // Livro-Caixa novo: lista única de contas + formulário de nova conta
+  document.getElementById('fin-novo-form').innerHTML = finNovoFormHtml();
+  document.getElementById('fin-lista-contas').innerHTML = finListaContasHtml(contas, parceladasDoMes, mes, mesId);
   document.getElementById('fin-col-lembretes-admin').innerHTML = finColunaLembretesAdminHtml(mes);
-
-  // Contas PJ (fixas + parcelas deste mês) marcadas como "aguardando NF do fornecedor"
-  const nfFornecedorPendentes = contasComParceladas.filter(c=>c.setor==='PJ' && mes.nf_fornecedor[c.id]);
-  document.getElementById('fin-col-nf-fornecedor').innerHTML = nfFornecedorPendentes.length
-    ? nfFornecedorPendentes.map(c=>`
-        <div class="orc-card" style="cursor:default;background:#FCE4EC">
-          <div class="orc-num" style="min-width:26px;text-align:center;border:1.5px solid #AD1457;border-radius:50%;color:#AD1457;font-weight:700">${c.dia}</div>
-          <div class="orc-info">
-            <div class="orc-nome">${c.nome}</div>
-            ${c.obs?`<div class="orc-det">${c.obs}</div>`:''}
-          </div>
-          <div class="orc-valor" style="color:#AD1457">R$ ${finFmt(c.valor)}</div>
-          <div class="orc-acoes"><button class="btn-sm" style="background:#AD1457;color:#fff;border-color:#AD1457" onclick="finToggleNfFornecedor('${c.id}')" title="Marcar que já chegou a nota">Já emitiu</button></div>
-        </div>`).join('')
-    : '<div class="empty" style="padding:16px"><div style="font-size:12px">Nenhuma conta PJ aguardando nota fiscal neste mês.</div></div>';
+  { const pend = getFinLembretesAdmin().filter(l=>!mes.pagamentos[l.id]).length; const el=document.getElementById('cx-n-rotinas'); if(el) el.textContent = pend? pend+' a fazer' : ''; }
+  finSetAba(finAba);
 
   const receitas = [...mes.receitas].filter(r=> finFiltro==='todos' || (r.setor||'PJ')===finFiltro).sort((a,b)=>(a.dia||0)-(b.dia||0));
+  { const totRec = receitas.reduce((s,r)=>s+(Number(r.valor)||0),0); const el=document.getElementById('fin-total-recebido'); if(el) el.textContent='R$ '+finFmt(totRec);
+    const n=document.getElementById('cx-n-receitas'); if(n) n.textContent=''; }
   document.getElementById('fin-lista-receitas').innerHTML = receitas.length
     ? receitas.map(finReceitaRowHtml).join('')
     : '<div class="empty" style="padding:16px"><div style="font-size:12px">Nenhuma receita lançada para este mês.</div></div>';
