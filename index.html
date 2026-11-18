@@ -12383,42 +12383,99 @@ function gcalIdDel(key){
 }
 
 function gcalSalvarToken(token){
+  // O Google entrega uma "chave" que vale ~1 hora. Guardamos quando ela vence.
+  token.expires_at = Date.now() + ((parseInt(token.expires_in)||3600) - 60) * 1000;
   gcalToken = token;
   localStorage.setItem('manaca_gcal_token', JSON.stringify(token));
+  localStorage.setItem('manaca_gcal_ja_conectou', '1');
   atualizarBarraGcal(true);
 }
 function gcalCarregarToken(){
   try {
     const t = localStorage.getItem('manaca_gcal_token');
-    if(t) { gcalToken = JSON.parse(t); atualizarBarraGcal(true); }
+    if(t){
+      const tk = JSON.parse(t);
+      if(tk && tk.access_token && (!tk.expires_at || tk.expires_at > Date.now())){
+        gcalToken = tk; atualizarBarraGcal(true);
+        const falta = tk.expires_at ? tk.expires_at - Date.now() : 0;
+        if(falta > 0) setTimeout(()=>{ if(gcalToken===tk) gcalTokenExpirou(); }, falta);
+        return;
+      }
+      localStorage.removeItem('manaca_gcal_token');
+    }
   } catch(e){}
+  gcalToken = null;
+  atualizarBarraGcal(false);
+}
+// Chamado quando a chave do Google venceu (erro 401 ou passou 1 hora).
+function gcalTokenExpirou(){
+  gcalToken = null;
+  localStorage.removeItem('manaca_gcal_token');
+  atualizarBarraGcal(false);
 }
 function atualizarBarraGcal(conectado){
   const status = document.getElementById('gcal-bar-status');
   const btnCon = document.getElementById('gcal-btn-conectar');
   const btnDes = document.getElementById('gcal-btn-desconectar');
+  if(!status || !btnCon || !btnDes) return;
   if(conectado){
     status.innerHTML = 'Google Agenda: <strong>Conectado</strong>';
     btnCon.style.display = 'none';
     btnDes.style.display = 'inline-flex';
   } else {
-    status.innerHTML = 'Google Agenda: <strong>Não conectado</strong>';
+    const jaConectou = localStorage.getItem('manaca_gcal_ja_conectou') === '1';
+    status.innerHTML = jaConectou
+      ? 'Google Agenda: <strong style="color:#EF6C00">Conexão expirou</strong>'
+      : 'Google Agenda: <strong>Não conectado</strong>';
+    btnCon.textContent = jaConectou ? 'Reconectar' : 'Conectar';
     btnCon.style.display = 'inline-flex';
     btnDes.style.display = 'none';
   }
 }
+let _gcalClient = null;
 function conectarGoogle(){
-  const client = google.accounts.oauth2.initTokenClient({
+  if(!window.google || !google.accounts || !google.accounts.oauth2){
+    alert('O Google ainda não carregou. Espere alguns segundos e clique de novo. Se continuar, aperte Ctrl+Shift+R.');
+    return;
+  }
+  const jaConectou = localStorage.getItem('manaca_gcal_ja_conectou') === '1';
+  _gcalClient = google.accounts.oauth2.initTokenClient({
     client_id: GCAL_CLIENT_ID,
     scope: GCAL_SCOPES,
-    prompt: 'consent',
-    callback: (resp) => {
-      if(resp.error){ alert('Erro ao conectar: ' + resp.error); return; }
+    include_granted_scopes: true,
+    prompt: jaConectou ? '' : 'consent',
+    callback: async (resp) => {
+      if(!resp || resp.error){
+        alert('O Google não liberou a conexão.\n\nMotivo: ' + (resp && (resp.error_description || resp.error) || 'desconhecido') + '\n\nTire um print desta mensagem e mande para o Claude.');
+        return;
+      }
+      if(!google.accounts.oauth2.hasGrantedAnyScope(resp, 'https://www.googleapis.com/auth/calendar')){
+        alert('Quase lá! Na tela do Google, é preciso MARCAR a caixinha que fala da Agenda ("Ver, editar, compartilhar e excluir agendas...").\n\nClique em Conectar de novo e marque todas as caixinhas.');
+        localStorage.removeItem('manaca_gcal_ja_conectou');
+        atualizarBarraGcal(false);
+        return;
+      }
       gcalSalvarToken(resp);
-      buscarOuCriarCalendario();
+      setTimeout(()=>{ if(gcalToken===resp) gcalTokenExpirou(); }, resp.expires_at - Date.now());
+      localStorage.removeItem('manaca_gcal_id');
+      gcalId = null;
+      await buscarOuCriarCalendario();
+      if(!gcalId){ alert('Conectou, mas não consegui abrir o calendário "Buffet Manacá". Tire um print e mande para o Claude.'); return; }
+      try{ if(typeof sincronizarTodosEventosGcal==='function') sincronizarTodosEventosGcal(); }catch(e){}
+      try{ if(typeof sincronizarTodosLembretesGcal==='function') sincronizarTodosLembretesGcal(); }catch(e){}
+      if(typeof toast==='function') toast('✓ Google Agenda conectado'); else alert('✓ Google Agenda conectado!');
+    },
+    error_callback: (err) => {
+      const tipo = err && err.type;
+      if(tipo === 'popup_closed') return; // a pessoa fechou a janela
+      if(tipo === 'popup_failed_to_open'){
+        alert('O navegador bloqueou a janela do Google.\n\nPermita pop-ups para este site (ícone na barra de endereço) e clique em Conectar de novo.');
+        return;
+      }
+      alert('Não deu para conectar ao Google: ' + (tipo || err && err.message || 'erro desconhecido') + '\n\nTire um print e mande para o Claude.');
     }
   });
-  client.requestAccessToken();
+  _gcalClient.requestAccessToken();
 }
 function desconectarGoogle(){
   if(gcalToken) google.accounts.oauth2.revoke(gcalToken.access_token, ()=>{});
@@ -12426,6 +12483,7 @@ function desconectarGoogle(){
   gcalId = null;
   localStorage.removeItem('manaca_gcal_token');
   localStorage.removeItem('manaca_gcal_id');
+  localStorage.removeItem('manaca_gcal_ja_conectou');
   atualizarBarraGcal(false);
 }
 
@@ -12597,9 +12655,7 @@ async function criarEventoGcal(orc){
 
     if(resp.status === 401){
       // Token expirado — pedir reconexão
-      gcalToken = null;
-      localStorage.removeItem('manaca_gcal_token');
-      atualizarBarraGcal(false);
+      gcalTokenExpirou();
       throw new Error('token do Google expirado, reconecte em "Conectar Google Agenda"');
     }
 
@@ -12641,7 +12697,7 @@ async function sincronizarDataExtraOrcGcal(orc, data){
     if(evIdSalvo){ url=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(gcalId)}/events/${evIdSalvo}`; method='PUT'; }
     else { url=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(gcalId)}/events`; method='POST'; }
     const resp = await fetch(url, {method, headers:{Authorization:'Bearer '+gcalToken.access_token,'Content-Type':'application/json'}, body: JSON.stringify(evento)});
-    if(resp.status===401){ gcalToken=null; localStorage.removeItem('manaca_gcal_token'); atualizarBarraGcal(false); return; }
+    if(resp.status===401){ gcalTokenExpirou(); return; }
     if(!resp.ok) return;
     const evCriado = await resp.json();
     if(evCriado.id) gcalIdSet(key, evCriado.id);
@@ -12682,7 +12738,7 @@ async function sincronizarDataExtraContratoGcal(ct, data){
     if(evIdSalvo){ url=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(gcalId)}/events/${evIdSalvo}`; method='PUT'; }
     else { url=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(gcalId)}/events`; method='POST'; }
     const resp = await fetch(url, {method, headers:{Authorization:'Bearer '+gcalToken.access_token,'Content-Type':'application/json'}, body: JSON.stringify(evento)});
-    if(resp.status===401){ gcalToken=null; localStorage.removeItem('manaca_gcal_token'); atualizarBarraGcal(false); return; }
+    if(resp.status===401){ gcalTokenExpirou(); return; }
     if(!resp.ok) return;
     const evCriado = await resp.json();
     if(evCriado.id) gcalIdSet(key, evCriado.id);
@@ -13077,9 +13133,7 @@ async function sincronizarContaFixaGcal(conta, mesId, mes){
       body: JSON.stringify(evento)
     });
     if(resp.status === 401){
-      gcalToken = null;
-      localStorage.removeItem('manaca_gcal_token');
-      atualizarBarraGcal(false);
+      gcalTokenExpirou();
       return;
     }
     if(!resp.ok) return;
@@ -13143,9 +13197,7 @@ async function sincronizarLembreteAdminGcal(lembrete, mesId, mes){
       body: JSON.stringify(evento)
     });
     if(resp.status === 401){
-      gcalToken = null;
-      localStorage.removeItem('manaca_gcal_token');
-      atualizarBarraGcal(false);
+      gcalTokenExpirou();
       return;
     }
     if(!resp.ok) return;
@@ -13238,9 +13290,7 @@ async function sincronizarLembreteCobrancaGcal(lembrete, nomeCliente){
       body: JSON.stringify(evento)
     });
     if(resp.status === 401){
-      gcalToken = null;
-      localStorage.removeItem('manaca_gcal_token');
-      atualizarBarraGcal(false);
+      gcalTokenExpirou();
       return;
     }
     if(!resp.ok) return;
@@ -14445,7 +14495,7 @@ function renderRecontato(){
 }
 
 // ---------- 2) CÓPIA DE SEGURANÇA ----------
-var BACKUP_CHAVES_FORA = ['manaca_gcal_token','manaca_gcal_id','manaca_tema','manaca_usuario','manaca_secoes_estado','manaca_ultimo_backup_drive','manaca_fin_cardapio_ranking_filtro'];
+var BACKUP_CHAVES_FORA = ['manaca_gcal_token','manaca_gcal_id','manaca_gcal_ja_conectou','manaca_tema','manaca_usuario','manaca_secoes_estado','manaca_ultimo_backup_drive','manaca_fin_cardapio_ranking_filtro'];
 function montarBackup(){
   const dados = {};
   for(let i=0;i<localStorage.length;i++){
