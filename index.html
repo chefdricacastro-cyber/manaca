@@ -1287,6 +1287,14 @@ input:focus,select:focus,textarea:focus,.busca:focus{border-color:#282B1C !impor
 .fc-dica{font-size:11.5px;color:var(--leve);margin:14px 0 6px}
 .fc-rodape{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px 16px;border-top:1px solid var(--borda)}
 @media (max-width:600px){.fc-fotos{grid-template-columns:repeat(2,1fr)}.fc-mini{width:100%;height:auto;aspect-ratio:2.8/1}}
+
+/* Alerta fixo de evento próximo sem confirmação (aparece em todas as telas) */
+#alerta-pre-evento-global{position:sticky;top:0;z-index:900;background:var(--vermelho-t);color:#fff;padding:10px 18px;font-size:13px;line-height:1.4;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+#alerta-pre-evento-global .ape-linha{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:3px 0}
+#alerta-pre-evento-global .ape-titulo{font-weight:700;margin-bottom:2px}
+#alerta-pre-evento-global button{background:#fff;color:var(--vermelho-t);border:0;border-radius:4px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer}
+#alerta-pre-evento-global button.ape-sec{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.7)}
+#alerta-pre-evento-global button:disabled{opacity:.5;cursor:not-allowed}
 </style>
 <style>
 /* ===== Faixa com foto no topo do Início (foto escolhida no admin de fotos) ===== */
@@ -1433,6 +1441,122 @@ div.prev-card{cursor:default}
 .prev-mini-l.ent{color:var(--prev-ent)}.prev-mini-l.sai{color:var(--prev-sai)}
 .prev-mini-l.sd{color:var(--texto);font-weight:600}.prev-mini-l.sd.neg{color:var(--prev-sai)}
 </style>
+<style id="tema-kaleizu-manaca">
+/* =====================================================================
+   VISUAL NOVO (18/11/2026) — estrutura inspirada no painel do Instituto
+   Kaleizu (letras Manrope/Inter/DM Mono, cartões arredondados com brilho
+   suave, detalhes dourados, rótulos em letra de máquina), mantendo as
+   cores do Manacá (creme e verde-oliva). Camada extra: NÃO mexe nas
+   prévias de proposta/contrato, nos PDFs nem na impressão (.pvc,
+   .preview-box, .contr-preview-box e #print_area continuam como antes).
+   Para voltar ao visual antigo: apagar este bloco <style> inteiro.
+   ===================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+:root{
+  --k-txt:'Manrope',sans-serif; --k-num:'Inter',sans-serif; --k-rot:'DM Mono',monospace;
+  --k-gold:#A97B2F; --k-gold-l:#CDA04C; --k-gold-wash:rgba(176,130,54,.12); --k-gold-borda:rgba(176,130,54,.38);
+  --k-surface:linear-gradient(180deg,rgba(255,254,250,.94),rgba(251,246,236,.84));
+  --k-borda:rgba(40,43,28,.10); --k-borda-forte:rgba(40,43,28,.18);
+  --k-brilho:inset 0 1px 0 rgba(255,255,255,.9);
+  --k-sombra:0 1px 2px rgba(40,43,28,.04), 0 10px 28px rgba(40,43,28,.07);
+  --k-sombra-hover:0 2px 4px rgba(40,43,28,.05), 0 16px 34px rgba(40,43,28,.11);
+  --k-r-lg:16px; --k-r-md:12px; --k-r-sm:9px;
+  --k-muted:#6B6D5A;
+}
+
+/* ---------- Letras (as duas versões, clara e escura) ---------- */
+body{font-family:var(--k-txt) !important;letter-spacing:-.005em}
+.nav-btn,.btn-novo,.busca,.fb,.btn-sm,.btn-salvar,.btn-pdf,.btn-voltar,.btn-add-crianca,.btn-gerar-contr,.btn-pdf-contr,
+.pix-opt label,.ev-row,.util-usuario select,.sh h3,.sh h3 span[style],.sh-num,.acao-titulo,.acao-titulo span,.preco-item,
+input[type=text],input[type=date],input[type=number],input[type=tel],textarea,select,button{font-family:var(--k-txt)}
+.topbar-brand span{font-family:var(--k-rot)}
+/* prévias e impressão ficam com as letras de antes */
+.preview-box,.contr-preview-box,#print_area{font-family:'Montserrat',sans-serif}
+.pg-title{font-family:var(--k-txt) !important;font-weight:700 !important;letter-spacing:-.025em !important}
+.acao-titulo{font-weight:700 !important;letter-spacing:-.015em}
+.resumo-card .rn,.orc-valor,.prev-li-val,.ev-dia,.cal-dn,.tot-linha,.mdo-total,.custo-tot{font-family:var(--k-num) !important;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+label.fl,.resumo-card .rl,.inicio-sec-title,.prev-faixa-tit,.prev-dia-tit,.cal-wd div,.ev-mes,.util-bar{font-family:var(--k-rot) !important}
+label.fl,.resumo-card .rl,.inicio-sec-title,.prev-faixa-tit,.cal-wd div,.ev-mes{text-transform:uppercase !important;letter-spacing:.06em !important;font-weight:500 !important}
+label.fl{font-size:9.5px !important}
+.resumo-card .rl{font-size:9.5px !important}
+.inicio-sec-title{font-size:10.5px !important}
+
+/* ---------- Cantos arredondados (as duas versões) ---------- */
+.resumo-card,.orc-card,.contr-card,.box-inicio,.ag-card,.acao-bloco,.section,.cal-grid,.df-painel,.custo-box,.mdo-box,.totais-bloco,.inicio-capa.com-foto{border-radius:var(--k-r-lg) !important}
+.acao-card,.adicional-item,.louca-item,.item-row,.revisao-item,.sv-item,.prox-item,.ev-row,.prev-mini,.conv-item{border-radius:var(--k-r-md) !important}
+.btn-sm,.btn-salvar,.btn-pdf,.btn-voltar,.btn-gerar-contr,.btn-pdf-contr,.btn-add-crianca,
+input[type=text],input[type=date],input[type=number],input[type=tel],textarea,select,.busca,.preco-item{border-radius:var(--k-r-sm) !important}
+.nav-btn,.btn-novo,.fb,.badge,.pill,.st-tag,.prev-tag,.periodo-btn,.momento-chip,.so label,.tc label,.pix-opt label,.theme-toggle{border-radius:9999px !important}
+.section{overflow:hidden}
+
+/* ---------- Cores e brilho — só na versão clara (cores do Manacá) ---------- */
+:root:not([data-theme="dark"]) body{
+  background:
+    radial-gradient(900px 620px at 0% -8%, rgba(205,160,76,.16), transparent 62%),
+    radial-gradient(820px 640px at 105% 6%, rgba(74,77,58,.12), transparent 60%),
+    radial-gradient(700px 520px at 50% 110%, rgba(205,160,76,.08), transparent 60%),
+    #F2E9D6 !important;
+  background-attachment:fixed !important;
+}
+/* Topo */
+:root:not([data-theme="dark"]) body .topbar{background:linear-gradient(180deg,#2D3020,#22251A) !important;border-bottom:1px solid rgba(205,160,76,.22) !important;box-shadow:0 8px 24px rgba(20,21,14,.18) !important}
+:root:not([data-theme="dark"]) body .nav-btn{border:1px solid transparent !important;color:#CFC7B4 !important;background:transparent !important;font-weight:600 !important;transition:background .18s,color .18s,border-color .18s}
+:root:not([data-theme="dark"]) body .nav-btn:hover{background:rgba(255,255,255,.07) !important;color:#fff !important}
+:root:not([data-theme="dark"]) body .nav-btn.ativa{background:rgba(205,160,76,.16) !important;color:#EBCB86 !important;border-color:rgba(205,160,76,.42) !important;box-shadow:none !important}
+:root:not([data-theme="dark"]) body .btn-novo{background:linear-gradient(135deg,#D9AE5C,#B8893A) !important;color:#20231A !important;border:0 !important;font-weight:700 !important;box-shadow:0 4px 14px rgba(176,130,54,.35) !important}
+:root:not([data-theme="dark"]) body .btn-novo:hover{filter:brightness(1.06);transform:translateY(-1px)}
+:root:not([data-theme="dark"]) body .theme-toggle{border-color:rgba(205,160,76,.35) !important;color:#E8C97A !important}
+/* Barra de sincronização */
+:root:not([data-theme="dark"]) body .util-bar{background:rgba(255,253,247,.72) !important;backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);border-bottom:1px solid var(--k-borda) !important;font-size:10.5px}
+:root:not([data-theme="dark"]) body .util-link{color:var(--k-gold) !important;font-weight:600}
+/* Títulos */
+:root:not([data-theme="dark"]) body .pg-sub{color:var(--k-muted) !important}
+:root:not([data-theme="dark"]) body label.fl,:root:not([data-theme="dark"]) body .resumo-card .rl,:root:not([data-theme="dark"]) body .inicio-sec-title{color:var(--k-muted) !important}
+/* Cartões de vidro */
+:root:not([data-theme="dark"]) body :is(.resumo-card,.orc-card,.contr-card,.box-inicio,.ag-card,.section,.custo-box,.mdo-box,.totais-bloco,.cal-grid,.df-painel){
+  background:var(--k-surface) !important;border:1px solid var(--k-borda) !important;
+  box-shadow:var(--k-brilho),var(--k-sombra) !important;
+  backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%)}
+:root:not([data-theme="dark"]) body :is(.resumo-card,.orc-card,.contr-card){transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+:root:not([data-theme="dark"]) body :is(.resumo-card,.orc-card,.contr-card):hover{transform:translateY(-1px);border-color:var(--k-gold-borda) !important;box-shadow:var(--k-brilho),var(--k-sombra-hover),inset 3px 0 0 var(--k-gold-l) !important}
+/* KPIs do Início com brilho colorido no canto (como as pastas do Kaleizu) */
+:root:not([data-theme="dark"]) body #inicio-kpis .resumo-card:not(.kpi-saldo):not(.kpi-alerta):nth-child(4n+1){background:radial-gradient(120% 90% at 0% 0%,rgba(205,160,76,.22),transparent 70%),var(--k-surface) !important}
+:root:not([data-theme="dark"]) body #inicio-kpis .resumo-card:not(.kpi-saldo):not(.kpi-alerta):nth-child(4n+2){background:radial-gradient(120% 90% at 0% 0%,rgba(201,120,140,.17),transparent 70%),var(--k-surface) !important}
+:root:not([data-theme="dark"]) body #inicio-kpis .resumo-card:not(.kpi-saldo):not(.kpi-alerta):nth-child(4n+3){background:radial-gradient(120% 90% at 0% 0%,rgba(91,128,200,.14),transparent 70%),var(--k-surface) !important}
+:root:not([data-theme="dark"]) body #inicio-kpis .resumo-card:not(.kpi-saldo):not(.kpi-alerta):nth-child(4n+4){background:radial-gradient(120% 90% at 0% 0%,rgba(110,150,105,.18),transparent 70%),var(--k-surface) !important}
+:root:not([data-theme="dark"]) body #inicio-kpis .kpi-alerta{background:radial-gradient(120% 90% at 0% 0%,rgba(205,160,76,.30),transparent 70%),var(--k-surface) !important;border-color:var(--k-gold-borda) !important}
+:root:not([data-theme="dark"]) body #inicio-kpis .kpi-saldo{background:radial-gradient(120% 90% at 0% 0%,rgba(205,160,76,.28),transparent 70%),linear-gradient(135deg,#34372A,#22251A) !important;border-color:rgba(205,160,76,.30) !important}
+/* Blocos de ação do Início */
+:root:not([data-theme="dark"]) body .acao-bloco{background:radial-gradient(110% 80% at 0% 0%,rgba(205,160,76,.14),transparent 65%),var(--k-surface) !important;border:1px solid var(--k-gold-borda) !important;box-shadow:var(--k-brilho),var(--k-sombra) !important}
+:root:not([data-theme="dark"]) body .acao-card{background:rgba(255,255,255,.7) !important;border:1px solid var(--k-borda) !important}
+/* Lista de eventos */
+:root:not([data-theme="dark"]) body .ev-row:hover{background:var(--k-gold-wash) !important}
+/* Cabeçalho das seções do formulário */
+:root:not([data-theme="dark"]) body .sh{background:transparent !important}
+:root:not([data-theme="dark"]) body .sh:hover{background:var(--k-gold-wash) !important}
+/* Campos */
+:root:not([data-theme="dark"]) body :is(input[type=text],input[type=date],input[type=number],input[type=tel],textarea,select,.busca,.preco-item){background:rgba(255,255,255,.82) !important;border:1px solid var(--k-borda-forte) !important;transition:border-color .15s,box-shadow .15s}
+:root:not([data-theme="dark"]) body :is(input[type=text],input[type=date],input[type=number],input[type=tel],textarea,select,.busca,.preco-item):focus{border-color:var(--k-gold-l) !important;box-shadow:0 0 0 3px rgba(205,160,76,.18) !important;outline:none}
+:root:not([data-theme="dark"]) body .busca{box-shadow:var(--k-brilho),var(--k-sombra) !important}
+/* Filtros e botões */
+:root:not([data-theme="dark"]) body .fb{border:1px solid var(--k-borda-forte) !important;background:rgba(255,255,255,.6) !important}
+:root:not([data-theme="dark"]) body .fb:hover{border-color:var(--k-gold-borda) !important}
+:root:not([data-theme="dark"]) body .fb.active{background:#282B1C !important;color:#EBCB86 !important;border-color:#282B1C !important}
+:root:not([data-theme="dark"]) body .btn-sm{transition:transform .12s,box-shadow .12s,border-color .12s}
+:root:not([data-theme="dark"]) body .btn-sm:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(40,43,28,.10)}
+:root:not([data-theme="dark"]) body .btn-salvar{background:linear-gradient(135deg,#3A3D2B,#22251A) !important;box-shadow:0 6px 16px rgba(34,37,26,.22) !important;border:0 !important}
+:root:not([data-theme="dark"]) body .btn-salvar:hover{box-shadow:0 8px 20px rgba(34,37,26,.28),inset 0 -2px 0 var(--k-gold-l) !important}
+/* Faixa de foto do Início */
+:root:not([data-theme="dark"]) body .inicio-capa.com-foto .pg-sub{color:rgba(250,247,242,.85) !important}
+:root:not([data-theme="dark"]) body .inicio-capa.com-foto{box-shadow:0 14px 34px rgba(20,21,14,.22) !important;border:1px solid rgba(205,160,76,.25)}
+/* Barra de rolagem discreta */
+:root:not([data-theme="dark"]) ::-webkit-scrollbar{width:10px;height:10px}
+:root:not([data-theme="dark"]) ::-webkit-scrollbar-thumb{background:rgba(40,43,28,.18);border-radius:9999px;border:2px solid transparent;background-clip:padding-box}
+/* Alerta de evento próximo: cantos e letra do novo visual */
+#alerta-pre-evento-global{font-family:var(--k-txt);background:linear-gradient(135deg,#B3322D,#8E2420) !important;border-bottom:1px solid rgba(255,255,255,.15)}
+#alerta-pre-evento-global .ape-titulo{font-family:var(--k-rot);text-transform:uppercase;letter-spacing:.06em;font-size:11px}
+#alerta-pre-evento-global button{border-radius:9999px !important}
+</style>
 </head>
 <body>
 
@@ -1475,6 +1599,7 @@ div.prev-card{cursor:default}
     </select>
   </label>
 </div>
+<div id="alerta-pre-evento-global" style="display:none"></div>
 
 <!-- ===== INÍCIO ===== -->
 <div class="tela ativa" id="tela-inicio">
@@ -2212,8 +2337,9 @@ Chegamos com antecedência para montagem e preparação dos pratos</textarea>
                 </div>
                 <div class="field" style="margin-bottom:0;flex:1;min-width:110px"><label class="fl" style="font-size:9px">Observação (opcional)</label><input type="text" spellcheck="true" id="pgto-obs" placeholder="ex: 2ª parcela"></div>
                 <button type="button" class="btn-sm" style="background:var(--verde);color:#fff;border-color:var(--verde);font-weight:700" onclick="adicionarPagamentoContrato()">+ Lançar pagamento</button>
+                <button type="button" class="btn-sm" style="background:var(--vermelho);color:var(--vermelho-t);border-color:var(--vermelho-t);font-weight:700" onclick="registrarDevolucaoContrato()" title="Use quando devolver dinheiro ao cliente (ex.: evento cancelado). Preencha data, valor, forma e observação ao lado.">↩ Registrar devolução</button>
               </div>
-              <div style="font-size:10px;color:var(--leve);margin-top:8px">Este pagamento também é lançado automaticamente como receita no Livro-Caixa.</div>
+              <div style="font-size:10px;color:var(--leve);margin-top:8px">Este pagamento também é lançado automaticamente como receita no Livro-Caixa. A devolução entra no Livro-Caixa como valor negativo e é descontada do total pago.</div>
               <label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--leve);margin-top:4px;cursor:pointer">
                 <input type="checkbox" id="pgto-gerar-recibo" style="width:auto" checked> Baixar recibo em PDF automaticamente (pra enviar ao cliente)
               </label>
@@ -3140,6 +3266,7 @@ function getContrs(){
 function saveContrs(l){
   _contrsCache = l;
   localStorage.setItem('manaca_contrs', JSON.stringify(l));
+  try{ renderAlertaPreEventoGlobal(); }catch(e){}
   if(window._fbReady){
     l.forEach(ct => window._fb?.saveContr(ct).catch(e=>console.warn('Firebase sync:', e)));
   }
@@ -3622,6 +3749,7 @@ async function syncDoFirebase(){
       _contrsCache = contrsMesclados;
       localStorage.setItem('manaca_contrs', JSON.stringify(contrsMesclados));
       migrarStatusContratosAntigos();
+      try{ renderAlertaPreEventoGlobal(); }catch(e){}
     }
     if(catExtra){
       catalogoExtra = catExtra;
@@ -4631,7 +4759,35 @@ function marcarMsgPreEvento(ctId){
   renderPreEvento();
 }
 
+// ===== ALERTA FIXO DE EVENTO PRÓXIMO (todas as telas) =====
+// Criado em 18/11/2026 depois que o Coffee Break da Angela Castro (15/11) foi esquecido.
+// Mostra uma faixa vermelha no topo de QUALQUER tela enquanto houver evento nos
+// próximos 3 dias com a confirmação com o cliente ainda não marcada. Some quando
+// marcar "Já confirmei" (mesma marcação do bloco "Confirmação pré-evento" do Início).
+function renderAlertaPreEventoGlobal(){
+  const el = document.getElementById('alerta-pre-evento-global');
+  if(!el) return;
+  let pendentes = [];
+  try{ pendentes = contratosPreEventoPendentes(); }catch(e){ pendentes = []; }
+  if(!pendentes.length){ el.style.display='none'; el.innerHTML=''; return; }
+  const hojeZero = new Date(); hojeZero.setHours(0,0,0,0);
+  el.innerHTML = `<div class="ape-titulo">⚠️ Evento chegando sem confirmação com o cliente</div>` +
+    pendentes.map(ct=>{
+      const dias = Math.floor((new Date(ct.ev_data+'T00:00:00') - hojeZero)/86400000);
+      const quando = dias===0 ? 'É HOJE' : dias===1 ? 'é AMANHÃ' : `em ${dias} dias`;
+      return `<div class="ape-linha">
+        <span><strong>${ct.nome||'Sem nome'}</strong> · ${tipoExibicao(ct.tipo)||'Evento'} · ${quando} (${fmtD(ct.ev_data)}${ct.inicio?', '+ct.inicio:''})</span>
+        <button ${!ct.fone?'disabled title="Sem WhatsApp cadastrado nesse contrato"':''} onclick="enviarWhatsAppConfirmacaoPreEvento('${ct.id}')">Mensagem de confirmação</button>
+        <button class="ape-sec" onclick="marcarMsgPreEvento('${ct.id}')">Já confirmei</button>
+      </div>`;
+    }).join('');
+  el.style.display='block';
+}
+setInterval(renderAlertaPreEventoGlobal, 60000);
+window.addEventListener('load', ()=>setTimeout(renderAlertaPreEventoGlobal, 1500));
+
 function renderPreEvento(){
+  renderAlertaPreEventoGlobal();
   const el = document.getElementById('inicio-pre-evento');
   if(!el) return;
   const pendentes = contratosPreEventoPendentes();
@@ -7816,7 +7972,7 @@ function nfPendente(ct){
   // inflava a lista com contratos que ainda nem receberam pagamento. Agora,
   // o critério é ter recebido pelo menos um pagamento — que é quando a nota
   // fiscal realmente passa a fazer sentido.
-  const recebeuAlgumPagamento = (ct.pagamentos||[]).some(p=>(parseFloat(p.valor)||0)>0);
+  const recebeuAlgumPagamento = (ct.pagamentos||[]).some(p=>(parseFloat(p.valor)||0)>0) && totalPagoContrato(ct.pagamentos, ct) > 0.009; // devolução total = não precisa de NF
   return ['Ativo','Encerrado'].includes(ct.status) && recebeuAlgumPagamento && !ct.nf_emitida;
 }
 
@@ -10705,11 +10861,11 @@ function renderPagamentosContrato(){
     ? pagamentosContrato.slice().sort((a,b)=>(a.data||'').localeCompare(b.data||'')).map(p=>`
         <div class="orc-card" style="padding:6px 10px;margin-bottom:4px;background:#fff;cursor:default">
           <div class="orc-info">
-            <div class="orc-nome" style="font-size:12.5px">R$ ${fmtN(p.valor)} <span style="font-weight:400;color:var(--leve);font-size:11px">· ${p.forma||'—'} · ${p.data?fmtD(p.data):'sem data'}</span></div>
+            <div class="orc-nome" style="font-size:12.5px${p.tipo==='devolucao'?';color:var(--vermelho-t)':''}">${p.tipo==='devolucao'?'↩ Devolução · −R$ '+fmtN(Math.abs(p.valor)):'R$ '+fmtN(p.valor)} <span style="font-weight:400;color:var(--leve);font-size:11px">· ${p.forma||'—'} · ${p.data?fmtD(p.data):'sem data'}</span></div>
             ${p.obs?`<div class="orc-det">${p.obs}</div>`:''}
           </div>
           <div class="orc-acoes">
-            <button class="btn-sm" style="background:#EDE7F6;color:#4527A0;border-color:#4527A0" onclick="gerarPDFRecibo('${p.id}')" title="Baixar recibo desse pagamento em PDF">🧾</button>
+            ${p.tipo==='devolucao'?'':`<button class="btn-sm" style="background:#EDE7F6;color:#4527A0;border-color:#4527A0" onclick="gerarPDFRecibo('${p.id}')" title="Baixar recibo desse pagamento em PDF">🧾</button>`}
             <button class="btn-sm del" onclick="removerPagamentoContrato('${p.id}')" title="Excluir lançamento">×</button>
           </div>
         </div>`).join('')
@@ -10720,6 +10876,9 @@ function renderPagamentosContrato(){
   const falta = totalContrato - totalPago;
   if(totalContrato<=0){
     resumoEl.textContent = '';
+  } else if(totalPago<=0.009 && pagamentosContrato.some(p=>p.tipo==='devolucao')){
+    const devolvido = pagamentosContrato.filter(p=>p.tipo==='devolucao').reduce((s,p)=>s+Math.abs(Number(p.valor)||0),0);
+    resumoEl.innerHTML = `<span style="color:var(--vermelho-t)">Valor devolvido ao cliente — R$ ${fmtN(devolvido)} · saldo pago R$ 0,00</span>`;
   } else if(totalPago<=0){
     resumoEl.innerHTML = `<span style="color:#9E9E9E">Nada pago ainda · faltam R$ ${fmtN(totalContrato)}</span>`;
   } else if(falta<=0.009){
@@ -10776,9 +10935,62 @@ async function adicionarPagamentoContrato(){
   }
 }
 
+// ===== DEVOLUÇÃO AO CLIENTE (18/11/2026) =====
+// Criado quando a entrada da Angela Castro (Coffee Break 15/11) foi devolvida.
+// A devolução fica na mesma lista de pagamentos, com valor NEGATIVO e
+// tipo:'devolucao'. Assim todos os totais do sistema (pago/falta, Início,
+// Clientes, relatórios) já descontam sozinhos. No Livro-Caixa entra como
+// receita negativa (rec-<id>), pra receita do mês ficar líquida.
+async function registrarDevolucaoContrato(){
+  const data = gv('pgto-data');
+  const valor = Math.abs(parseMoedaBR(gv('pgto-valor')));
+  const forma = gv('pgto-forma');
+  const obsDigitada = gv('pgto-obs');
+  if(!data || !valor){ alert('Para registrar a devolução, preencha a data e o valor devolvido nos campos ao lado (Data, Valor, Forma e, se quiser, Observação com o motivo).'); return; }
+  const pagoAtual = totalPagoContrato(pagamentosContrato, null);
+  if(valor > pagoAtual + 0.009){
+    alert(`O valor da devolução (R$ ${fmtN(valor)}) é maior que o total pago neste contrato (R$ ${fmtN(pagoAtual)}). Confira o valor.`);
+    return;
+  }
+  const nome = gv('ccli_nome')||'contrato';
+  if(!confirm(`Registrar devolução de R$ ${fmtN(valor)} para ${nome} em ${fmtD(data)} (${forma})?\n\nO valor será descontado do total pago e lançado como valor negativo no Livro-Caixa.`)) return;
+
+  const obs = obsDigitada || 'Devolução ao cliente';
+  const pag = {id:'pg-'+Date.now(), data, valor:-valor, forma, obs, tipo:'devolucao'};
+  pagamentosContrato.push(pag);
+
+  // Se devolveu tudo, oferece marcar o contrato como Cancelado.
+  const sobra = totalPagoContrato(pagamentosContrato, null);
+  if(sobra <= 0.009 && getCStatusEl()!=='Cancelado'){
+    if(confirm('Todo o valor pago foi devolvido. Marcar este contrato como CANCELADO?\n\n(O evento sai da agenda, do Google Agenda e dos avisos do Início.)')){
+      const r = document.getElementById('cs4'); if(r){ r.checked = true; }
+    }
+  }
+
+  renderPagamentosContrato();
+  renderContrPreview();
+  sv('pgto-data',''); sv('pgto-valor',''); sv('pgto-obs','');
+  await salvarContrato();
+
+  {
+    const d = new Date(data+'T12:00:00');
+    await finGravarReceita(finMesId(d), {
+      id:'rec-'+pag.id, setor:'PJ', dia:d.getDate(),
+      desc: `Devolução - ${nome}${obsDigitada?' ('+obsDigitada+')':''}`, valor:-valor,
+      origem:'contrato', contratoId: contrAtualId||null,
+      por: getUsuarioAtual()||'—'
+    });
+    if(typeof renderFinanceiro==='function') renderFinanceiro();
+  }
+  if(typeof renderInicio==='function') renderInicio();
+}
+
 async function removerPagamentoContrato(id){
-  if(!confirm('Excluir este lançamento de pagamento?\n\nA receita correspondente lançada no Livro-Caixa também será removida automaticamente.')) return;
   const pag = pagamentosContrato.find(p=>p.id===id);
+  const ehDev = pag && pag.tipo==='devolucao';
+  if(!confirm(ehDev
+    ? 'Excluir esta devolução?\n\nO valor volta a contar como pago, e o lançamento negativo no Livro-Caixa também será removido.'
+    : 'Excluir este lançamento de pagamento?\n\nA receita correspondente lançada no Livro-Caixa também será removida automaticamente.')) return;
   pagamentosContrato = pagamentosContrato.filter(p=>p.id!==id);
   renderPagamentosContrato();
   renderContrPreview();
@@ -12637,7 +12849,12 @@ async function criarEventoGcal(orc){
     location: orc.local || '',
     start: { dateTime: dataInicio, timeZone: 'America/Sao_Paulo' },
     end: { dateTime: dataFim, timeZone: 'America/Sao_Paulo' },
-    colorId: {'Rascunho':'8','Aprovado':'2','Enviado ao Cliente':'9','Cancelado':'11'}[orc.status] || '7'
+    colorId: {'Rascunho':'8','Aprovado':'2','Enviado ao Cliente':'9','Cancelado':'11'}[orc.status] || '7',
+    // Alarmes no celular (18/11/2026, depois do evento esquecido da Angela Castro):
+    // 7 dias, 2 dias e 1 dia antes. Só para evento confirmado (contrato); pré-reserva fica com o padrão do calendário.
+    reminders: orc.status==='Aprovado' && !orc.pre_reservado
+      ? { useDefault:false, overrides:[ {method:'popup', minutes:7*24*60}, {method:'popup', minutes:2*24*60}, {method:'popup', minutes:24*60} ] }
+      : { useDefault:true }
   };
 
   // Verificar se já existe evento para esse orçamento
