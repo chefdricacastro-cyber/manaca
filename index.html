@@ -1222,7 +1222,7 @@ input:focus,select:focus,textarea:focus,.busca:focus{border-color:#282B1C !impor
 
 @media(max-width:700px){
   .util-bar{padding:8px 16px !important;gap:6px 10px}
-  .util-bar .util-sep,#gcal-bar,.util-bar .util-item:has(#info-backup){display:none !important}
+  .util-bar .util-sep,.util-bar .util-item:has(#info-backup){display:none !important}
   #tela-lista .orc-card,#tela-contratos .orc-card{flex-wrap:wrap;row-gap:8px}
   #tela-lista .orc-info,#tela-contratos .orc-info{flex:1 1 calc(100% - 60px);min-width:0}
   #tela-lista .orc-det,#tela-contratos .orc-det{white-space:normal}
@@ -12391,6 +12391,7 @@ function gcalSalvarToken(token){
   atualizarBarraGcal(true);
 }
 function gcalCarregarToken(){
+  try { gcalLerRespostaDoGoogle(); } catch(e){ console.warn('Resposta do Google:', e); }
   try {
     const t = localStorage.getItem('manaca_gcal_token');
     if(t){
@@ -12399,6 +12400,16 @@ function gcalCarregarToken(){
         gcalToken = tk; atualizarBarraGcal(true);
         const falta = tk.expires_at ? tk.expires_at - Date.now() : 0;
         if(falta > 0) setTimeout(()=>{ if(gcalToken===tk) gcalTokenExpirou(); }, falta);
+        if(window._gcalAcabouDeConectar){
+          window._gcalAcabouDeConectar = false;
+          setTimeout(async ()=>{
+            await buscarOuCriarCalendario();
+            if(!gcalId){ alert('Conectou, mas não consegui abrir o calendário "Buffet Manacá". Tire um print e mande para o Claude.'); return; }
+            try{ sincronizarTodosEventosGcal(); }catch(e){}
+            try{ sincronizarTodosLembretesGcal(); }catch(e){}
+            alert('✓ Google Agenda conectado!');
+          }, 4000);
+        }
         return;
       }
       localStorage.removeItem('manaca_gcal_token');
@@ -12432,50 +12443,48 @@ function atualizarBarraGcal(conectado){
     btnDes.style.display = 'none';
   }
 }
-let _gcalClient = null;
+// Conexão pelo "vai e volta" da página (redirecionamento). A janelinha
+// (popup) do Google fechava sem entregar a resposta ao sistema.
+const GCAL_REDIRECT_URI = 'https://chefdricacastro-cyber.github.io/manaca/';
 function conectarGoogle(){
-  if(!window.google || !google.accounts || !google.accounts.oauth2){
-    alert('O Google ainda não carregou. Espere alguns segundos e clique de novo. Se continuar, aperte Ctrl+Shift+R.');
+  const estado = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  sessionStorage.setItem('manaca_gcal_estado', estado);
+  const jaConectou = localStorage.getItem('manaca_gcal_ja_conectou') === '1';
+  const params = new URLSearchParams({
+    client_id: GCAL_CLIENT_ID,
+    redirect_uri: GCAL_REDIRECT_URI,
+    response_type: 'token',
+    scope: GCAL_SCOPES,
+    include_granted_scopes: 'true',
+    state: estado,
+    prompt: jaConectou ? 'select_account' : 'consent select_account'
+  });
+  location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params.toString();
+}
+// Ao voltar do Google, a resposta vem no endereço (depois do #).
+function gcalLerRespostaDoGoogle(){
+  const h = location.hash || '';
+  if(!/access_token=|error=/.test(h)) return;
+  const p = new URLSearchParams(h.slice(1));
+  history.replaceState(null, '', location.pathname + location.search);
+  const estadoOk = p.get('state') && p.get('state') === sessionStorage.getItem('manaca_gcal_estado');
+  sessionStorage.removeItem('manaca_gcal_estado');
+  if(p.get('error')){
+    if(p.get('error') !== 'access_denied') alert('O Google não liberou a conexão.\n\nMotivo: ' + p.get('error') + '\n\nTire um print e mande para o Claude.');
     return;
   }
-  const jaConectou = localStorage.getItem('manaca_gcal_ja_conectou') === '1';
-  _gcalClient = google.accounts.oauth2.initTokenClient({
-    client_id: GCAL_CLIENT_ID,
-    scope: GCAL_SCOPES,
-    include_granted_scopes: true,
-    prompt: jaConectou ? '' : 'consent',
-    callback: async (resp) => {
-      if(!resp || resp.error){
-        alert('O Google não liberou a conexão.\n\nMotivo: ' + (resp && (resp.error_description || resp.error) || 'desconhecido') + '\n\nTire um print desta mensagem e mande para o Claude.');
-        return;
-      }
-      if(!google.accounts.oauth2.hasGrantedAnyScope(resp, 'https://www.googleapis.com/auth/calendar')){
-        alert('Quase lá! Na tela do Google, é preciso MARCAR a caixinha que fala da Agenda ("Ver, editar, compartilhar e excluir agendas...").\n\nClique em Conectar de novo e marque todas as caixinhas.');
-        localStorage.removeItem('manaca_gcal_ja_conectou');
-        atualizarBarraGcal(false);
-        return;
-      }
-      gcalSalvarToken(resp);
-      setTimeout(()=>{ if(gcalToken===resp) gcalTokenExpirou(); }, resp.expires_at - Date.now());
-      localStorage.removeItem('manaca_gcal_id');
-      gcalId = null;
-      await buscarOuCriarCalendario();
-      if(!gcalId){ alert('Conectou, mas não consegui abrir o calendário "Buffet Manacá". Tire um print e mande para o Claude.'); return; }
-      try{ if(typeof sincronizarTodosEventosGcal==='function') sincronizarTodosEventosGcal(); }catch(e){}
-      try{ if(typeof sincronizarTodosLembretesGcal==='function') sincronizarTodosLembretesGcal(); }catch(e){}
-      if(typeof toast==='function') toast('✓ Google Agenda conectado'); else alert('✓ Google Agenda conectado!');
-    },
-    error_callback: (err) => {
-      const tipo = err && err.type;
-      if(tipo === 'popup_closed') return; // a pessoa fechou a janela
-      if(tipo === 'popup_failed_to_open'){
-        alert('O navegador bloqueou a janela do Google.\n\nPermita pop-ups para este site (ícone na barra de endereço) e clique em Conectar de novo.');
-        return;
-      }
-      alert('Não deu para conectar ao Google: ' + (tipo || err && err.message || 'erro desconhecido') + '\n\nTire um print e mande para o Claude.');
-    }
-  });
-  _gcalClient.requestAccessToken();
+  if(!estadoOk){ alert('A resposta do Google não confere. Clique em Conectar de novo.'); return; }
+  const scope = p.get('scope') || '';
+  if(!scope.includes('https://www.googleapis.com/auth/calendar')){
+    alert('Quase lá! Na tela do Google, é preciso MARCAR a caixinha que fala da Agenda.\n\nClique em Conectar de novo e marque todas as caixinhas.');
+    localStorage.removeItem('manaca_gcal_ja_conectou');
+    return;
+  }
+  const tk = { access_token: p.get('access_token'), expires_in: p.get('expires_in'), scope, token_type: p.get('token_type') };
+  gcalSalvarToken(tk);
+  localStorage.removeItem('manaca_gcal_id');
+  gcalId = null;
+  window._gcalAcabouDeConectar = true;
 }
 function desconectarGoogle(){
   if(gcalToken) google.accounts.oauth2.revoke(gcalToken.access_token, ()=>{});
