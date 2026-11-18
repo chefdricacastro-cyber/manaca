@@ -10002,6 +10002,22 @@ async function renderInicio(){
         </div>`).join('')}</div>`
     : '<div class="empty" style="padding:16px"><div style="font-size:12px">Nenhuma nota fiscal a emitir.</div></div>';
 
+  // Lembrete de cobrança agendado (contrato → Lembretes de Cobrança) mostrado
+  // no próprio cartão: assim se vê que o recebimento já tem data marcada e
+  // não é falta de cobrança. Mostra o próximo não cobrado (ou o vencido).
+  const tagLembrete = (ct)=>{
+    const pend = (ct.lembretes_cobranca||[]).filter(l=>!l.feito && l.data)
+      .sort((a,b)=>a.data.localeCompare(b.data));
+    if(!pend.length) return '';
+    const l = pend[0];
+    const dias = Math.ceil((new Date(l.data+'T00:00:00')-hoje)/86400000);
+    const venc = dias<0;
+    const quando = dias===0?' (hoje)':dias===1?' (amanhã)':'';
+    const mais = pend.length>1 ? ` · +${pend.length-1} data${pend.length>2?'s':''}` : '';
+    const cor = venc ? '#C62828' : 'var(--verde)';
+    return `<div style="margin-top:5px"><span title="${(l.obs||'Lembrete de cobrança').replace(/"/g,'&quot;')}" style="display:inline-block;font-size:10.5px;font-weight:600;color:${cor};background:#fff;border:1px solid ${cor};border-radius:999px;padding:2px 9px">${venc?'Cobrança agendada venceu':'Recebimento agendado'}: ${fmtD(l.data)}${quando}${l.valor?' · R$ '+fmtN(l.valor):''}${mais}</span></div>`;
+  };
+
   // Cobrar saldo antes do evento: contratos com evento em até 2 dias e ainda
   // com valor pendente — pra não deixar de mandar mensagem cobrando a tempo.
   const cobranca = contrs.filter(ct=>{
@@ -10025,7 +10041,7 @@ async function renderInicio(){
         <div class="orc-card" style="cursor:pointer;background:#FFEBEE" onclick="abrirContrato('${ct.id}')">
           <div class="orc-info">
             <div class="orc-nome">${ct.nome||'Sem nome'} <span style="font-size:9px;font-weight:700;color:#C62828;text-transform:uppercase">· ${lbl}</span></div>
-            <div class="orc-det">${tipoExibicao(ct.tipo)||'—'} · evento em ${fmtD(ct.ev_data)} · falta R$ ${fmtN(falta)} de R$ ${fmtN(totalContrato)}</div>
+            <div class="orc-det">${tipoExibicao(ct.tipo)||'—'} · evento em ${fmtD(ct.ev_data)} · falta R$ ${fmtN(falta)} de R$ ${fmtN(totalContrato)}</div>${tagLembrete(ct)}
           </div>
           <div class="orc-acoes" onclick="event.stopPropagation()">${ct.fone?`<button class="btn-sm" style="background:#fff;color:#C62828;border-color:#C62828" onclick="enviarWhatsAppCobranca('${ct.id}')">Cobrar</button>`:''}</div>
         </div>`;
@@ -10053,7 +10069,7 @@ async function renderInicio(){
         <div class="orc-card" style="cursor:pointer;background:#FFF3E0" onclick="abrirContrato('${ct.id}')">
           <div class="orc-info">
             <div class="orc-nome">${ct.nome||'Sem nome'}</div>
-            <div class="orc-det">${tipoExibicao(ct.tipo)||'—'} · evento ${lblData} · total R$ ${fmtN(totalContrato)}</div>
+            <div class="orc-det">${tipoExibicao(ct.tipo)||'—'} · evento ${lblData} · total R$ ${fmtN(totalContrato)}</div>${tagLembrete(ct)}
           </div>
           <div class="orc-acoes" onclick="event.stopPropagation()">${ct.fone?`<button class="btn-sm" style="background:#fff;color:#EF6C00;border-color:#EF6C00" onclick="enviarWhatsAppCobranca('${ct.id}')">Cobrar</button>`:''}</div>
         </div>`;
@@ -10090,7 +10106,7 @@ async function renderInicio(){
         <div class="orc-card" style="cursor:pointer;background:#FFF8E1" onclick="abrirContrato('${ct.id}')">
           <div class="orc-info">
             <div class="orc-nome">${ct.nome||'Sem nome'}</div>
-            <div class="orc-det">${tipoExibicao(ct.tipo)||'—'} · evento ${lblSpl} · pago R$ ${fmtN(totalPago)} de R$ ${fmtN(totalContrato)} · falta R$ ${fmtN(falta)}</div>
+            <div class="orc-det">${tipoExibicao(ct.tipo)||'—'} · evento ${lblSpl} · pago R$ ${fmtN(totalPago)} de R$ ${fmtN(totalContrato)} · falta R$ ${fmtN(falta)}</div>${tagLembrete(ct)}
           </div>
           <div class="orc-acoes" onclick="event.stopPropagation()">${ct.fone?`<button class="btn-sm" style="background:#fff;color:#8A5A00;border-color:#8A5A00" onclick="enviarWhatsAppCobranca('${ct.id}')">Cobrar</button>`:''}</div>
         </div>`;
@@ -13000,12 +13016,19 @@ async function finCorrigirEventosDivergentesGcal(){
   }
 }
 
+// Decisão da Drica (18/11/2026): contas a pagar e lembretes de cobrança (a
+// receber) NÃO vão mais para o Google Agenda. Na tela Agenda do sistema
+// continuam aparecendo. Com isso, as funções abaixo só APAGAM do Google o que
+// já tinha sido criado; nunca criam de novo. Para voltar ao jeito antigo,
+// trocar para false.
+const GCAL_SEM_CONTAS = true;
+
 async function sincronizarContaFixaGcal(conta, mesId, mes){
   if(!gcalToken) return;
   if(!gcalId) await buscarOuCriarCalendario();
   if(!gcalId) return;
   const key = 'manaca_ev_conta_' + conta.id + '_' + mesId;
-  const pago = !!mes.pagamentos[conta.id];
+  const pago = GCAL_SEM_CONTAS || !!mes.pagamentos[conta.id];
 
   if(pago){
     const evId = await gcalIdGet(key);
@@ -13179,7 +13202,7 @@ async function removerEventoLembreteGcal(lembreteId){
 
 async function sincronizarLembreteCobrancaGcal(lembrete, nomeCliente){
   if(!gcalToken || !lembrete.data) return;
-  if(lembrete.feito){
+  if(lembrete.feito || GCAL_SEM_CONTAS){
     await removerEventoLembreteGcal(lembrete.id);
     return;
   }
@@ -13233,11 +13256,51 @@ let _lembretesJaSincronizadosGcal = false;
 async function sincronizarTodosLembretesGcal(){
   if(!gcalToken || _lembretesJaSincronizadosGcal) return;
   _lembretesJaSincronizadosGcal = true;
+  if(GCAL_SEM_CONTAS){ await gcalApagarContasDoGoogle(); return; }
   for(const ct of getContrs()){
     for(const l of (ct.lembretes_cobranca||[])){
       if(!l.feito) await sincronizarLembreteCobrancaGcal(l, ct.nome||'Cliente');
     }
   }
+}
+
+// Apaga do calendário "Buffet Manacá" no Google todos os eventos de conta a
+// pagar ("💰 Pagar: ...") e de cobrança ("🔔 Cobrar: ..."), de qualquer data.
+// Lê os eventos reais do Google (pelo título), então pega também os criados
+// em outros computadores. Eventos de festa e tarefas (📋) não são tocados.
+// Roda uma vez por sessão; se o Google não responder, tenta de novo depois.
+let _gcalContasApagadas = false;
+async function gcalApagarContasDoGoogle(){
+  if(!gcalToken || _gcalContasApagadas) return;
+  _gcalContasApagadas = true;
+  try{
+    if(!gcalId) await buscarOuCriarCalendario();
+    if(!gcalId){ _gcalContasApagadas = false; return; }
+    await gcalHidratarCache();
+    let eventos = [], pageToken = '';
+    do{
+      const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(gcalId)}/events?maxResults=2500&singleEvents=true`
+        + (pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '');
+      const resp = await fetch(url, { headers: { Authorization: 'Bearer ' + gcalToken.access_token } });
+      if(!resp.ok){ _gcalContasApagadas = false; return; }
+      const data = await resp.json();
+      eventos = eventos.concat(data.items || []);
+      pageToken = data.nextPageToken || '';
+    } while(pageToken);
+    for(const ev of eventos){
+      if(ev.status==='cancelled') continue;
+      const t = ev.summary || '';
+      if(!t.startsWith('💰 Pagar:') && !t.startsWith('🔔 Cobrar:')) continue;
+      try{
+        await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(gcalId)}/events/${ev.id}`, {
+          method:'DELETE', headers:{Authorization:'Bearer '+gcalToken.access_token}
+        });
+      }catch(e){ console.warn('Erro ao apagar conta do Google Agenda:', t, e); }
+      Object.keys(localStorage)
+        .filter(k=>k.startsWith('manaca_ev_') && localStorage.getItem(k)===ev.id)
+        .forEach(k=> gcalIdDel(k));
+    }
+  }catch(e){ _gcalContasApagadas = false; console.warn('Erro ao limpar contas do Google Agenda:', e); }
 }
 
 // ===== LOUÇAS =====
