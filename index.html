@@ -7229,6 +7229,30 @@ async function aplicarCapaInicio(){
   const c = await carregarCapas();
   const f = c.inicio && c.inicio.url ? c.inicio : null;
   if(!f){ el.classList.remove('com-foto'); el.style.backgroundImage = ''; return; }
+  if(f.ajuste){
+    // 18/11/2026: enquadramento escolhido no admin de fotos (Fotos de capa → Início do sistema → Ajustar)
+    const url = urlCapa(f.url, 'f_auto,q_auto,c_limit,w_2000');
+    const im = new Image();
+    im.onload = () => {
+      el.style.backgroundImage = `url("${url}")`;
+      el.classList.add('com-foto');
+      const pintar = () => {
+        const bw = el.clientWidth || 1, bh = el.clientHeight || 1, W = im.naturalWidth, H = im.naturalHeight, A = bw / bh, aj = f.ajuste;
+        const z = Math.max(1, Math.min(4, Number(aj.z) || 1));
+        let sw, sh; if(W / H > A){ sh = H; sw = H * A; } else { sw = W; sh = W / A; }
+        sw /= z; sh /= z;
+        const sx = Math.min(Math.max((aj.x ?? 0.5) * W - sw / 2, 0), W - sw), sy = Math.min(Math.max((aj.y ?? 0.5) * H - sh / 2, 0), H - sh);
+        el.style.backgroundSize = `${W / sw * bw}px ${H / sh * bh}px`;
+        el.style.backgroundPosition = `${-sx / sw * bw}px ${-sy / sh * bh}px`;
+      };
+      pintar(); window._pintarCapaInicio = pintar;
+      if(!window._capaInicioResize){ window._capaInicioResize = true; window.addEventListener('resize', ()=>{ try{ pintar(); }catch(e){} }); }
+      setTimeout(pintar, 300);
+    };
+    im.src = url;
+    return;
+  }
+  el.style.backgroundSize = ''; el.style.backgroundPosition = '';
   el.style.backgroundImage = `url("${urlCapa(f.url, 'f_auto,q_auto,c_fill,g_auto,w_1800,h_420')}")`;
   el.classList.add('com-foto');
 }
@@ -11093,6 +11117,7 @@ function renderInicioNovo(d){
 
 async function renderInicio(){
   if(!document.getElementById('tela-inicio')) return;
+  try{ window._pintarCapaInicio && setTimeout(window._pintarCapaInicio, 0); }catch(e){}
   const orcsTodos = getOrcs();
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   if(gcalToken) sincronizarTodasContasFixasGcal(finMesId(hoje));

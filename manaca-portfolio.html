@@ -683,6 +683,37 @@
     if(!url || !url.includes('res.cloudinary.com') || !url.includes('/image/upload/')) return url;
     return url.replace('/image/upload/', `/image/upload/f_auto,q_auto,c_limit,w_${largura}/`);
   }
+  // ---- Enquadramento escolhido no admin (18/11/2026): ajuste {x, y, z} = centro e zoom ----
+  // Mesma conta do admin: corta a foto no formato da caixa, mantendo à vista o ponto escolhido.
+  function recorteFoto(W, H, aj, A){
+    aj = aj || {}; const z = Math.max(1, Math.min(4, Number(aj.z) || 1));
+    let sw, sh; if(W / H > A){ sh = H; sw = H * A; } else { sw = W; sh = W / A; }
+    sw /= z; sh /= z;
+    const cx = (aj.x == null ? 0.5 : aj.x) * W, cy = (aj.y == null ? 0.5 : aj.y) * H;
+    return { sx: Math.min(Math.max(cx - sw / 2, 0), W - sw), sy: Math.min(Math.max(cy - sh / 2, 0), H - sh), sw, sh };
+  }
+  function enquadrarFundo(el, W, H, aj){
+    const bw = el.clientWidth || 1, bh = el.clientHeight || 1;
+    if(!aj){ el.style.backgroundSize = ''; el.style.backgroundPosition = ''; return; }
+    const r = recorteFoto(W, H, aj, bw / bh);
+    el.style.backgroundSize = `${W / r.sw * bw}px ${H / r.sh * bh}px`;
+    el.style.backgroundPosition = `${-r.sx / r.sw * bw}px ${-r.sy / r.sh * bh}px`;
+  }
+  window.enqImg = function(img){
+    let aj = null; try{ aj = img.dataset.aj ? JSON.parse(img.dataset.aj) : null; }catch(e){}
+    const caixa = img.parentElement;
+    if(!aj || !img.naturalWidth || !caixa){ return; }
+    const W = img.naturalWidth, H = img.naturalHeight, bw = caixa.clientWidth || 1, bh = caixa.clientHeight || 1;
+    const r = recorteFoto(W, H, aj, bw / bh), k = bw / r.sw;
+    Object.assign(img.style, { position:'absolute', objectFit:'fill', maxWidth:'none', maxHeight:'none',
+      width: W * k + 'px', height: H * k + 'px', left: -r.sx * k + 'px', top: -r.sy * k + 'px', right:'auto', bottom:'auto' });
+  };
+  const ajAttr = f => f && f.ajuste ? ` data-aj="${esc(JSON.stringify(f.ajuste))}"` : '';
+  let _enqTimer = null;
+  window.addEventListener('resize', () => { clearTimeout(_enqTimer); _enqTimer = setTimeout(() => {
+    document.querySelectorAll('img[data-aj]').forEach(enqImg);
+    document.querySelectorAll('.hero-slide[data-w]').forEach(el => { let aj=null; try{ aj=JSON.parse(el.dataset.aj||'null'); }catch(e){} enquadrarFundo(el, +el.dataset.w, +el.dataset.h, aj); });
+  }, 150); });
   function linkWhats(texto){ return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(texto || MSG_PADRAO)}`; }
   function atualizarLinksWhats(){
     const texto = catAberta ? `Olá, Drica! Vi as fotos de ${catAberta.nome}${subAberta ? ` (${subAberta.nome})` : ''} no site do Buffet Manacá e quero um orçamento.` : MSG_PADRAO;
@@ -797,7 +828,7 @@
       card.onclick = () => irPara(cat.id);
       const largura = spans[i] > 4 ? 1400 : 800;
       card.innerHTML = `
-        <img src="${esc(opt(capa.url, largura))}" alt="${esc(cat.nome)}" loading="${i < 3 ? 'eager' : 'lazy'}" onload="this.classList.add('ok')">
+        <img src="${esc(opt(capa.url, largura))}" alt="${esc(cat.nome)}" loading="${i < 3 ? 'eager' : 'lazy'}"${ajAttr(capa)} onload="this.classList.add('ok');enqImg(this)">
         <div class="cat-info">
           <div>
             <span class="cat-qtd">${lista.length ? `${lista.length} foto${lista.length === 1 ? '' : 's'}` : 'Em breve'}</span>
@@ -833,6 +864,8 @@
       const pre = new Image();
       pre.onload = () => {
         alvo.style.backgroundImage = `url("${url}")`;
+        alvo.dataset.w = pre.naturalWidth; alvo.dataset.h = pre.naturalHeight; alvo.dataset.aj = JSON.stringify(capas[n].ajuste || null);
+        enquadrarFundo(alvo, pre.naturalWidth, pre.naturalHeight, capas[n].ajuste || null);
         slides.forEach((s, k) => s.classList.toggle('ativo', k === n));
         dots.forEach((d, k) => d.classList.toggle('ativo', k === n));
         // já baixa a próxima
@@ -1036,8 +1069,11 @@
     const buffet = (capas.chefBuffet && capas.chefBuffet.url) ? capas.chefBuffet
                  : (capas.padrao && capas.padrao.url) ? capas.padrao
                  : capasDoSite()[0];
-    $('chef-retrato-img').src = opt(chef.url, 700);
-    if(buffet) $('chef-buffet-img').src = opt(buffet.url, 1200);
+    const ri = $('chef-retrato-img'); if(chef.ajuste) ri.dataset.aj = JSON.stringify(chef.ajuste);
+    ri.onload = () => { ri.classList.add('ok'); enqImg(ri); };
+    ri.src = opt(chef.url, 900);
+    if(buffet){ const bi = $('chef-buffet-img'); if(buffet.ajuste && buffet === capas.chefBuffet) bi.dataset.aj = JSON.stringify(buffet.ajuste);
+      bi.onload = () => { bi.classList.add('ok'); enqImg(bi); }; bi.src = opt(buffet.url, 1400); }
     $('chef').classList.add('on');
     observar($('chef'));
   }

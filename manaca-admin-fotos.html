@@ -416,6 +416,7 @@
   .capa-slot .previa .ajustar svg{ width:14px; height:14px; }
   .capa-slot .previa .ajustar:hover{ background:#fff; }
   .capa-slot .previa .recorte{ position:absolute; inset:0; background-color: var(--oliva-claro); }
+  .capa-slot .previa .recorte.sem-faixa::before{ display:none; }
   .capa-slot .previa .recorte::before{ content:''; position:absolute; left:0; right:0; top:0; height:31%;
     background: linear-gradient(180deg, rgba(40,43,28,.85), rgba(40,43,28,0)); }
   .capa-slot .previa img{ width:100%; height:100%; object-fit:cover; }
@@ -999,6 +1000,7 @@
           <div class="sub"><span id="detail-contagem"></span><span id="estado-salvo" class="salvo"><span class="bolinha"></span>Tudo salvo</span></div>
         </div>
         <div class="acoes-topo">
+          ${todas.length ? `<button class="btn" onclick="ajustarCapaEvento('${id}')" title="Escolher o pedaço da foto de capa que aparece no cartão do site">${IC.ampliar}<span class="texto-opcional">Ajustar capa</span></button>` : ''}
           <button class="btn" id="btn-selecionar" onclick="alternarSelecao()">${IC.selecionar}<span class="texto-opcional">Selecionar</span></button>
           <button class="btn" onclick="copiarLink('${linkCliente}')" title="Copiar o link desta categoria para mandar ao cliente">${IC.link}<span class="texto-opcional">Copiar link</span></button>
           <button class="btn" onclick="abrirMensagem('${id}', '${subReal ? subAtual : ''}')" title="Mensagem pronta com o link desta categoria">${IC.whats}<span class="texto-opcional">Mensagem pronta</span></button>
@@ -1159,6 +1161,15 @@
   }
 
   // ---- Capa ----
+  // 18/11/2026: enquadramento da capa do evento (o cartão do site do cliente). Fica guardado na própria foto (ajuste {x, y, z}).
+  window.ajustarCapaEvento = function(id){
+    const lista = fotosPorCategoria[id] || [];
+    const capa = lista.find(f => f.capa) || lista[0];
+    if(!capa) return;
+    abrirEnquadrar({ url: capa.url, ajuste: capa.ajuste, titulo: 'Ajustar a capa de ' + nomeCat(id), proporcao: 4/3, faixa: false,
+      dica: 'É a foto do cartão deste evento no site do cliente. Arraste para escolher o pedaço que aparece e use o zoom para aproximar. O cartão muda de formato no celular e no computador, mas o meio do que você deixar aqui fica sempre à vista.',
+      aoSalvar: async aj => { capa.ajuste = aj; renderFotos?.(); await salvarFotos(id); aviso('Enquadramento da capa salvo'); } });
+  };
   async function definirCapa(i){
     const lista = fotosPorCategoria[categoriaAtual];
     lista.forEach(f => f.capa = false);
@@ -1459,6 +1470,9 @@
   }
   function abrirEnquadrar(opcoes){
     const { url, titulo, aoSalvar } = opcoes;
+    // 18/11/2026: serve também para a abertura do site, o Início do sistema, as fotos da Drica e a capa de cada evento
+    const A = opcoes.proporcao || PROPORCAO_CAPA;
+    const comFaixa = opcoes.faixa !== false;
     let aj = { x: 0.5, y: 0.5, z: 1, ...(opcoes.ajuste || {}) };
     if(!document.getElementById('enq-estilo')){
       const st = document.createElement('style');
@@ -1490,7 +1504,7 @@
       fundo.innerHTML = `
         <div class="enq-caixa" role="dialog" aria-modal="true" aria-label="Ajustar a foto da capa">
           <h3 id="enq-titulo">Ajustar a foto da capa</h3>
-          <p>Arraste a foto para escolher o pedaço que aparece. Use o zoom para aproximar. A faixa escura em cima é onde ficam a logo e o título.</p>
+          <p id="enq-dica">Arraste a foto para escolher o pedaço que aparece. Use o zoom para aproximar. A faixa escura em cima é onde ficam a logo e o título.</p>
           <div class="enq-palco" id="enq-palco"><canvas id="enq-canvas"></canvas><div class="enq-carregando" id="enq-carregando">Carregando a foto…</div></div>
           <div class="enq-zoom"><span>Zoom</span><input type="range" id="enq-zoom" min="1" max="3" step="0.01" value="1"><span id="enq-zoom-num">100%</span></div>
           <div class="enq-botoes">
@@ -1502,16 +1516,21 @@
     }
     const $e = id => document.getElementById(id);
     $e('enq-titulo').textContent = titulo || 'Ajustar a foto da capa';
+    $e('enq-dica').textContent = opcoes.dica || (comFaixa
+      ? 'Arraste a foto para escolher o pedaço que aparece. Use o zoom para aproximar. A faixa escura em cima é onde ficam a logo e o título.'
+      : 'Arraste a foto para escolher o pedaço que aparece. Use o zoom para aproximar. O meio do que você deixar na tela fica sempre à vista, no celular e no computador.');
     const cv = $e('enq-canvas'), ctx = cv.getContext('2d'), palco = $e('enq-palco');
+    palco.style.maxWidth = A < 1 ? Math.round(420 * A / 0.75) + 'px' : ''; palco.style.margin = A < 1 ? '0 auto' : '';
     const img = new Image();
     let pronta = false, W = 1, H = 1;
     function desenhar(){
-      const larg = palco.clientWidth || 600, alt = Math.round(larg / PROPORCAO_CAPA), dpr = window.devicePixelRatio || 1;
+      const larg = palco.clientWidth || 600, alt = Math.round(larg / A), dpr = window.devicePixelRatio || 1;
       cv.width = Math.round(larg * dpr); cv.height = Math.round(alt * dpr); cv.style.height = alt + 'px';
       if(!pronta) return;
-      const r = recorteCapa(W, H, aj);
+      const r = recorteCapa(W, H, aj, A);
       aj.x = (r.sx + r.sw / 2) / W; aj.y = (r.sy + r.sh / 2) / H;   // não deixa sair da foto
       ctx.drawImage(img, r.sx, r.sy, r.sw, r.sh, 0, 0, cv.width, cv.height);
+      if(!comFaixa){ $e('enq-zoom').value = aj.z; $e('enq-zoom-num').textContent = Math.round(aj.z * 100) + '%'; return; }
       const hv = cv.height * FRACAO_SOB_VERDE * 1.35;
       const g = ctx.createLinearGradient(0, 0, 0, hv);
       g.addColorStop(0, 'rgba(40,43,28,0.92)'); g.addColorStop(0.55, 'rgba(40,43,28,0.55)'); g.addColorStop(1, 'rgba(40,43,28,0)');
@@ -1532,7 +1551,7 @@
     palco.onpointerdown = e => { if(!pronta) return; toque = { x: e.clientX, y: e.clientY }; palco.setPointerCapture(e.pointerId); palco.classList.add('arrastando'); };
     palco.onpointermove = e => {
       if(!toque) return;
-      const r = recorteCapa(W, H, aj), larg = palco.clientWidth || 1;
+      const r = recorteCapa(W, H, aj, A), larg = palco.clientWidth || 1;
       const escala = r.sw / larg;   // pixels da foto por pixel da tela
       aj.x -= (e.clientX - toque.x) * escala / W;
       aj.y -= (e.clientY - toque.y) * escala / H;
@@ -1559,6 +1578,8 @@
   // Ficam no documento portfolio_fotos/_capas e são usadas no site de fotos,
   // na entrada deste admin, no Início do sistema de orçamentos e no PDF da proposta.
   // =====================================================================
+  // Proporção (largura ÷ altura) usada no ajuste de cada capa que não é da proposta
+  const PROPORCAO_SLOT = { site: 16/9, inicio: 4/1, chef: 0.73, chefBuffet: 1.17 };
   const SLOTS_GERAIS = [
     { k:'site',   nome:'Abertura do site de fotos',       dica:'Tela cheia quando o cliente abre o portfólio. Prefira uma foto deitada e bem iluminada.' },
     { k:'inicio', nome:'Início do sistema de orçamentos',  dica:'Faixa no topo da tela Início do sistema.' },
@@ -1640,6 +1661,7 @@
 
   // Capas da proposta (PDF): a prévia mostra exatamente o pedaço que sai no topo do PDF, e dá para ajustar
   const ehSlotProposta = chaveSlot => chaveSlot === 'padrao' || chaveSlot.startsWith('ev:');
+  const temAjuste = chaveSlot => ehSlotProposta(chaveSlot) || !!PROPORCAO_SLOT[chaveSlot];
   function slotHTML(chaveSlot, nome, dica){
     const f = lerSlot(chaveSlot);
     const herdada = !f && chaveSlot.startsWith('ev:') && capas.padrao?.url ? capas.padrao : null;
@@ -1647,11 +1669,11 @@
     const proposta = ehSlotProposta(chaveSlot);
     return `<div class="capa-slot" data-slot="${esc(chaveSlot)}">
       <div class="previa ${herdada ? 'herda' : ''} ${proposta ? 'proposta' : ''}">
-        ${mostrar ? (proposta
-          ? `<div class="recorte" data-url="${esc(mostrar.url)}" data-aj="${esc(JSON.stringify(mostrar.ajuste || null))}"></div>`
+        ${mostrar ? (temAjuste(chaveSlot)
+          ? `<div class="recorte${proposta ? '' : ' sem-faixa'}" data-url="${esc(mostrar.url)}" data-aj="${esc(JSON.stringify(mostrar.ajuste || null))}"></div>`
           : `<img src="${esc(optInteira(mostrar.url, 640))}" alt="" loading="lazy">`) : `<div class="sem">${IC.foto}Sem foto</div>`}
         ${herdada ? '<span class="herdada">Usando a capa padrão</span>' : ''}
-        ${f && proposta ? `<button class="ajustar" title="Mover e aproximar a foto" onclick="ajustarCapa('${esc(chaveSlot)}')">${IC.ampliar}Ajustar</button>` : ''}
+        ${f && temAjuste(chaveSlot) ? `<button class="ajustar" title="Mover e aproximar a foto" onclick="ajustarCapa('${esc(chaveSlot)}')">${IC.ampliar}Ajustar</button>` : ''}
       </div>
       <div class="info">
         <div><h3>${esc(nome)}</h3>${dica ? `<p>${esc(dica)}</p>` : ''}</div>
@@ -1694,6 +1716,7 @@
     const f = lerSlot(chaveSlot);
     if(!f?.url) return;
     abrirEnquadrar({ url: f.url, ajuste: f.ajuste, titulo: 'Ajustar: ' + nomeSlot(chaveSlot),
+      proporcao: ehSlotProposta(chaveSlot) ? PROPORCAO_CAPA : PROPORCAO_SLOT[chaveSlot], faixa: ehSlotProposta(chaveSlot),
       aoSalvar: async aj => {
         gravarSlot(chaveSlot, { ...f, ajuste: aj });
         if(categoriaAtual === 'capas') renderCapas();
@@ -1733,7 +1756,7 @@
       renderCapas();
       await salvarCapas();
       aviso(`Capa salva: ${nomeSlot(slot)}`);
-      if(ehSlotProposta(slot)) ajustarCapa(slot);
+      if(temAjuste(slot)) ajustarCapa(slot);
     };
   }
 
@@ -1753,7 +1776,7 @@
         renderCapas();
         await salvarCapas();
         aviso(`Capa salva: ${nomeSlot(chaveSlot)}`);
-        if(ehSlotProposta(chaveSlot)) ajustarCapa(chaveSlot);
+        if(temAjuste(chaveSlot)) ajustarCapa(chaveSlot);
       }catch(err){
         console.error(err);
         card?.classList.remove('enviando');
