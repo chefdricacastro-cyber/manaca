@@ -1859,6 +1859,36 @@ div.cx-kpi{cursor:default}
 /* lixeira: cada seção vira um cartão */
 #tela-lixeira .pg-wrap > div[style*="margin-top:20px"]{border:1px solid var(--borda);border-radius:var(--k-r-lg);padding:14px 16px;background:var(--creme)}
 :root:not([data-theme="dark"]) body #tela-lixeira .pg-wrap > div[style*="margin-top"]{background:var(--k-surface) !important;border:1px solid var(--k-borda) !important;border-radius:var(--k-r-lg) !important;box-shadow:var(--k-brilho),var(--k-sombra)}
+
+/* ===================== TELAS DE EDIÇÃO (18/11/2026) ===================== */
+.ed-barra{position:sticky;top:0;z-index:60;margin:0 auto 14px;max-width:1400px;padding:10px 18px 8px;border-bottom:1px solid var(--borda);background:var(--creme)}
+:root:not([data-theme="dark"]) body .ed-barra{background:rgba(250,246,236,.9);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);border-bottom-color:var(--k-borda);box-shadow:0 8px 20px rgba(40,43,28,.06)}
+#tela-contr-form .ed-barra{max-width:1100px}
+.ed-linha1{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ed-voltar{white-space:nowrap}
+.ed-tit{flex:1;min-width:180px}
+.ed-nome{font-size:16px;font-weight:700;letter-spacing:-.015em;color:var(--texto);line-height:1.2}
+.ed-sub{font-size:11.5px;color:var(--leve)}
+.ed-total{display:flex;flex-direction:column;align-items:flex-end;line-height:1.1}
+.ed-total span{font-family:var(--k-rot);font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--leve)}
+.ed-total b{font-family:var(--k-num);font-size:17px;color:var(--texto)}
+.ed-acoes{display:flex;gap:6px}
+.ed-salvar{background:#282B1C !important;color:#EBCB86 !important;border-color:#282B1C !important;font-weight:700 !important;padding-left:16px !important;padding-right:16px !important}
+:root[data-theme="dark"] .ed-salvar{background:var(--verde) !important;color:#1D1F15 !important}
+.ed-linha2{display:flex;align-items:center;gap:10px;margin-top:8px}
+.ed-chips{display:flex;gap:5px;overflow-x:auto;flex:1;scrollbar-width:thin;padding-bottom:2px}
+.ed-chip{all:unset;cursor:pointer;flex:0 0 auto;font-family:var(--k-txt);font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:9999px;border:1px solid var(--borda);color:var(--leve);background:transparent;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.ed-chip .n{font-family:var(--k-num);font-size:10px;font-weight:700;width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--ini-cedo-bg);color:var(--texto)}
+.ed-chip.aberta{color:var(--texto);border-color:var(--k-gold-borda);background:var(--k-gold-wash)}
+.ed-chip:hover{border-color:var(--k-gold-l);color:var(--texto)}
+.ed-todas{display:flex;gap:8px;flex:0 0 auto}
+.ed-todas button{all:unset;cursor:pointer;font-size:11px;font-weight:600;color:var(--k-gold)}
+.ed-todas button:hover{text-decoration:underline}
+#tela-form .section,#tela-contr-form .section{scroll-margin-top:120px}
+.ed-resumo{font-family:var(--k-txt);font-size:11.5px;font-weight:500;color:var(--leve);margin-left:10px;text-transform:none;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:min(460px,60vw);display:inline-block;vertical-align:middle}
+#btn-gerar-contrato-wrap button{background:linear-gradient(135deg,#D9AE5C,#B8893A) !important;color:#20231A !important;border:0 !important;font-weight:700 !important}
+#tela-form .form-left > .btn-voltar,#tela-contr-form .pg-wrap > .btn-voltar{display:none}
+@media(max-width:700px){.ed-total{display:none}.ed-tit{min-width:120px}.ed-nome{font-size:14px}.ed-todas{display:none}}
 </style>
 </head>
 <body>
@@ -4761,6 +4791,114 @@ function irInicio(){
   document.getElementById('nav-inicio').classList.add('ativa');
   renderInicio();
 }
+// =====================================================================
+// TELAS DE EDIÇÃO (18/11/2026) — barra fixa no topo do orçamento e do
+// contrato (cliente, status, total e os botões principais sempre à vista)
+// + índice das seções (clicar abre e leva até a seção) + abrir/fechar todas
+// + resumo ao lado do título quando a seção está fechada.
+// =====================================================================
+const ED_CFG = {
+  orc: {tela:'tela-form', col:'.form-left', voltar:"irLista()", voltarTxt:'Orçamentos',
+        salvar:"salvarOrc()", salvarTxt:'Salvar', pdf:"gerarPDF()", pdfTxt:'PDF',
+        titulo:()=>gv('cli_nome')||'Novo orçamento',
+        sub:()=>[tipoExibicao(getTipo())||'', gv('ev_data')?fmtD(gv('ev_data')):'sem data', gv('ev_local')].filter(Boolean).join(' · '),
+        status:()=>getStatus(), statusCls:st=>bCls(st),
+        total:()=>document.getElementById('total_geral')?.textContent||''},
+  ct:  {tela:'tela-contr-form', col:'.contr-form', voltar:"irContratos()", voltarTxt:'Contratos',
+        salvar:"salvarContrato()", salvarTxt:'Salvar', pdf:"gerarPDFContrato()", pdfTxt:'PDF',
+        titulo:()=>gv('ccli_nome')||'Novo contrato',
+        sub:()=>[tipoExibicao(gv('cev_tipo'))||'', gv('cev_data')?fmtD(gv('cev_data')):'sem data', gv('cev_local')].filter(Boolean).join(' · '),
+        status:()=>getCStatusEl(), statusCls:st=>bcContr(st),
+        total:()=>gv('cvalor_total')?'R$ '+gv('cvalor_total'):''}
+};
+// Resumo mostrado ao lado do título da seção quando ela está fechada
+const ED_RESUMO = {
+  orc_cliente: ()=>[gv('cli_nome'), gv('cli_fone')].filter(Boolean).join(' · '),
+  orc_evento: ()=>ED_CFG.orc.sub(),
+  orc_convidados: ()=>{ const a=parseInt(gv('n_adultos'))||0, c=(parseInt(gv('n_c59'))||0)+(parseInt(gv('n_c04'))||0); return a||c ? `${a} adultos${c?' · '+c+' crianças':''}` : ''; },
+  orc_cardapio: sh=>{ const n=sh.nextElementSibling?.querySelectorAll('input[type=checkbox]:checked').length||0; return n? n+' itens marcados' : ''; },
+  orc_servicos: sh=>{ const n=sh.nextElementSibling?.querySelectorAll('input[type=checkbox]:checked').length||0; return n? n+' serviços' : ''; },
+  orc_loucas: sh=>{ const n=sh.nextElementSibling?.querySelectorAll('input[type=checkbox]:checked').length||0; return n? n+' itens' : ''; },
+  contr_contratante: ()=>[gv('ccli_nome'), gv('ccli_fone')].filter(Boolean).join(' · '),
+  contr_evento: ()=>ED_CFG.ct.sub(),
+  contr_valores: ()=>{ const t=parseMoedaBR(gv('cvalor_total')); if(!t) return ''; let pg=0; try{ pg=totalPagoContrato(pagamentosContrato,null); }catch(e){} return `R$ ${fmtN(t)} · pago R$ ${fmtN(pg)}`; },
+  contr_status: ()=>getCStatusEl(),
+  orc_status: ()=>getStatus()
+};
+
+function edSecoes(tipo){
+  const cfg = ED_CFG[tipo];
+  return [...document.querySelectorAll(`#${cfg.tela} ${cfg.col} .section > .sh`)];
+}
+function edTituloSecao(sh){
+  const h = sh.querySelector('h3'); if(!h) return '';
+  const c = h.cloneNode(true);
+  c.querySelectorAll('span:not(.sh-num), .ed-resumo').forEach(x=>x.remove());
+  const num = c.querySelector('.sh-num')?.textContent||''; c.querySelector('.sh-num')?.remove();
+  return {num, txt:c.textContent.replace(/\s+/g,' ').replace(/[—–-]\s*$/,'').trim()};
+}
+function edIrSecao(tipo, i){
+  const sh = edSecoes(tipo)[i]; if(!sh) return;
+  if(!sh.classList.contains('open')) tog(sh);
+  sh.closest('.section')?.scrollIntoView({behavior:'smooth', block:'start'});
+  edAtualizar(tipo);
+}
+function edTodas(tipo, abrir){
+  edSecoes(tipo).forEach(sh=>{ if(sh.classList.contains('open')!==abrir) tog(sh); });
+  edAtualizar(tipo);
+}
+
+function edMontar(tipo){
+  const cfg = ED_CFG[tipo];
+  const tela = document.getElementById(cfg.tela); if(!tela) return;
+  let barra = document.getElementById('ed-barra-'+tipo);
+  if(!barra){
+    barra = document.createElement('div');
+    barra.id = 'ed-barra-'+tipo; barra.className = 'ed-barra';
+    const alvo = tela.querySelector('.form-wrap') || tela.querySelector('.pg-wrap');
+    alvo.parentNode.insertBefore(barra, alvo);
+    // atualiza a barra enquanto digita (com pequeno atraso)
+    let t=null; const agenda=()=>{ clearTimeout(t); t=setTimeout(()=>edAtualizar(tipo), 250); };
+    tela.addEventListener('input', agenda); tela.addEventListener('change', agenda);
+    tela.addEventListener('click', e=>{ if(e.target.closest('.sh')) setTimeout(()=>edAtualizar(tipo), 30); });
+  }
+  edAtualizar(tipo);
+}
+
+function edAtualizar(tipo){
+  const cfg = ED_CFG[tipo];
+  const barra = document.getElementById('ed-barra-'+tipo); if(!barra) return;
+  let st='', tot='', tit='', sub='';
+  try{ st=cfg.status(); tot=cfg.total(); tit=cfg.titulo(); sub=cfg.sub(); }catch(e){}
+  const secoes = edSecoes(tipo);
+  const chips = secoes.map((sh,i)=>{ const {num,txt}=edTituloSecao(sh); return `<button type="button" class="ed-chip${sh.classList.contains('open')?' aberta':''}" onclick="edIrSecao('${tipo}',${i})">${num?`<span class="n">${num}</span>`:''}${_esc(txt)}</button>`; }).join('');
+  barra.innerHTML = `
+    <div class="ed-linha1">
+      <button type="button" class="btn-sm ed-voltar" onclick="${cfg.voltar}">← ${cfg.voltarTxt}</button>
+      <div class="ed-tit"><div class="ed-nome">${_esc(tit)}</div><div class="ed-sub">${_esc(sub)}</div></div>
+      ${st?`<span class="badge ${cfg.statusCls(st)}">${_esc(st)}</span>`:''}
+      ${tot?`<div class="ed-total"><span>total</span><b>${_esc(tot)}</b></div>`:''}
+      <div class="ed-acoes">
+        <button type="button" class="btn-sm" onclick="${cfg.pdf}">${cfg.pdfTxt}</button>
+        <button type="button" class="btn-sm ed-salvar" onclick="${cfg.salvar};setTimeout(()=>edAtualizar('${tipo}'),400)">${cfg.salvarTxt}</button>
+      </div>
+    </div>
+    <div class="ed-linha2">
+      <div class="ed-chips">${chips}</div>
+      <div class="ed-todas"><button type="button" onclick="edTodas('${tipo}',true)">abrir todas</button><button type="button" onclick="edTodas('${tipo}',false)">fechar todas</button></div>
+    </div>`;
+  // resumo nas seções fechadas
+  secoes.forEach(sh=>{
+    const h = sh.querySelector('h3'); if(!h) return;
+    let r = h.querySelector('.ed-resumo');
+    const fn = ED_RESUMO[sh.dataset.sec];
+    let txt = ''; if(fn && !sh.classList.contains('open')){ try{ txt = fn(sh)||''; }catch(e){} }
+    if(!txt){ r?.remove(); return; }
+    if(!r){ r=document.createElement('span'); r.className='ed-resumo'; h.appendChild(r); }
+    r.textContent = txt;
+  });
+}
+
 function irForm(){
   // Esconde TODAS as telas (antes ficava a tela Início aparecendo em cima do formulário ao clicar em "+ Novo" a partir dela)
   ['tela-inicio','tela-lista','tela-form','tela-agenda','tela-contratos','tela-contr-form','tela-itensperso','tela-financeiro','tela-lixeira','tela-resultados','tela-clientes'].forEach(id=>{document.getElementById(id)?.classList.remove('ativa')});
@@ -4769,6 +4907,7 @@ function irForm(){
   document.getElementById('nav-lista')?.classList.add('ativa');
   window.scrollTo(0,0);
   aplicarEstadoSecoesSalvo();
+  try{ edMontar('orc'); }catch(e){ console.warn('barra edição:', e); }
 }
 
 // ===== LISTA =====
@@ -8347,7 +8486,10 @@ function irContratos(){
 function irContForm(){
   ['tela-inicio','tela-lista','tela-form','tela-agenda','tela-contratos','tela-contr-form','tela-itensperso','tela-financeiro','tela-lixeira','tela-resultados','tela-clientes'].forEach(id=>{document.getElementById(id)?.classList.remove('ativa')});
   document.getElementById('tela-contr-form').classList.add('ativa');
+  ['nav-inicio','nav-lista','nav-contratos','nav-agenda','nav-itensperso','nav-financeiro','nav-lixeira','nav-resultados','nav-clientes'].forEach(id=>document.getElementById(id)?.classList.remove('ativa'));
+  document.getElementById('nav-contratos')?.classList.add('ativa');
   aplicarEstadoSecoesSalvo();
+  try{ edMontar('ct'); }catch(e){ console.warn('barra edição:', e); }
 }
 
 // nav-contratos gerenciado dentro de irLista e irAgenda diretamente
