@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#1F2116">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <style>
   :root{
@@ -448,6 +448,50 @@
   @media (hover: none){
     .foto .acoes{ opacity:1; }
   }
+
+  /* ===================== VISUAL NOVO (18/11/2026) — igual ao sistema de orçamentos ===================== */
+  :root{ --fundo:#F2E9D6; --cartao:rgba(255,254,250,.92); --linha:rgba(40,43,28,.10); --raio:16px;
+    --ouro:#CDA04C; --ouro-esc:#A97B2F; --ouro-lavado:rgba(176,130,54,.12); --ouro-borda:rgba(176,130,54,.38);
+    --sombra: inset 0 1px 0 rgba(255,255,255,.9), 0 1px 2px rgba(40,43,28,.04), 0 10px 28px rgba(40,43,28,.07); }
+  body{ font-family:'Manrope', 'Inter', system-ui, sans-serif !important; letter-spacing:-.005em;
+    background: radial-gradient(900px 620px at 0% -8%, rgba(205,160,76,.16), transparent 62%), radial-gradient(820px 640px at 105% 6%, rgba(74,77,58,.12), transparent 60%), #F2E9D6 !important; background-attachment: fixed !important; }
+  .lateral{ background: linear-gradient(180deg,#2D3020,#1F2116) !important; border-right:1px solid rgba(205,160,76,.18); }
+  .nav-item.ativo{ background: rgba(205,160,76,.16) !important; color:#EBCB86 !important; box-shadow: inset 0 0 0 1px rgba(205,160,76,.35); }
+  .nav-item.ativo .num{ color:#EBCB86 !important; }
+  .pagina-topo h1{ letter-spacing:-.025em !important; }
+  .numero{ backdrop-filter: blur(14px); border:1px solid var(--linha); }
+  .numero span{ font-family:'DM Mono', monospace; font-size:10px !important; text-transform:uppercase; letter-spacing:.06em; color: var(--suave); }
+  .numero strong{ font-family:'Inter', sans-serif; letter-spacing:-.02em; }
+  .cat-cartao{ border:1px solid var(--linha) !important; border-radius:16px !important; transition: transform .18s, box-shadow .18s, border-color .18s !important; }
+  .cat-cartao:hover{ transform: translateY(-2px); border-color: var(--ouro-borda) !important; }
+  .btn{ border-radius: 9999px !important; }
+  .btn-principal{ background: linear-gradient(135deg,#D9AE5C,#B8893A) !important; color:#20231A !important; border:0 !important; font-weight:700 !important; }
+  .sub-aba{ border-radius:9999px !important; }
+  .sub-aba.ativa{ background:#282B1C !important; color:#EBCB86 !important; border-color:#282B1C !important; }
+  .dropzone{ border-radius:16px !important; border-color: var(--ouro-borda) !important; background: rgba(255,255,255,.55) !important; }
+  .dropzone:hover{ background: var(--ouro-lavado) !important; }
+  .foto{ border-radius:12px !important; }
+  /* aviso de login */
+  .aviso-login{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin: 16px 28px 0; padding: 12px 16px;
+    border-radius: 14px; background: #FFF3DC; border: 1px solid var(--ouro-borda); color:#6B4A0E; font-size:13px; }
+  .aviso-login button{ display:inline-flex; align-items:center; gap:8px; border:0; border-radius:9999px; padding:8px 14px; font-weight:700; font-size:13px;
+    background:#282B1C; color:#F4EBD8; font-family:inherit; }
+  .aviso-login button svg{ width:16px; height:16px; background:#fff; border-radius:50%; padding:2px; }
+  @media (min-width: 901px){ .aviso-login{ max-width: 1124px; } }
+  @media (max-width: 900px){ .aviso-login{ margin: 12px 14px 0; font-size:12.5px; } }
+  /* o que falta */
+  .falta-box{ background: var(--cartao); border:1px solid var(--linha); border-radius:16px; box-shadow: var(--sombra); padding: 14px 18px; margin-bottom:22px; }
+  .falta-box.ok{ color: var(--ok); font-weight:600; }
+  .falta-cab{ font-size:15px; font-weight:700; margin-bottom:8px; }
+  .falta-linha{ display:flex; align-items:flex-start; gap:12px; padding:8px 0; border-top:1px solid var(--linha); flex-wrap:wrap; }
+  .falta-linha:first-of-type{ border-top:0; }
+  .falta-tit{ min-width:190px; font-size:13px; font-weight:700; }
+  .falta-tit span{ display:block; font-size:11px; font-weight:500; color: var(--suave); }
+  .falta-tit.alerta{ color: var(--perigo); }
+  .falta-chips{ display:flex; gap:6px; flex-wrap:wrap; flex:1; }
+  .falta-chip{ border:1px solid var(--linha); background: rgba(255,255,255,.8); border-radius:9999px; padding:6px 12px; font-size:12.5px; font-weight:600; color: var(--tinta); }
+  .falta-chip small{ color: var(--suave); font-weight:500; }
+  .falta-chip:hover{ border-color: var(--ouro-borda); background: var(--ouro-lavado); }
 </style>
 </head>
 <body>
@@ -731,7 +775,16 @@
   const pendentes = new Set();   // ids dos eventos (ou '_capas') esperando para salvar
   let usuario = null;
   const G_ICONE = '<svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.6 12.3c0-.8-.1-1.5-.2-2.3H12v4.3h5.9a5 5 0 0 1-2.2 3.3v2.7h3.6c2.1-1.9 3.3-4.8 3.3-8z"/><path fill="#34A853" d="M12 23c3 0 5.5-1 7.3-2.7l-3.6-2.7c-1 .7-2.2 1.1-3.7 1.1-2.9 0-5.3-1.9-6.2-4.5H2.1v2.8A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.8 14.2a6.6 6.6 0 0 1 0-4.3V7.1H2.1a11 11 0 0 0 0 9.9z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3 .6 4.1 1.6l3.1-3.1A11 11 0 0 0 2.1 7.1l3.7 2.8C6.7 7.3 9.1 5.4 12 5.4z"/></svg>';
+  // 18/11/2026: aviso fixo enquanto não entrou com o Google (sem login nada é salvo)
+  function desenharAvisoLogin(){
+    let el = document.getElementById('aviso-login');
+    const cont = $('conteudo'); if(!cont) return;
+    if(usuario){ el?.remove(); return; }
+    if(!el){ el = document.createElement('div'); el.id = 'aviso-login'; el.className = 'aviso-login'; cont.parentNode.insertBefore(el, cont); }
+    el.innerHTML = `<span><b>Você ainda não entrou com o Google.</b> Dá para olhar as fotos, mas o que você mudar não é salvo.</span><button onclick="entrarGoogle()">${G_ICONE}Entrar com Google</button>`;
+  }
   function desenharConta(){
+    try{ desenharAvisoLogin(); }catch(e){}
     if(usuario){
       const nome = usuario.displayName || usuario.email;
       $('conta-lateral').innerHTML = `<div class="usuario"><div class="avatar">${esc(nome[0].toUpperCase())}</div><div class="quem" title="${esc(usuario.email)}">${esc(nome)}</div><button onclick="sairGoogle()">Sair</button></div>`;
@@ -881,6 +934,19 @@
   }
 
   // ---- Visão geral ----
+  // 18/11/2026: quadro "O que falta" na Visão geral
+  function oQueFaltaHtml(){
+    const itens = [];
+    const vazios = categorias.filter(c => !fotosPorCategoria[c.id].length);
+    const poucas = categorias.filter(c => { const n = fotosPorCategoria[c.id].length; return n > 0 && n < 5; });
+    const semCat = categorias.map(c => ({c, n: subsDe(c.id).length ? fotosPorCategoria[c.id].filter(f => !subValida(c.id, f)).length : 0})).filter(x => x.n > 0);
+    const btn = (c, txt) => `<button class="falta-chip" onclick="abrir('${c.id}')">${esc(c.nome)}${txt?` <small>${txt}</small>`:''}</button>`;
+    if(vazios.length) itens.push(`<div class="falta-linha"><div class="falta-tit alerta">Sem nenhuma foto <span>não aparecem para o cliente</span></div><div class="falta-chips">${vazios.map(c => btn(c,'')).join('')}</div></div>`);
+    if(poucas.length) itens.push(`<div class="falta-linha"><div class="falta-tit">Poucas fotos <span>menos de 5 — vale subir mais</span></div><div class="falta-chips">${poucas.map(c => btn(c, plural(fotosPorCategoria[c.id].length,'foto','fotos'))).join('')}</div></div>`);
+    if(semCat.length) itens.push(`<div class="falta-linha"><div class="falta-tit">Fotos sem categoria <span>separar em Welcome, Jantar…</span></div><div class="falta-chips">${semCat.map(x => btn(x.c, plural(x.n,'foto','fotos'))).join('')}</div></div>`);
+    if(!itens.length) return `<div class="falta-box ok">✓ Tudo em dia: todos os eventos têm fotos.</div>`;
+    return `<div class="falta-box"><div class="falta-cab">O que falta</div>${itens.join('')}</div>`;
+  }
   function renderVisaoGeral(){
     const total = categorias.reduce((s, c) => s + fotosPorCategoria[c.id].length, 0);
     const comFotos = categorias.filter(c => fotosPorCategoria[c.id].length).length;
@@ -900,6 +966,7 @@
         <div class="numero"><span>Eventos no ar</span><strong>${comFotos}</strong></div>
         <div class="numero"><span>Sem fotos ainda</span><strong>${vazias}</strong></div>
       </div>
+      ${oQueFaltaHtml()}
       <div class="cats-grade">
         ${categorias.map(c => {
           const lista = fotosPorCategoria[c.id];
