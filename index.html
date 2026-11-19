@@ -1620,6 +1620,22 @@ input[type=text],input[type=date],input[type=number],input[type=tel],textarea,se
 .ini-vermais{margin-top:8px;margin-right:6px}
 .ini-vazio{font-size:13px;color:var(--leve);padding:18px 4px;text-align:center}
 @media(max-width:560px){.ini-tarefa{grid-template-columns:minmax(0,1fr) auto;row-gap:4px}.ini-tarefa-cat{min-width:0;grid-column:1;grid-row:1}.ini-tarefa-acoes{grid-column:2;grid-row:1}.ini-tarefa-txt{grid-column:1 / -1;grid-row:2}}
+.ini-vendas{margin-top:16px}
+.vnd-intro{font-size:12px;color:var(--leve);margin:-4px 0 10px;line-height:1.45}
+.vnd-lista{display:flex;flex-direction:column;gap:8px}
+.vnd-item{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--borda);border-radius:var(--k-r-md);background:rgba(255,255,255,.55);cursor:pointer}
+:root[data-theme="dark"] .vnd-item{background:rgba(255,255,255,.03)}
+.vnd-item:hover{border-color:var(--k-gold-borda)}
+.vnd-nome{font-weight:700;font-size:13.5px;color:var(--texto)}
+.vnd-det{font-size:12px;color:var(--leve);margin-top:2px;line-height:1.4}
+.vnd-valor{font-family:var(--k-num,inherit);font-weight:700;color:var(--texto)}
+.vnd-tag{display:inline-block;font-family:var(--k-rot);font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:99px;margin-left:6px;vertical-align:1px;background:#F3EAD7;color:#8A6A2A}
+.vnd-tag.nova{background:#E6F1E7;color:#2E6B39}
+.vnd-tag.fria{background:#F1E6E6;color:#8A3A3A}
+.vnd-acoes{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.vnd-rodape{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--leve)}
+.vnd-rodape .vnd-pag{display:flex;gap:6px}
+@media(max-width:560px){.vnd-item{grid-template-columns:auto minmax(0,1fr)}.vnd-acoes{grid-column:1 / -1;justify-content:flex-start}}
 .ini-tarefa-mini{font-size:11px;color:var(--leve);margin-top:2px}
 #tela-inicio .inicio-capa.com-foto{min-height:130px !important;padding:20px 24px !important}
 /* fichas de eventos */
@@ -2039,6 +2055,11 @@ div.cx-kpi{cursor:default}
         <div id="inicio-eventos"></div>
         <div class="ini-legenda"><span class="ichip ok">pronto</span><span class="ichip falta">falta</span><span class="ichip alerta">urgente</span><span class="ichip cedo">ainda não é hora</span></div>
       </div>
+    </div>
+
+    <div class="ini-bloco ini-vendas" id="ini-bloco-vendas">
+      <div class="ini-bloco-topo"><div class="ini-bloco-titulo">Vendas para retomar</div><div class="ini-bloco-sub" id="ini-vendas-resumo"></div></div>
+      <div id="inicio-vendas"></div>
     </div>
 
     <!-- Blocos antigos de mensagens: continuam sendo montados (as funções de enviar/marcar usam eles),
@@ -11043,7 +11064,7 @@ function renderInicioNovo(d){
     if(!ct.msgEquipeEnviada) add(2, -x, 'Pós-evento', `Agradecer a equipe · <b>${_esc(ct.nome||'evento')}</b>`,
       `<button class="btn-sm ini-btn-acao" onclick="event.stopPropagation();copiarMensagemEquipe('${ct.id}')">Copiar</button>`+btnOk(`iniMarcarPosEvento('${ct.id}','msgEquipeEnviada')`,'Mensagem enviada'), abrirCt(ct.id));
   });
-  try{ orcsEsperandoResposta().forEach(o=>{
+  if(false) try{ orcsEsperandoResposta().forEach(o=>{
     add(2, 100+(o._diasSemResposta||0), 'Venda', `Orçamento sem retorno · <b>${_esc(o.nome||'cliente')}</b>${o.total?' · '+_iniMoeda(o.total):''} · há ${o._diasSemResposta} dias`,
       btnW('WhatsApp', `enviarFollowupOrc('${o.id}')`, !!o.fone)+`<button class="btn-sm ini-btn-discreto" onclick="event.stopPropagation();marcarOrcSemInteresse('${o.id}')" title="Cliente não seguiu">Perdido</button>`, `abrirOrc('${o.id}');irForm()`);
   }); }catch(e){}
@@ -11202,6 +11223,7 @@ async function renderInicio(){
   renderPosEvento();
   renderConfirmarConvidados();
   renderFollowup();
+  try{ renderVendasRetomar(); }catch(e){ console.warn('vendas', e); }
   renderRecontato();
   const nfPend = contrs.filter(nfPendente)
     .sort((a,b)=>(a.data_ass||'').localeCompare(b.data_ass||''));
@@ -15369,6 +15391,17 @@ function enviarFollowupOrc(id){
   if(!numero){ alert('Esse orçamento não tem WhatsApp cadastrado.'); return; }
   window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensagemFollowupOrc(o))}`, '_blank');
   o.followupEm = new Date().toISOString();
+  o.followupQtd = (o.followupQtd||0) + 1;
+  o.atualizadoEm = new Date().toISOString();
+  saveOrcs(orcs);
+  renderInicio();
+}
+// Para quando falou com o cliente por ligação/Instagram: some da lista e volta em 5 dias se ainda não fechou.
+function marcarFollowupFeito(id){
+  const orcs = getOrcs();
+  const o = orcs.find(x=>x.id===id); if(!o) return;
+  o.followupEm = new Date().toISOString();
+  o.followupQtd = (o.followupQtd||0) + 1;
   o.atualizadoEm = new Date().toISOString();
   saveOrcs(orcs);
   renderInicio();
@@ -15419,6 +15452,56 @@ function renderFollowup(){
       </div>`:''}
     </div>`;
 }
+// ---------- Bloco "Vendas para retomar" do Início (5 de cada vez, com páginas) ----------
+var _vendasPagina = 0;
+function renderVendasRetomar(){
+  const el = document.getElementById('inicio-vendas'); if(!el) return;
+  const bloco = document.getElementById('ini-bloco-vendas');
+  const resumo = document.getElementById('ini-vendas-resumo');
+  const lista = orcsEsperandoResposta();
+  if(!lista.length){
+    if(resumo) resumo.textContent = '';
+    el.innerHTML = '<div class="vnd-intro" style="margin:0">Nenhum orçamento esperando retorno agora. Quando um orçamento enviado ficar 5 dias sem resposta, ele aparece aqui.</div>';
+    return;
+  }
+  const totalAberto = lista.reduce((s,o)=>s+(parseFloat(o.total)||0),0);
+  if(resumo) resumo.innerHTML = `${lista.length} orçamento${lista.length>1?'s':''}${totalAberto?` · <b>${_iniMoeda(totalAberto)}</b> em propostas`:''}`;
+  const paginas = Math.ceil(lista.length / FOLLOWUP_POR_VEZ);
+  if(_vendasPagina >= paginas) _vendasPagina = paginas-1;
+  if(_vendasPagina < 0) _vendasPagina = 0;
+  const ini = _vendasPagina * FOLLOWUP_POR_VEZ;
+  const visiveis = lista.slice(ini, ini + FOLLOWUP_POR_VEZ);
+  el.innerHTML = `
+    <div class="vnd-intro">Orçamentos enviados que ainda não viraram contrato. Mande uma mensagem e ele sai da lista; se o cliente não fechar, volta daqui a ${FOLLOWUP_DIAS} dias para um novo contato.</div>
+    <div class="vnd-lista">${visiveis.map(o=>{
+      const conv = (parseInt(o.adultos)||0)+(parseInt(o.c59)||0)+(parseInt(o.c04)||0);
+      const qtd = o.followupQtd || (o.followupEm?1:0);
+      const tag = qtd===0 ? '<span class="vnd-tag nova">1º contato</span>'
+                : qtd>=3 ? `<span class="vnd-tag fria">${qtd} contatos já feitos</span>`
+                : `<span class="vnd-tag">${qtd+1}º contato</span>`;
+      return `<div class="vnd-item" onclick="abrirOrc('${o.id}');irForm()">
+        ${lstDataHtml(o.data)}
+        <div style="min-width:0">
+          <div class="vnd-nome">${_esc(o.nome||'Sem nome')}${tag}</div>
+          <div class="vnd-det">${_esc(tipoExibicao(o.tipo)||'Evento')}${conv?' · '+conv+' convidados':''}${o.total?' · <span class="vnd-valor">'+_iniMoeda(o.total)+'</span>':''}</div>
+          <div class="vnd-det">${o._jaCobrado?'Última mensagem':'Proposta enviada'} há ${o._diasSemResposta} dias${o.fone?'':' · <span class="ini-vermelho">sem WhatsApp cadastrado</span>'}</div>
+        </div>
+        <div class="vnd-acoes">
+          <button class="btn-sm ini-btn-acao" ${o.fone?'':'disabled'} onclick="event.stopPropagation();enviarFollowupOrc('${o.id}')">WhatsApp</button>
+          <button class="btn-sm" onclick="event.stopPropagation();marcarFollowupFeito('${o.id}')" title="Já falei com o cliente por outro meio (ligação, Instagram...)">Já falei</button>
+          <button class="btn-sm ini-btn-discreto" onclick="event.stopPropagation();marcarOrcSemInteresse('${o.id}')" title="Cliente não vai fechar">Perdido</button>
+        </div>
+      </div>`;}).join('')}</div>
+    ${paginas>1?`<div class="vnd-rodape">
+      <span>Mostrando ${ini+1}–${ini+visiveis.length} de ${lista.length}</span>
+      <span class="vnd-pag">
+        <button class="btn-sm" ${_vendasPagina===0?'disabled':''} onclick="vendasPagina(-1)">‹ Anteriores</button>
+        <button class="btn-sm" ${_vendasPagina>=paginas-1?'disabled':''} onclick="vendasPagina(1)">Próximos ${Math.min(FOLLOWUP_POR_VEZ, lista.length-ini-visiveis.length)||''} ›</button>
+      </span>
+    </div>`:''}`;
+}
+function vendasPagina(d){ _vendasPagina += d; renderVendasRetomar(); }
+
 function followupVerMais(){ _followupMostrar += FOLLOWUP_POR_VEZ; renderFollowup(); }
 function followupVerMenos(){ _followupMostrar = FOLLOWUP_POR_VEZ; renderFollowup(); }
 
