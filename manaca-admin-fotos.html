@@ -365,9 +365,34 @@
   .opcao span{ margin-left:auto; color: var(--suave); font-size:12.5px; font-weight:400; }
   .janela-botoes{ display:flex; justify-content:flex-end; gap:8px; }
 
-  #ver-foto{ background: rgba(14,15,10,0.94); }
-  #ver-foto img{ max-width: 92vw; max-height: 86vh; border-radius:8px; }
-  #ver-foto .fechar{ position:absolute; top:16px; right:16px; }
+  /* 23/11/2026: foto grande virou "revisão": passar as fotos, dar nome ao prato e excluir sem sair */
+  #ver-foto{ background: rgba(14,15,10,0.95); padding:0; }
+  .revisao{ position:relative; width:100%; height:100%; display:flex; flex-direction:column; }
+  .rev-topo{ display:flex; align-items:center; justify-content:space-between; padding:14px 16px; color: rgba(244,235,216,0.85); font-size:13px; }
+  .rev-topo .btn{ background: rgba(244,235,216,0.10); border-color: transparent; color: var(--creme); }
+  .rev-palco{ flex:1; min-height:0; display:flex; align-items:center; justify-content:center; gap:10px; padding:0 12px; }
+  .rev-palco img{ max-width: calc(100% - 120px); max-height:100%; border-radius:8px; object-fit:contain; }
+  .rev-nav{ flex-shrink:0; width:48px; height:48px; border-radius:50%; border:1px solid rgba(244,235,216,0.25); background: rgba(244,235,216,0.08); color: var(--creme); display:flex; align-items:center; justify-content:center; }
+  .rev-nav:hover{ background: rgba(244,235,216,0.18); }
+  .rev-nav svg{ width:20px; height:20px; }
+  .rev-barra{ display:flex; align-items:flex-end; gap:10px; flex-wrap:wrap; justify-content:center; padding:14px 16px 6px; }
+  .rev-campo{ display:flex; flex-direction:column; gap:5px; flex:1; min-width:220px; max-width:460px; color: rgba(244,235,216,0.75); font-size:11.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; }
+  .rev-campo input{ height:42px; border-radius:10px; border:1px solid rgba(244,235,216,0.25); background: rgba(244,235,216,0.95); color: var(--tinta); padding:0 12px; font-size:15px; font-family:inherit; text-transform:none; letter-spacing:0; }
+  .rev-barra .btn{ height:42px; }
+  .rev-barra .btn-perigo{ background: rgba(240,182,168,0.14); border-color: transparent; color:#F0B6A8; }
+  .rev-dica{ text-align:center; color: rgba(244,235,216,0.55); font-size:12px; padding: 4px 16px 16px; }
+  .foto .prato-tag{
+    position:absolute; left:8px; right:8px; bottom:8px; padding:4px 8px; border-radius:8px;
+    background: rgba(28,30,20,0.72); color:#fff; font-size:11.5px; font-weight:600; line-height:1.3;
+    overflow:hidden; white-space:nowrap; text-overflow:ellipsis; transition: opacity .15s;
+  }
+  .foto .sub-tag.com-prato{ bottom:38px; }
+  .foto:hover .prato-tag{ opacity:0; }
+  @media (max-width: 680px){
+    .rev-nav{ display:none; }
+    .rev-palco img{ max-width:100%; }
+    .rev-barra .btn{ flex:1; }
+  }
 
   /* ---------- CELULAR ---------- */
   @media (max-width: 900px){
@@ -608,11 +633,29 @@
   <input type="file" id="capa-input" accept="image/*" style="display:none">
 
   <!-- Ver foto grande -->
-  <div class="janela-fundo" id="ver-foto" onclick="fecharFoto()">
-    <button class="btn btn-icone fechar" aria-label="Fechar">
-      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg>
-    </button>
-    <img id="ver-foto-img" src="" alt="">
+  <div class="janela-fundo" id="ver-foto" onclick="if(event.target === this || event.target.classList.contains('rev-palco')) fecharFoto()">
+    <div class="revisao">
+      <div class="rev-topo">
+        <span id="rev-contador"></span>
+        <button class="btn btn-icone" onclick="fecharFoto()" aria-label="Fechar">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="rev-palco">
+        <button class="rev-nav" onclick="revNavegar(-1)" aria-label="Foto anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <img id="ver-foto-img" src="" alt="">
+        <button class="rev-nav" onclick="revNavegar(1)" aria-label="Próxima foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18l6-6-6-6"/></svg></button>
+      </div>
+      <div class="rev-barra">
+        <label class="rev-campo">Nome do prato
+          <input id="rev-prato" type="text" maxlength="80" placeholder="Ex.: Terrine de cogumelos" autocomplete="off">
+        </label>
+        <button class="btn btn-perigo" onclick="revExcluir()">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>Excluir esta foto
+        </button>
+      </div>
+      <div class="rev-dica">Use as setas (← →) ou deslize para passar. O nome do prato salva sozinho e aparece para o cliente.</div>
+    </div>
   </div>
 
   <div class="avisos" id="avisos"></div>
@@ -989,10 +1032,10 @@
     const sem = todas.filter(f => !subValida(id, f)).length;
     const subReal = subAtual && subAtual !== '_sem';
     const textoEnvio = subReal
-      ? `<strong>Adicionar fotos em ${esc(nomeSub(id, subAtual))}</strong>Clique para escolher ou arraste para cá. Pode mandar várias de uma vez.`
+      ? `<strong>Adicionar fotos em ${esc(nomeSub(id, subAtual))}</strong>Clique para escolher ou arraste para cá. Pode mandar todas de uma vez e depois usar <em>Revisar uma a uma</em> para excluir as que não ficaram boas e dar nome aos pratos.`
       : subs.length
         ? `<strong>Adicionar fotos</strong>Elas entram em "Sem categoria". Para separar, escolha antes uma categoria acima.`
-        : `<strong>Adicionar fotos</strong>Clique para escolher ou arraste para cá. Pode mandar várias de uma vez.`;
+        : `<strong>Adicionar fotos</strong>Clique para escolher ou arraste para cá. Pode mandar todas de uma vez e depois usar <em>Revisar uma a uma</em> para excluir as que não ficaram boas e dar nome aos pratos.`;
     $('conteudo').innerHTML = `
       <div class="pagina-topo">
         <div>
@@ -1001,6 +1044,7 @@
         </div>
         <div class="acoes-topo">
           ${todas.length ? `<button class="btn" onclick="ajustarCapaEvento('${id}')" title="Escolher o pedaço da foto de capa que aparece no cartão do site">${IC.ampliar}<span class="texto-opcional">Ajustar capa</span></button>` : ''}
+          ${todas.length ? `<button class="btn" onclick="revisarFotos()" title="Passar as fotos uma a uma em tamanho grande, dar nome ao prato e excluir as que não ficaram boas">${IC.foto}<span class="texto-opcional">Revisar uma a uma</span></button>` : ''}
           <button class="btn" id="btn-selecionar" onclick="alternarSelecao()">${IC.selecionar}<span class="texto-opcional">Selecionar</span></button>
           <button class="btn" onclick="copiarLink('${linkCliente}')" title="Copiar o link desta categoria para mandar ao cliente">${IC.link}<span class="texto-opcional">Copiar link</span></button>
           <button class="btn" onclick="abrirMensagem('${id}', '${subReal ? subAtual : ''}')" title="Mensagem pronta com o link desta categoria">${IC.whats}<span class="texto-opcional">Mensagem pronta</span></button>
@@ -1082,7 +1126,8 @@
         <img src="${esc(opt(f.url, 360))}" alt="" loading="lazy" onload="this.classList.add('ok')">
         ${f.capa ? `<div class="capa-tag">${IC.estrela}Capa</div>` : `<div class="ordem">${i + 1}</div>`}
         <div class="check">${IC.check}</div>
-        ${!subAtual && comSubs && subValida(categoriaAtual, f) ? `<div class="sub-tag">${esc(nomeSub(categoriaAtual, f.sub))}</div>` : ''}
+        ${f.prato ? `<div class="prato-tag" title="${esc(f.prato)}">${esc(f.prato)}</div>` : ''}
+        ${!subAtual && comSubs && subValida(categoriaAtual, f) ? `<div class="sub-tag${f.prato ? ' com-prato' : ''}">${esc(nomeSub(categoriaAtual, f.sub))}</div>` : ''}
         <div class="acoes">
           <button class="acao ${f.capa ? 'ligado' : ''}" data-acao="capa" title="${f.capa ? 'Esta é a capa' : 'Usar como capa'}">${f.capa ? IC.estrela : IC.estrelaVazia}</button>
           <button class="acao" data-acao="ver" title="Ver grande">${IC.ampliar}</button>
@@ -1379,14 +1424,87 @@
     $('lote').querySelectorAll('.btn:not(.btn-icone)').forEach(b => b.disabled = !selecionadas.size);
   }
 
-  // ---- Ver foto grande ----
-  function verFoto(i){
-    const f = fotosPorCategoria[categoriaAtual][i];
+  // ---- Ver foto grande / Revisar uma a uma (23/11/2026) ----
+  // Pedido da Laís: subir todas as fotos do evento de uma vez e depois passar uma a uma,
+  // excluindo as que não ficaram boas e escrevendo o nome do prato (campo "prato" da foto, que aparece no site do cliente).
+  let revChaves = [], revPos = 0, revTimer = null, revMudou = false;
+  const revAberta = () => $('ver-foto').classList.contains('on');
+  function fotoRev(){ return (fotosPorCategoria[categoriaAtual] || []).find(f => chave(f) === revChaves[revPos]); }
+  function mostrarRev(){
+    const f = fotoRev();
+    if(!f){ fecharFoto(); return; }
     $('ver-foto-img').src = optInteira(f.url, 1800);
+    $('rev-prato').value = f.prato || '';
+    $('rev-contador').textContent = `${nomeCat(categoriaAtual)} · foto ${revPos + 1} de ${revChaves.length}`;
+    const prox = (fotosPorCategoria[categoriaAtual] || []).find(x => chave(x) === revChaves[(revPos + 1) % revChaves.length]);
+    if(prox){ const im = new Image(); im.src = optInteira(prox.url, 1800); }   // adianta a próxima
+  }
+  function abrirRev(pos){
+    revChaves = fotosVisiveis().map(chave);
+    if(!revChaves.length) return;
+    revPos = Math.min(Math.max(pos, 0), revChaves.length - 1);
+    mostrarRev();
     $('ver-foto').classList.add('on');
   }
-  window.fecharFoto = () => { $('ver-foto').classList.remove('on'); $('ver-foto-img').src = ''; };
+  function verFoto(i){
+    const f = fotosPorCategoria[categoriaAtual][i];
+    abrirRev(fotosVisiveis().map(chave).indexOf(chave(f)));
+  }
+  window.revisarFotos = () => abrirRev(0);
+  // Grava o nome do prato (só se mudou)
+  async function salvarPratoAgora(){
+    clearTimeout(revTimer); revTimer = null;
+    const f = fotoRev();
+    if(!f) return;
+    const novo = $('rev-prato').value.trim().replace(/\s+/g, ' ');
+    if((f.prato || '') === novo) return;
+    if(novo) f.prato = novo; else delete f.prato;
+    renderFotos();
+    await salvarFotos(categoriaAtual);
+  }
+  document.addEventListener('input', e => {
+    if(e.target.id !== 'rev-prato') return;
+    clearTimeout(revTimer);
+    revTimer = setTimeout(salvarPratoAgora, 1200);
+  });
+  window.revNavegar = async function(d){
+    if(!revChaves.length) return;
+    await salvarPratoAgora();
+    revPos = (revPos + d + revChaves.length) % revChaves.length;
+    mostrarRev();
+  };
+  window.revExcluir = async function(){
+    const f = fotoRev();
+    if(!f) return;
+    await salvarPratoAgora();
+    const k = chave(f);
+    revChaves.splice(revPos, 1);
+    if(revPos >= revChaves.length) revPos = 0;
+    if(!revChaves.length) fecharFoto(); else mostrarRev();
+    revMudou = true;
+    await excluir([k]);   // o aviso tem "Desfazer"
+  };
+  window.fecharFoto = () => {
+    if(revAberta()) salvarPratoAgora();
+    $('ver-foto').classList.remove('on'); $('ver-foto-img').src = '';
+    if(revMudou){ revMudou = false; if(location.hash.replace('#', '').split('/')[0] === categoriaAtual) renderCategoria(); }   // atualiza as contagens das abas
+  };
+  // Deslizar o dedo na foto (celular)
+  let revToqueX = null;
+  $('ver-foto').addEventListener('touchstart', e => { revToqueX = e.touches[0].clientX; }, { passive:true });
+  $('ver-foto').addEventListener('touchend', e => {
+    if(revToqueX === null || e.target.closest('.rev-barra')){ revToqueX = null; return; }
+    const dx = e.changedTouches[0].clientX - revToqueX;
+    if(Math.abs(dx) > 50) revNavegar(dx < 0 ? 1 : -1);
+    revToqueX = null;
+  });
   document.addEventListener('keydown', e => {
+    if(revAberta()){
+      const digitando = e.target.id === 'rev-prato';
+      if(e.key === 'Enter' && digitando){ e.preventDefault(); revNavegar(1); return; }
+      if(!digitando && e.key === 'ArrowRight'){ revNavegar(1); return; }
+      if(!digitando && e.key === 'ArrowLeft'){ revNavegar(-1); return; }
+    }
     if(e.key !== 'Escape') return;
     fecharFoto(); fecharMover(); fecharMensagem(); fecharSub(); fecharLogin(); if(selecionando) sairSelecao();
   });

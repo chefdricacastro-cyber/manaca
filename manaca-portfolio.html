@@ -342,10 +342,28 @@
   .zoom-icone svg{ width:16px; height:16px; }
   .grade figure:hover .zoom-icone{ opacity:1; transform:none; }
   .grade-vazia{ text-align:center; color: var(--suave); padding: 70px 20px; column-span: all; }
+  /* 23/11/2026: nome do prato na foto e aviso de fotos ilustrativas */
+  .prato-nome{
+    position:absolute; z-index:2; left:0; right:0; bottom:0; padding: 34px 56px 12px 14px;
+    background: linear-gradient(180deg, transparent, rgba(15,16,10,0.62));
+    color: #FAF7F1; font-size:13px; font-weight:500; line-height:1.3; letter-spacing:.01em;
+    pointer-events:none;
+  }
+  .aviso-ilustrativo{
+    max-width: 760px; margin: 6px auto 0; padding: 0 5vw;
+    display:flex; gap:12px; align-items:flex-start; color: var(--suave); font-size:13.5px; line-height:1.6;
+  }
+  .aviso-ilustrativo svg{ width:18px; height:18px; flex-shrink:0; margin-top:2px; color: var(--ouro); }
+  .aviso-ilustrativo strong{ color: var(--tinta); font-weight:600; }
+  .lb-prato{ color: var(--creme); font-family:'Fraunces',serif; font-size:20px; text-align:center; line-height:1.25; }
+  .lb-ilustrativa{ color: rgba(244,235,216,0.55); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; }
 
   @media (max-width: 680px){
     .grade{ columns: 2; column-gap: 8px; padding: 18px 10px 30px; }
     .grade figure{ margin-bottom: 8px; border-radius: 10px; }
+    .prato-nome{ font-size:11.5px; padding: 26px 10px 8px; }
+    .aviso-ilustrativo{ font-size:12.5px; padding: 0 16px; }
+    .lb-prato{ font-size:17px; }
     .abas{ top: 64px; }
     .abas-trilho{ padding: 12px 16px; }
   }
@@ -371,7 +389,7 @@
     touch-action: pan-y;
   }
   #lightbox.aberto{ opacity:1; visibility:visible; }
-  .lb-palco{ position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; padding: 70px 80px; }
+  .lb-palco{ position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; padding: 70px 80px 140px; }
   #lb-img{
     max-width:100%; max-height:100%; object-fit:contain; border-radius: 6px;
     box-shadow: 0 30px 80px rgba(0,0,0,0.5);
@@ -396,9 +414,11 @@
   .lb-nav{ position:absolute; top:50%; transform: translateY(-50%); z-index:3; }
   .lb-prev{ left:18px; } .lb-next{ right:18px; }
   .lb-rodape{
-    position:absolute; bottom:0; left:0; right:0; z-index:3; display:flex; justify-content:center;
+    position:absolute; bottom:0; left:0; right:0; z-index:3; display:flex; flex-direction:column; align-items:center; gap:10px;
     padding: 0 16px 22px;
   }
+  .lb-legenda{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .lb-legenda:empty{ display:none; }
   .carregando-lb{
     position:absolute; width:34px; height:34px; border-radius:50%;
     border:2px solid rgba(244,235,216,0.2); border-top-color: var(--creme);
@@ -407,7 +427,7 @@
   .carregando-lb.on{ opacity:1; }
   @keyframes girar{ to{ transform: rotate(360deg); } }
   @media (max-width: 680px){
-    .lb-palco{ padding: 64px 0 84px; }
+    .lb-palco{ padding: 64px 0 140px; }
     #lb-img{ border-radius:0; }
     .lb-nav{ display:none; }
   }
@@ -552,6 +572,10 @@
     <div class="abas"><div class="abas-trilho" id="abas"></div></div>
     <div class="subabas" id="subabas"></div>
     <div class="grade" id="grade"></div>
+    <p class="aviso-ilustrativo" id="aviso-ilustrativo" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>
+      <span><strong>Fotos ilustrativas.</strong> Cada prato é preparado para o seu evento e pode variar conforme a qualidade e a época dos ingredientes (alguns são sazonais), a decoração da festa e o formato que a chef escolher para servir. Uma terrine, por exemplo, pode ser montada de vários jeitos. As fotos são uma inspiração, não uma cópia exata do que vai ser servido.</span>
+    </p>
     <div class="proxima" id="proxima"></div>
   </main>
 
@@ -612,6 +636,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18l6-6-6-6"/></svg>
     </button>
     <div class="lb-rodape">
+      <div class="lb-legenda" id="lb-legenda"></div>
       <a class="btn btn-creme btn-pequeno js-wa" href="#" target="_blank" rel="noopener">Quero um evento assim</a>
     </div>
   </div>
@@ -937,8 +962,9 @@
           <img src="${esc(opt(f.url, 800))}"
                srcset="${esc(opt(f.url, 500))} 500w, ${esc(opt(f.url, 800))} 800w, ${esc(opt(f.url, 1200))} 1200w"
                sizes="(max-width:680px) 50vw, (max-width:1100px) 33vw, 25vw"
-               alt="Foto de ${esc(cat.nome)}${f._grupo ? ' — ' + esc(f._grupo) : ''} — Buffet Manacá" loading="${i < 8 ? 'eager' : 'lazy'}" decoding="async"
+               alt="${f.prato ? esc(f.prato) + ' — ' : ''}Foto de ${esc(cat.nome)}${f._grupo ? ' — ' + esc(f._grupo) : ''} — Buffet Manacá" loading="${i < 8 ? 'eager' : 'lazy'}" decoding="async"
                onload="this.classList.add('ok')" onerror="this.closest('figure').remove()">
+          ${f.prato ? `<figcaption class="prato-nome">${esc(f.prato)}</figcaption>` : ''}
           <span class="zoom-icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></span>
         </figure>`;
     grade.className = 'grade';
@@ -960,6 +986,8 @@
       grade.innerHTML = fotos.map((f, i) => figura(f, i, i)).join('');
       observar(grade);
     }
+
+    $('aviso-ilustrativo').style.display = fotos.length ? 'flex' : 'none';
 
     // Próxima categoria
     const lista = comFotos.length ? comFotos : categorias;
@@ -1015,6 +1043,7 @@
     const url = opt(f.url, largura);
     $('lb-contador').textContent = `${indiceAtual + 1} / ${fotos.length}`;
     $('lb-cat').textContent = catAberta ? catAberta.nome + (f._grupo && f._grupo !== 'Mais fotos' ? ' · ' + f._grupo : '') : '';
+    $('lb-legenda').innerHTML = `${f.prato ? `<div class="lb-prato">${esc(f.prato)}</div>` : ''}<div class="lb-ilustrativa">Foto ilustrativa</div>`;
     lbImg.classList.add('saindo');
     const carregando = setTimeout(() => $('lb-carregando').classList.add('on'), 250);
     const pre = new Image();
