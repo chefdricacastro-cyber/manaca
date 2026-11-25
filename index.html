@@ -13071,12 +13071,12 @@ async function gerarPDFContrato(opts){
   if(obs){titulo('Observações Adicionais');corpo(obs,9);}
 
   {
-    chk(46);y+=8;
+    chk(56);y+=8;
     PDFM.f(doc,'r',9,PDFM.TX); doc.text(`Londrina, ${dataAssFmt}`,W-M,y,{align:'right'}); y+=26;
     doc.addImage(assinaturaAdriana,'PNG',M+37-16,y-20,32,18.4);
     doc.setDrawColor(...PDFM.ESC); doc.setLineWidth(0.3);
     doc.line(M,y,M+75,y); doc.line(W-M-75,y,W-M,y); y+=5;
-    PDFM.f(doc,'sb',9.3,PDFM.ESC); doc.text('Adriana Castro',M+37,y,{align:'center'}); doc.text(nome.slice(0,34),W-M-37,y,{align:'center'}); y+=4.2;
+    PDFM.f(doc,'sb',9.3,PDFM.ESC); doc.text('Adriana Castro',M+37,y,{align:'center'}); { const lnNome=doc.splitTextToSize(nome,75).slice(0,3); lnNome.forEach((l,i)=>doc.text(l,W-M-37,y+i*4.2,{align:'center'})); y+=4.2*(lnNome.length-1); } y+=4.2;
     PDFM.f(doc,'sb',6.4,PDFM.MU); PDFM.esp(doc,'CONTRATADA',M+37,y,0.6,'center'); PDFM.esp(doc,'CONTRATANTE',W-M-37,y,0.6,'center');
   }
   // Rodapé
@@ -13434,7 +13434,7 @@ async function gerarWordContrato(){
       new TableCell({width:{size:400,type:WidthType.DXA}, children:[new Paragraph({})]}),
       new TableCell({width:{size:4850,type:WidthType.DXA}, children:[
         new Paragraph({spacing:{before:960}}),
-        new Paragraph({alignment:AlignmentType.CENTER, border:{top:{color:K.C.esc, space:4, style:BorderStyle.SINGLE, size:4}}, children:[K.run(nome.slice(0,34),{bold:true,size:18,color:K.C.esc})]}),
+        new Paragraph({alignment:AlignmentType.CENTER, border:{top:{color:K.C.esc, space:4, style:BorderStyle.SINGLE, size:4}}, children:[K.run(nome,{bold:true,size:18,color:K.C.esc})]}),
         new Paragraph({alignment:AlignmentType.CENTER, children:[K.run('CONTRATANTE',{size:12,bold:true,color:K.C.mu,esp:20})]}),
       ]}),
     ]})]
