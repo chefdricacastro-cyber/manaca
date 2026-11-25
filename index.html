@@ -2846,6 +2846,10 @@ Chegamos com antecedência para montagem e preparação dos pratos</textarea>
         <div class="section">
           <div class="sh" data-sec="contr_claus" onclick="tog(this)"><h3><span class="sh-num">7</span>b Cláusulas específicas deste contrato <span style="font-size:9px;font-weight:400;opacity:.7">(opcional — só vale para ESTE contrato)</span></h3><span class="arr">▼</span></div>
           <div class="sb">
+            <div style="background:var(--amarelo);padding:10px;border-radius:6px;margin-bottom:10px">
+              <label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;cursor:pointer"><input type="checkbox" id="cclaus_unimed" onchange="_unimedTocado=true;renderContrPreview()" style="margin-top:2px"> <span><b>Incluir as cláusulas obrigatórias da Unimed</b> (multa, vínculo empregatício, cláusulas sociais, sigilo, equidade de gênero, anticorrupção e LGPD). <span style="opacity:.75">Marca sozinha quando o nome, o endereço ou o local do cliente têm "Unimed".</span></span></label>
+              <div id="cclaus_unimed_aviso" style="display:none;font-size:11px;margin-top:6px;opacity:.85">Entram como Cláusulas 9ª a 15ª, depois da Cláusula 8ª, na prévia, no PDF e no Word.</div>
+            </div>
             <div style="font-size:11px;color:var(--leve);margin-bottom:8px">Deixe em branco para usar o texto padrão do Buffet. O que for preenchido aqui aparece no contrato (prévia, PDF e Word) <b>somente neste contrato</b>; os demais não mudam.</div>
             <div class="field"><label class="fl">Substitui o Parágrafo único da Cláusula 4ª <span style="font-weight:400">(escreva só o texto, sem "Parágrafo único.")</span></label><textarea spellcheck="true" id="cclaus_c4u" rows="3" oninput="renderContrPreview()"></textarea></div>
             <div class="field"><label class="fl">Substitui a Cláusula 7ª (substituição de itens) <span style="font-weight:400">(escreva só o texto, sem "Cláusula 7ª.")</span></label><textarea spellcheck="true" id="cclaus_c7" rows="4" oninput="renderContrPreview()"></textarea></div>
@@ -6815,6 +6819,80 @@ function previewOrcModerna(){
 }
 
 // ===== SALVAR =====
+
+// ===== CLÁUSULAS OBRIGATÓRIAS DA UNIMED (pedido do jurídico da Unimed, 25/11/2026; ok da Drica) =====
+// Entram sozinhas em todo contrato em que o nome, o endereço ou o local do
+// cliente tenham "Unimed". A caixinha "cclaus_unimed" (seção 7b) permite tirar
+// ou colocar à mão; o que a pessoa escolher fica salvo no contrato.
+// Numeração: continuam depois da Cláusula 8ª (9ª a 15ª).
+const CLAUSULAS_UNIMED = [
+  {t:'Da Multa por Descumprimento Contratual', p:[
+    'Em caso de descumprimento de qualquer obrigação assumida neste contrato pela parte inadimplente, e não sendo sanada a irregularidade no prazo de 10 (dez) dias contados do recebimento de notificação escrita da parte prejudicada, ficará a parte infratora sujeita ao pagamento de multa não compensatória no valor correspondente a 10% (dez por cento) do valor total deste contrato, sem prejuízo da obrigação de indenizar perdas e danos adicionais que forem comprovados, bem como demais sanções previstas em lei.'
+  ]},
+  {t:'Da Ausência de Vínculo Societário e Empregatício', p:[
+    'Fica estipulado que não se estabelecerá, por força deste Contrato, qualquer vínculo societário e/ou empregatício entre as partes, para a execução deste contrato, correndo por conta exclusiva da CONTRATADA, única responsável como empregadora, a supervisão e todas as despesas com seus empregados, sejam encargos decorrentes da legislação trabalhista, previdenciária, securitária, fiscal ou qualquer outra.',
+    'Parágrafo Primeiro: Na hipótese da ocorrência de qualquer demanda na esfera trabalhista movida por empregado, representante ou preposto da CONTRATADA contra a CONTRATANTE, a CONTRATADA, detentora do vínculo empregatício direto ou indireto, responsabilizar-se-á pelo acompanhamento do processo, requerendo a exclusão da CONTRATANTE do polo passivo da lide, bem como se responsabilizando com eventual pagamento das verbas constantes na condenação, custas processuais e honorários advocatícios, isentando a CONTRATANTE de qualquer responsabilidade quanto às mesmas.',
+    'Parágrafo Segundo: Na eventualidade de a Justiça do Trabalho reconhecer a existência de vínculo empregatício com a CONTRATANTE, em ação que vier a ser promovida por empregado direto ou indireto da CONTRATADA, essa responderá por todas as verbas, encargos ou ônus decorrentes da decisão judicial, inclusive despesas processuais e honorários advocatícios.',
+    'Parágrafo Terceiro: Em ambos os casos, havendo desembolso pela CONTRATANTE, a CONTRATADA se compromete a ressarci-la em até 30 (trinta) dias de sua efetivação. Os comprovantes de pagamento, guias ou notas referentes a estes montantes, que vierem a ser suportados pela CONTRATANTE, servirão como prova de direito líquido, certo e exigível em favor da CONTRATANTE contra a CONTRATADA.'
+  ]},
+  {t:'Das Cláusulas Sociais', p:[
+    'A CONTRATADA compromete-se a respeitar e cumprir as condições abaixo descritas, as quais fazem parte do Código de Conduta Ética do Complexo Unimed:',
+    'a) Respeitar a legislação atual, a qual proíbe o trabalho de crianças e adolescentes, com menos de 16 (dezesseis) anos, exceto nas condições de aprendizes, a partir de 14 (quatorze) anos;',
+    'b) Desenvolver esforços para a redução, reutilização e reciclagem de materiais e recursos, tais como energia, água, produtos tóxicos e matérias primas, buscando, ainda, a implantação de processos de destinação adequada de resíduos;',
+    'c) Oferecer condições que não sejam prejudiciais ao desenvolvimento físico, psíquico, moral e social de seus profissionais;',
+    'd) Cumprir obrigações fiscais, tributárias, trabalhistas e previdenciárias.'
+  ]},
+  {t:'Da Confidencialidade', p:[
+    'Obriga-se a CONTRATADA a manter absoluto sigilo sobre informações comerciais, tecnológicas e estratégicas que obtiver em relação à CONTRATANTE, bem como a clientes da mesma, especialmente:',
+    'a) Tratar todas as informações a que tenha acesso em função deste Contrato em caráter de estrita confidencialidade, agindo com diligência para evitar sua divulgação verbal ou escrita, ou permitir o acesso, seja por ação seja por omissão, a qualquer terceiro;',
+    'b) Não divulgar informações acerca da prestação dos serviços objeto deste Contrato, exceto mediante prévia e expressa autorização;',
+    'c) Manter total sigilo sobre quaisquer dados que lhe sejam fornecidos em decorrência deste Contrato e todas as demais informações obtidas em razão dos serviços prestados que são objeto do presente contrato.',
+    'A infração ao disposto nesta Cláusula, a qualquer tempo, sujeitará a CONTRATADA às indenizações por perdas e danos.'
+  ]},
+  {t:'Da Promoção de Equidade de Gênero', p:[
+    'A CONTRATADA afirma ser de seu conhecimento que a Constituição Federal proíbe diferenças entre salários, no desempenho de deveres e critérios de contratação em função de sexo, idade, raça ou situação familiar (Art. 5º) de acordo com o Art. 461-462 da CLT. Dessa forma, a CONTRATADA compromete-se a desenvolver ações que promovam a igualdade de gênero e raça, estabelecendo uma cultura institucional que fortaleça a atuação nesse âmbito, através de mecanismos de combate à discriminação e promoção de políticas de igualdade de oportunidades.',
+    'Comprovando-se violação de qualquer das obrigações previstas nesta cláusula, a CONTRATANTE poderá rescindir este contrato, sem prejuízo da cobrança das perdas e danos causados a ela.'
+  ]},
+  {t:'Da Anticorrupção', p:[
+    'A CONTRATADA declara conhecer as normas de prevenção à corrupção previstas na Lei nº 12.846/13, a chamada “Lei Anticorrupção” e cumpri-las fielmente, por si e por seus sócios, administradores e colaboradores, exigindo também o seu cumprimento pelos terceiros por ela contratados.',
+    'Compromete-se a empenhar esforços na adoção de medidas de combate à prática de corrupção em todas as suas formas, assim como abster-se de qualquer atividade que indique violação das disposições da lei.',
+    'Por fim, a CONTRATADA compromete-se a:',
+    'I. Não dar, oferecer ou prometer qualquer bem de valor ou vantagem de qualquer natureza a agentes públicos ou a pessoas a eles relacionadas ou ainda quaisquer outras pessoas, empresas e/ou entidades privadas, com o objetivo de obter vantagem indevida e influenciar ato ou decisão ou direcionar negócios ilicitamente;',
+    'II. Adotar as melhores práticas de monitoramento e verificação do cumprimento das leis anticorrupção, com o objetivo de prevenir atos de corrupção, fraude, práticas ilícitas ou lavagem de dinheiro por seus sócios, administradores, colaboradores e/ou terceiros por elas contratados.',
+    'Comprovando-se violação de qualquer das obrigações previstas nesta cláusula, a CONTRATANTE poderá rescindir este contrato, sem prejuízo da cobrança das perdas e danos causados a ela.'
+  ]},
+  {t:'Da Proteção de Dados Pessoais', p:[
+    'As partes se comprometem a tratar as informações classificadas legalmente como dados pessoais, em razão da presente relação contratual, em observância à legislação aplicável, inclusive, mas não se limitando à Lei Federal nº 13.709/2018 (Lei Geral de Proteção de Dados), sob pena de incidência de multa por descumprimento contratual, sem prejuízo de perdas e danos.',
+    'É critério essencial da Unimed Londrina que seus parceiros, prestadores e fornecedores criem Políticas de Privacidade e Proteção de Dados em sua empresa e atendam aos requisitos de adequação impostos pela Lei Geral de Proteção de Dados Pessoais. No que se refere às Políticas de Privacidade e Proteção de Dados da Unimed de Londrina, estão descritas no endereço eletrônico: https://www.unimedlondrina.com.br/aviso-geral-de-privacidade-e-proteção-de-dados/ constante no rodapé do site da Unimed Londrina, onde a empresa poderá acessar e verificar todas as informações pertinentes ao tratamento de dados pessoais.',
+    'O tratamento dos dados pessoais se dará unicamente em observância à finalidade estabelecida.',
+    'Os dados pessoais objeto deste contrato serão armazenados pelo tempo necessário à execução do pactuado, ressalvada a possibilidade de manutenção, pelo prazo admitido em lei, dos dados necessários ao cumprimento de obrigações legais e regulatórias, nos termos do art. 16, inciso I da Lei Geral de Proteção de Dados Pessoais, sem prejuízo de outras disposições legais.',
+    'Os dados pessoais dos representantes legais e prepostos indicados no presente instrumento poderão ser utilizados pelas partes para fins de informativos, notificações, comunicados, formalização e regularização de todo e qualquer outro instrumento que seja relativo à relação contratual que ora se firma.',
+    '1. As Partes comprometem-se a tratar os dados pessoais que tiverem acesso em decorrência desse contrato em estrita observância à legislação aplicável, inclusive a Lei Federal nº 13.709/2018 (Lei Geral de Proteção de Dados - “LGPD”), sob pena de responsabilidade por perdas e danos decorrentes do descumprimento.',
+    '2. As Partes declaram que possuem e mantêm programas de governança em privacidade e proteção de dados, incluindo políticas e processos internos aptos a assegurar a conformidade com a LGPD e a proteção dos dados pessoais.',
+    '3. O tratamento de dados pessoais no âmbito desta relação limitar-se-á estritamente à finalidade contratual estabelecida. Os dados dos representantes legais, prepostos e gestores indicados neste instrumento serão utilizados pelas Partes exclusivamente para fins de gestão administrativa, notificações, comunicados, formalização e regularização do vínculo contratual.',
+    '4. Os dados pessoais objeto deste contrato serão armazenados pelo tempo necessário à execução do pactuado, ressalvada a possibilidade de manutenção, pelo prazo admitido em lei, para o cumprimento de obrigações legais e regulatórias, e exercício regular de direitos, nos termos da Lei.'
+  ]}
+];
+// Devolve as seções já numeradas (Cláusula 9ª em diante) ou [] quando não entram.
+function clausulasUnimedContrato(){
+  atualizarUnimedAuto();
+  if(!document.getElementById('cclaus_unimed')?.checked) return [];
+  return CLAUSULAS_UNIMED.map((c,i)=>({t:c.t, p:c.p.map((x,j)=> j===0 ? `Cláusula ${9+i}ª. ${x}` : x)}));
+}
+function contratoEhUnimed(){
+  return ['ccli_nome','ccli_end','cev_local'].some(id=>/unimed/i.test(gv(id)||''));
+}
+// Marca a caixinha sozinha quando o cliente é a Unimed, a não ser que a
+// pessoa já tenha mexido nela neste contrato.
+let _unimedTocado=false;
+function atualizarUnimedAuto(){
+  const cb=document.getElementById('cclaus_unimed');
+  if(!cb) return;
+  if(!_unimedTocado && contratoEhUnimed()) cb.checked=true;
+  const av=document.getElementById('cclaus_unimed_aviso');
+  if(av) av.style.display=cb.checked?'block':'none';
+}
+
 // Cláusulas específicas de UM contrato (substituem trechos padrão / acrescentam cláusulas)
 function clausulasEsp(){
   return { c4u:(gv('cclaus_c4u')||'').trim(), c7:(gv('cclaus_c7')||'').trim(), extra:(gv('cclaus_extra')||'').trim() };
@@ -11509,6 +11587,7 @@ function toggleDadosNF(){
 
 function limparContrato(){
   ['cnum','ccli_nome','ccli_doc','ccli_fone','ccli_end','cev_tipo','cev_local','cev_conv','cev_assessora_nome','cev_assessora_fone','cvalor_total','cvalor_ext','cforma_pgto','cdata_pgto','cobs','cclaus_c4u','cclaus_c7','cclaus_extra'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  { const cu=document.getElementById('cclaus_unimed'); if(cu) cu.checked=false; _unimedTocado=false; }
   sv('cdata_ass','');sv('cev_data','');sv('cev_inicio','');sv('cev_fim','');
   { const el=document.getElementById('cev_data_confirma'); if(el) el.innerHTML=''; }
   sv('cmontagem','');sv('cdesmontagem','');itensCasinhaSelecionados=itensCasinhaPadrao();onTipoContratoChange();
@@ -11565,6 +11644,7 @@ function preencherFormContrato(ct){
   }
   renderTaxasAdicionaisContrato();
   sv('cdata_pgto',ct.data_pgto);sv('cobs',ct.obs);sv('cclaus_c4u',ct.claus_c4u);sv('cclaus_c7',ct.claus_c7);sv('cclaus_extra',ct.claus_extra);
+  { const cu=document.getElementById('cclaus_unimed'); if(cu){ cu.checked=!!ct.claus_unimed; _unimedTocado=(ct.claus_unimed===false && contratoEhUnimed()); } }
   pagamentosContrato=[...(ct.pagamentos||[])];renderPagamentosContrato();
   lembretesCobranca=[...(ct.lembretes_cobranca||[])];renderLembretesCobranca();
   datasExtrasContrato=[...(ct.datas_extras||[])];renderDatasExtrasContrato();
@@ -12649,6 +12729,7 @@ function renderContrPreview(){
     : 'Cláusula 5ª. O presente contrato poderá ser rescindido unilateralmente por qualquer uma das partes, desde que haja comunicação formal por escrito justificando o motivo. O prazo para alteração deverá ser no máximo de 15 (quinze) dias que antecedem o evento. · Cláusula 6ª. O cardápio foi elaborado de acordo com o número de convidados determinado pela CONTRATANTE. A CONTRATADA não será responsabilizada se a insuficiência de comida e/ou bebida resultar da entrada de número maior de pessoas.'+(ceP.c7?' · Cláusula 7ª. '+escHtmlCl(ceP.c7):' · Cláusula 7ª. Caso algum item do cardápio contratado não esteja disponível no momento do evento por ser produto de época, questões de fornecimento ou outros motivos alheios, este poderá ser substituído por item similar de igual ou superior qualidade. Sempre que possível, a CONTRATADA comunicará a substituição com antecedência; caso não seja viável pela proximidade do evento, a substituição será feita mesmo assim, sem aviso prévio.')
   } · Cláusula 8ª. Qualquer alteração somente será reconhecida se incorporada ao presente contrato mediante Termo Aditivo, devidamente assinado pelas partes.</div>`;
 
+  clausulasUnimedContrato().forEach(c=>{ h+=`<div class="cl-sec">${c.t}</div>`+c.p.map(x=>`<div class="cl-body" style="font-size:9px">${escHtmlCl(x)}</div>`).join(''); });
   if(ceP.extra)h+=`<div class="cl-sec">Cláusulas Específicas deste Contrato</div><div class="cl-body" style="font-size:9px">${escHtmlCl(ceP.extra).replace(/\n+/g,'<br>')}</div>`;
   if(obs)h+=`<div class="cl-sec">Observações</div><div class="cl-body" style="font-size:9.5px">${obs}</div>`;
 
@@ -12683,7 +12764,7 @@ async function salvarContrato(){
     t_c59:gv('ct_c59'),tv_c59:gv('ct_val_c59'),
     t_staff:gv('ct_staff'),tv_staff:gv('ct_val_staff'),taxas_adicionais:[...taxasAdicionaisContrato],
     itens_casinha:[...itensCasinhaSelecionados],
-    data_pgto:gv('cdata_pgto'),obs:gv('cobs'),claus_c4u:gv('cclaus_c4u'),claus_c7:gv('cclaus_c7'),claus_extra:gv('cclaus_extra'),
+    data_pgto:gv('cdata_pgto'),obs:gv('cobs'),claus_c4u:gv('cclaus_c4u'),claus_c7:gv('cclaus_c7'),claus_extra:gv('cclaus_extra'),claus_unimed:(atualizarUnimedAuto(),!!document.getElementById('cclaus_unimed')?.checked),
     pagamentos:[...pagamentosContrato],
     lembretes_cobranca:[...lembretesCobranca],
     datas_extras:[...datasExtrasContrato],
@@ -12985,6 +13066,7 @@ async function gerarPDFContrato(opts){
   titulo('Cláusula 8ª');
   corpo('Qualquer alteração, modificação, complementação, ou ajuste, somente será reconhecido e produzirá efeitos legais, se incorporado ao presente contrato mediante Termo Aditivo, devidamente assinado pelas partes contratantes.',9);
 
+  clausulasUnimedContrato().forEach(c=>{ titulo(c.t); c.p.forEach(x=>corpo(x,9)); });
   if(ceD.extra){titulo('Cláusulas Específicas deste Contrato');ceD.extra.split(/\n+/).filter(l=>l.trim()).forEach(l=>corpo(l.trim(),9));}
   if(obs){titulo('Observações Adicionais');corpo(obs,9);}
 
@@ -13318,6 +13400,12 @@ async function gerarWordContrato(){
   children.push(corpoW('Qualquer alteração, modificação, complementação, ou ajuste, somente será reconhecido e produzirá efeitos legais, se incorporado ao presente contrato mediante Termo Aditivo, devidamente assinado pelas partes contratantes.'));
   children.push(espacoW(140));
 
+  clausulasUnimedContrato().forEach(c=>{
+    children.push(tituloBanner(c.t));
+    children.push(espacoW(70));
+    c.p.forEach(x=>children.push(corpoW(x)));
+    children.push(espacoW(140));
+  });
   if(ceW.extra){
     children.push(tituloBanner('Cláusulas Específicas deste Contrato'));
     children.push(espacoW(70));
